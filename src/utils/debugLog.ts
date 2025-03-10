@@ -1,4 +1,4 @@
-import { env } from "@/app/config/env";
+import { env } from "@/config/env";
 
 export function debugLog(context: string, message: string, data?: unknown) {
   if (env.NODE_ENV === "development") {

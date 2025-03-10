@@ -5,11 +5,12 @@ export const env = createEnv({
   server: {
     FIREBASE_CLIENT_EMAIL: z.string(),
     FIREBASE_PRIVATE_KEY: z.string(),
-    STRIPE_SECRET_KEY: z.string(),
     FIRESTORE_EMULATOR_HOST: z.string(),
     FIREBASE_AUTH_EMULATOR_HOST: z.string(),
     FIREBASE_STORAGE_EMULATOR_HOST: z.string(),
-    DATABASE_URL: z.string(),
+    USE_SECURE_COOKIES: z.string().transform((val) => val === "true"),
+    COOKIE_SECRET_CURRENT: z.string(),
+    COOKIE_SECRET_PREVIOUS: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -21,12 +22,20 @@ export const env = createEnv({
     NEXT_PUBLIC_FIREBASE_APP_ID: z.string(),
     NEXT_PUBLIC_FIREBASE_PROJECT_ID: z.string(),
     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: z.string(),
-    NEXT_PUBLIC_IS_USING_EMULATORS: z.boolean(),
+    NEXT_PUBLIC_IS_USING_EMULATORS: z
+      .string()
+      .transform((val) => val === "true"),
     NEXT_PUBLIC_EMULATOR_HOST: z.string(),
-    NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT: z.number(),
-    NEXT_PUBLIC_STORAGE_EMULATOR_PORT: z.number(),
-    NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT: z.number(),
-    NEXT_PUBLIC_AUTH_EMULATOR_HOST: z.number(),
+    NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT: z
+      .string()
+      .transform((val) => Number(val)),
+    NEXT_PUBLIC_STORAGE_EMULATOR_PORT: z
+      .string()
+      .transform((val) => Number(val)),
+    NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT: z
+      .string()
+      .transform((val) => Number(val)),
+    NEXT_PUBLIC_AUTH_EMULATOR_HOST: z.string().transform((val) => Number(val)),
   },
   runtimeEnv: {
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
@@ -34,8 +43,9 @@ export const env = createEnv({
     FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST,
     FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
     FIREBASE_STORAGE_EMULATOR_HOST: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
-    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-    DATABASE_URL: process.env.DATABASE_URL,
+    USE_SECURE_COOKIES: process.env.USE_SECURE_COOKIES,
+    COOKIE_SECRET_CURRENT: process.env.COOKIE_SECRET_CURRENT,
+    COOKIE_SECRET_PREVIOUS: process.env.COOKIE_SECRET_PREVIOUS,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
@@ -47,7 +57,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:
       process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    NEXT_PUBLIC_IS_USING_EMULATORS: process.env.NEXT_PUBLIC_USE_EMULATORS,
+    NEXT_PUBLIC_IS_USING_EMULATORS: process.env.NEXT_PUBLIC_IS_USING_EMULATORS,
     NEXT_PUBLIC_EMULATOR_HOST: process.env.NEXT_PUBLIC_EMULATOR_HOST,
     NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT:
       process.env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT,

@@ -1,4 +1,4 @@
-import { firebaseAdminParams } from "@/app/config/firebase";
+import { firebaseAdminParams } from "@/config/firebase";
 import { debugLog } from "@/utils/debugLog";
 import { normalizeNewLines } from "@/utils/normalizeNewLines";
 import admin, { credential, ServiceAccount } from "firebase-admin";
