@@ -1,7 +1,7 @@
 import { UserEntity } from "@/core/entities/UserEntity";
 import { IAuthAdminRepository } from "@/core/interfaces/IAuthAdminRepository";
 import { UserRecord } from "firebase-admin/auth";
-import { AuthAdminDataDatasource } from "../datasources/authAdminDataSource";
+import { AuthAdminDataDatasource } from "../datasources/authAdminDatasource";
 
 export class AuthAdminRepository implements IAuthAdminRepository {
   private authAdmin: AuthAdminDataDatasource;
