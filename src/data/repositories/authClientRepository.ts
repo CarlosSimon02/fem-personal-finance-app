@@ -1,12 +1,12 @@
 import { AuthEntity } from "@/core/entities/AuthEntity";
 import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
 import { AuthCredentials } from "@/data/models/authModel";
-import { AuthClient } from "../datasources/authClient";
+import { AuthClientDatasource } from "../datasources/authClientDatasource";
 
 export class AuthClientRepository implements IAuthClientRepository {
-  private authClient: AuthClient;
+  private authClient: AuthClientDatasource;
 
-  constructor(authClient: AuthClient) {
+  constructor(authClient: AuthClientDatasource) {
     this.authClient = authClient;
   }
 

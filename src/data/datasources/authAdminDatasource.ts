@@ -3,7 +3,7 @@
 import { adminAuth } from "@/services/firebase/firebaseAdmin";
 import { UserRecord } from "firebase-admin/auth";
 
-export class AuthAdmin {
+export class AuthAdminDataDatasource {
   async verifyIdToken(idToken: string): Promise<string> {
     try {
       const decodedToken = await adminAuth.verifyIdToken(idToken);

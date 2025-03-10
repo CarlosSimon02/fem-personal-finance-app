@@ -9,7 +9,7 @@ import {
   signOut,
 } from "firebase/auth";
 
-export class AuthClient {
+export class AuthClientDatasource {
   async signUpWithEmail(credentials: AuthCredentials): Promise<AuthResponse> {
     try {
       const userCredential = await createUserWithEmailAndPassword(
