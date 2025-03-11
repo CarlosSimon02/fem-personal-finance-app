@@ -5,9 +5,6 @@ export const env = createEnv({
   server: {
     FIREBASE_CLIENT_EMAIL: z.string(),
     FIREBASE_PRIVATE_KEY: z.string(),
-    FIRESTORE_EMULATOR_HOST: z.string(),
-    FIREBASE_AUTH_EMULATOR_HOST: z.string(),
-    FIREBASE_STORAGE_EMULATOR_HOST: z.string(),
     USE_SECURE_COOKIES: z.string().transform((val) => val === "true"),
     COOKIE_SECRET_CURRENT: z.string(),
     COOKIE_SECRET_PREVIOUS: z.string(),
@@ -35,14 +32,11 @@ export const env = createEnv({
     NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT: z
       .string()
       .transform((val) => Number(val)),
-    NEXT_PUBLIC_AUTH_EMULATOR_HOST: z.string().transform((val) => Number(val)),
+    NEXT_PUBLIC_AUTH_EMULATOR_HOST: z.string(),
   },
   runtimeEnv: {
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
     FIREBASE_PRIVATE_KEY: process.env.FIREBASE_PRIVATE_KEY,
-    FIRESTORE_EMULATOR_HOST: process.env.FIRESTORE_EMULATOR_HOST,
-    FIREBASE_AUTH_EMULATOR_HOST: process.env.FIREBASE_AUTH_EMULATOR_HOST,
-    FIREBASE_STORAGE_EMULATOR_HOST: process.env.FIREBASE_STORAGE_EMULATOR_HOST,
     USE_SECURE_COOKIES: process.env.USE_SECURE_COOKIES,
     COOKIE_SECRET_CURRENT: process.env.COOKIE_SECRET_CURRENT,
     COOKIE_SECRET_PREVIOUS: process.env.COOKIE_SECRET_PREVIOUS,

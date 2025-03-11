@@ -1,4 +1,5 @@
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
+import { FieldValue } from "firebase-admin/firestore";
 import { UserModel, UserUpdateModel } from "../models/userModel";
 
 export class UserDatasource {
@@ -6,7 +7,11 @@ export class UserDatasource {
 
   async createUser(user: UserModel): Promise<UserModel> {
     try {
-      await this.usersCollection.doc(user.uid).set(user);
+      await this.usersCollection.doc(user.uid).set({
+        ...user,
+        createdAt: FieldValue.serverTimestamp(),
+        updatedAt: FieldValue.serverTimestamp(),
+      });
       return user;
     } catch (error) {
       const err = error as Error;
@@ -26,7 +31,9 @@ export class UserDatasource {
 
   async updateUser(uid: string, updates: UserUpdateModel): Promise<void> {
     try {
-      await this.usersCollection.doc(uid).update(updates);
+      await this.usersCollection
+        .doc(uid)
+        .update({ ...updates, updatedAt: FieldValue.serverTimestamp() });
     } catch (error) {
       const err = error as Error;
       throw new Error("Failed to update user: " + err.message);

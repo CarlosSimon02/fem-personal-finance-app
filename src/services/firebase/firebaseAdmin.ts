@@ -43,6 +43,13 @@ export function initializeFirebaseAdmin(params: FirebaseAdminParams) {
 
 const adminApp = initializeFirebaseAdmin(firebaseAdminParams);
 
+const IS_USING_EMULATORS = env.NEXT_PUBLIC_IS_USING_EMULATORS === true;
+if (IS_USING_EMULATORS && env.NODE_ENV !== "production") {
+  process.env["FIRESTORE_EMULATOR_HOST"] = "localhost:8080";
+  process.env["FIREBASE_AUTH_EMULATOR_HOST"] = "localhost:9099";
+  process.env["FIREBASE_STORAGE_EMULATOR_HOST"] = "localhost:9199";
+}
+
 export const adminFirestore = getFirestore(adminApp);
 export const adminAuth = getAuth(adminApp);
 export const adminStorageBucket = getStorage(adminApp).bucket(

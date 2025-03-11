@@ -22,7 +22,7 @@ if (isUsingEmulators && env.NODE_ENV !== "production") {
     env.NEXT_PUBLIC_EMULATOR_HOST,
     env.NEXT_PUBLIC_FIRESTORE_EMULATOR_PORT
   );
-  connectAuthEmulator(clientAuth, env.FIREBASE_AUTH_EMULATOR_HOST);
+  connectAuthEmulator(clientAuth, env.NEXT_PUBLIC_AUTH_EMULATOR_HOST);
   connectStorageEmulator(
     clientStorage,
     env.NEXT_PUBLIC_EMULATOR_HOST,

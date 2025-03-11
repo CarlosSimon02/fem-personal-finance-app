@@ -1,16 +1,16 @@
 import { UserEntity } from "@/core/entities/UserEntity";
 import { IAuthAdminRepository } from "@/core/interfaces/IAuthAdminRepository";
-import { UserRecord } from "firebase-admin/auth";
-import { AuthAdminDataDatasource } from "../datasources/authAdminDatasource";
+import { DecodedIdToken, UserRecord } from "firebase-admin/auth";
+import { AuthAdminDatasource } from "../datasources/authAdminDatasource";
 
 export class AuthAdminRepository implements IAuthAdminRepository {
-  private authAdmin: AuthAdminDataDatasource;
+  private authAdmin: AuthAdminDatasource;
 
-  constructor(authAdmin: AuthAdminDataDatasource) {
+  constructor(authAdmin: AuthAdminDatasource) {
     this.authAdmin = authAdmin;
   }
 
-  async verifyIdToken(idToken: string): Promise<string> {
+  async verifyIdToken(idToken: string): Promise<DecodedIdToken> {
     return this.authAdmin.verifyIdToken(idToken);
   }
 
@@ -26,8 +26,11 @@ export class AuthAdminRepository implements IAuthAdminRepository {
     return userEntity;
   }
 
-  async updateUserEmail(uid: string, email: string): Promise<void> {
-    return this.authAdmin.updateUserEmail(uid, email);
+  async updateUserDisplayName(
+    uid: string,
+    displayName?: string
+  ): Promise<void> {
+    return this.authAdmin.updateUserDisplayName(uid, displayName);
   }
 
   async deleteUser(uid: string): Promise<void> {
