@@ -28,7 +28,7 @@ export async function middleware(request: NextRequest) {
     cookieName: authConfig.cookieName,
     cookieSerializeOptions: {
       ...authConfig.cookieSerializeOptions,
-      maxAge: 30 * 60 * 60 * 24,
+      maxAge: 30 * 60 * 60 * 24, // 30 days
     },
     cookieSignatureKeys: authConfig.cookieSignatureKeys,
     serviceAccount: authConfig.serviceAccount,
@@ -38,19 +38,29 @@ export async function middleware(request: NextRequest) {
       if (isAuthPath && decodedToken) {
         return redirectToHome(request);
       }
-      if (isPublicPath || (isPrivatePath && decodedToken)) {
+
+      if (isPrivatePath && decodedToken) {
         return NextResponse.next({ request: { headers } });
       }
+
       if (isPrivatePath && !decodedToken) {
         return redirectToLogin(request, {
           path: "/login",
           publicPaths: PUBLIC_PATHS,
         });
       }
+
+      if (isPublicPath && !decodedToken) {
+        return NextResponse.next({ request: { headers } });
+      }
+
       return NextResponse.next({ request: { headers } });
     },
     handleInvalidToken: async () => {
-      if (isPublicPath) return NextResponse.next();
+      if (isPublicPath) {
+        return NextResponse.next();
+      }
+
       return redirectToLogin(request, {
         path: "/login",
         publicPaths: PUBLIC_PATHS,
@@ -58,6 +68,7 @@ export async function middleware(request: NextRequest) {
     },
     handleError: async (error) => {
       console.error("Unhandled authentication error", { error });
+
       return redirectToLogin(request, {
         path: "/login",
         publicPaths: PUBLIC_PATHS,
@@ -69,6 +80,9 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/signup",
+    "/login",
+    "/forgot-password",
     "/((?!_next|favicon.ico|__/auth|__/firebase|api|.*\.).*)",
     "/api/login",
     "/api/logout",
