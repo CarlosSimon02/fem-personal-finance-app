@@ -1,20 +1,21 @@
 import { Button } from "@/presentation/components/ui/button";
+import { cn } from "@/utils/lib/shadcnUtils";
 
-type GoogleSignInButtonProps = {
-  onClick: () => void;
+type GoogleSignInButtonProps = React.ComponentProps<"button"> & {
   label?: string;
 };
 
 const GoogleSignInButton = ({
-  onClick,
   label = "Sign in with Google",
+  className,
+  ...props
 }: GoogleSignInButtonProps) => {
   return (
     <Button
       type="button"
       variant="outline"
-      onClick={onClick}
-      className="flex w-full items-center justify-center gap-2"
+      className={cn("flex w-full items-center justify-center gap-2", className)}
+      {...props}
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

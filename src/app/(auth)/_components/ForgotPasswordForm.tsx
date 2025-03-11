@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ForgotPasswordFormData,
+  forgotPasswordSchema,
+} from "@/core/schemas/forgotPasswordSchema";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Form,
@@ -14,18 +18,14 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useResetPassword } from "../_hooks/useResetPassword";
 import AuthLayout from "./AuthLayout";
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-});
-
-type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
 
 const ForgotPasswordForm = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState("");
+
+  const resetPasswordMutation = useResetPassword();
 
   const form = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
@@ -34,18 +34,16 @@ const ForgotPasswordForm = () => {
     },
   });
 
-  const isLoading = form.formState.isSubmitting;
-
   const onSubmit = async (data: ForgotPasswordFormData) => {
-    try {
-      console.log("Form submitted:", data);
-
-      setSubmittedEmail(data.email);
-      setIsSubmitted(true);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+    await resetPasswordMutation.mutateAsync(data.email, {
+      onSuccess: () => {
+        setSubmittedEmail(data.email);
+        setIsSubmitted(true);
+      },
+    });
   };
+
+  const isLoading = resetPasswordMutation.isPending;
 
   return (
     <AuthLayout
@@ -102,6 +100,7 @@ const ForgotPasswordForm = () => {
                       type="email"
                       placeholder="Enter your email"
                       aria-describedby="email-error"
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage id="email-error" />

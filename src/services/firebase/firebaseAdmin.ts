@@ -1,4 +1,4 @@
-import { firebaseAdminParams } from "@/config/firebase";
+import { env } from "@/config/env";
 import { debugLog } from "@/utils/debugLog";
 import { normalizeNewLines } from "@/utils/normalizeNewLines";
 import admin, { credential, ServiceAccount } from "firebase-admin";
@@ -11,6 +11,13 @@ type FirebaseAdminParams = {
   clientEmail: string;
   privateKey: string;
   storageBucket?: string;
+};
+
+const firebaseAdminParams = {
+  projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  clientEmail: env.FIREBASE_CLIENT_EMAIL,
+  privateKey: env.FIREBASE_PRIVATE_KEY,
+  storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
 };
 
 export function initializeFirebaseAdmin(params: FirebaseAdminParams) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { SignUpFormData, signUpSchema } from "@/core/schemas/signUpSchema";
 import PasswordInput from "@/presentation/components/PasswordInput";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -14,28 +15,15 @@ import { Input } from "@/presentation/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useGoogleSignIn } from "../_hooks/useGoogleSignIn";
+import { useSignUp } from "../_hooks/useSignUp";
 import AuthLayout from "./AuthLayout";
 import GoogleSignInButton from "./GoogleSignInButton";
 
-const signUpSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z
-    .string()
-    .min(8, { message: "Password must be at least 8 characters" })
-    .regex(/[A-Z]/, {
-      message: "Password must contain at least one uppercase letter",
-    })
-    .regex(/[a-z]/, {
-      message: "Password must contain at least one lowercase letter",
-    })
-    .regex(/[0-9]/, { message: "Password must contain at least one number" }),
-});
-
-type SignUpFormData = z.infer<typeof signUpSchema>;
-
 const SignUpForm = () => {
+  const signUpMutation = useSignUp();
+  const googleSignInMutation = useGoogleSignIn();
+
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -45,22 +33,15 @@ const SignUpForm = () => {
     },
   });
 
-  const isLoading = form.formState.isSubmitting;
-
   const onSubmit = async (data: SignUpFormData) => {
-    try {
-      console.log("Form submitted:", data);
-
-      // Reset form or redirect on success
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+    await signUpMutation.mutateAsync(data);
   };
 
-  const handleGoogleSignIn = () => {
-    // Implement Google sign-in logic
-    console.log("Google sign-in clicked");
+  const handleGoogleSignIn = async () => {
+    await googleSignInMutation.mutateAsync();
   };
+
+  const isLoading = signUpMutation.isPending || googleSignInMutation.isPending;
 
   return (
     <AuthLayout title="Create your account">
@@ -78,6 +59,7 @@ const SignUpForm = () => {
                       {...field}
                       placeholder="Enter your name"
                       aria-describedby="name-error"
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage id="name-error" />
@@ -97,6 +79,7 @@ const SignUpForm = () => {
                       type="email"
                       placeholder="Enter your email"
                       aria-describedby="email-error"
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage id="email-error" />
@@ -115,6 +98,7 @@ const SignUpForm = () => {
                       {...field}
                       placeholder="Create a password"
                       aria-describedby="password-error"
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage id="password-error" />
@@ -124,7 +108,9 @@ const SignUpForm = () => {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating account..." : "Create Account"}
+            {signUpMutation.isPending
+              ? "Creating account..."
+              : "Create Account"}
           </Button>
 
           <div className="relative my-4">
@@ -140,7 +126,12 @@ const SignUpForm = () => {
 
           <GoogleSignInButton
             onClick={handleGoogleSignIn}
-            label="Sign up with Google"
+            label={
+              googleSignInMutation.isPending
+                ? "Signing up..."
+                : "Sign up with Google"
+            }
+            disabled={isLoading}
           />
 
           <div className="mt-4 text-center text-sm">

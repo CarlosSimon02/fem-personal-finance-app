@@ -1,5 +1,6 @@
 "use client";
 
+import { LoginFormData, loginSchema } from "@/core/schemas/loginSchema";
 import PasswordInput from "@/presentation/components/PasswordInput";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -14,18 +15,15 @@ import { Input } from "@/presentation/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useGoogleSignIn } from "../_hooks/useGoogleSignIn";
+import { useLogin } from "../_hooks/useLogin";
 import AuthLayout from "./AuthLayout";
 import GoogleSignInButton from "./GoogleSignInButton";
 
-const loginSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(1, { message: "Password is required" }),
-});
-
-type LoginFormData = z.infer<typeof loginSchema>;
-
 const LoginForm = () => {
+  const loginMutation = useLogin();
+  const googleSignInMutation = useGoogleSignIn();
+
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,19 +32,15 @@ const LoginForm = () => {
     },
   });
 
-  const isLoading = form.formState.isSubmitting;
-
   const onSubmit = async (data: LoginFormData) => {
-    try {
-      console.log("Form submitted:", data);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+    await loginMutation.mutateAsync(data);
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google sign-in clicked");
+  const handleGoogleSignIn = async () => {
+    await googleSignInMutation.mutateAsync();
   };
+
+  const isLoading = loginMutation.isPending || googleSignInMutation.isPending;
 
   return (
     <AuthLayout title="Sign in to your account">
@@ -65,6 +59,7 @@ const LoginForm = () => {
                       type="email"
                       placeholder="Enter your email"
                       aria-describedby="email-error"
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage id="email-error" />
@@ -82,6 +77,7 @@ const LoginForm = () => {
                     <Link
                       href="/forgot-password"
                       className="text-primary text-sm font-medium hover:underline"
+                      tabIndex={0}
                     >
                       Forgot Password?
                     </Link>
@@ -91,6 +87,7 @@ const LoginForm = () => {
                       {...field}
                       placeholder="Enter your password"
                       aria-describedby="password-error"
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage id="password-error" />
@@ -100,7 +97,7 @@ const LoginForm = () => {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing in..." : "Sign In"}
+            {loginMutation.isPending ? "Signing in..." : "Sign In"}
           </Button>
 
           <div className="relative my-4">
@@ -114,7 +111,15 @@ const LoginForm = () => {
             </div>
           </div>
 
-          <GoogleSignInButton onClick={handleGoogleSignIn} />
+          <GoogleSignInButton
+            label={
+              googleSignInMutation.isPending
+                ? "Signing in..."
+                : "Sign in with Google"
+            }
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          />
 
           <div className="mt-4 text-center text-sm">
             Need to create an account?{" "}
