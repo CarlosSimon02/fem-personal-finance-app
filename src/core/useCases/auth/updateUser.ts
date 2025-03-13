@@ -1,5 +1,5 @@
+import { IUserRepository } from "@/core/interfaces/IUserRepository";
 import { UserUpdateModel } from "@/data/models/userModel";
-import { IUserRepository } from "../../interfaces/IUserRepository";
 
 export class UpdateUserProfile {
   constructor(private userRepository: IUserRepository) {}

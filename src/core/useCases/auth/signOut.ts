@@ -1,4 +1,4 @@
-import { IAuthClientRepository } from "../../interfaces/IAuthClientRepository";
+import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
 
 export class SignOut {
   constructor(private authRepository: IAuthClientRepository) {}

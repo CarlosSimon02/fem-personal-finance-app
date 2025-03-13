@@ -1,5 +1,5 @@
+import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
 import { AuthCredentials } from "@/data/models/authModel";
-import { IAuthClientRepository } from "../../interfaces/IAuthClientRepository";
 
 export class LogInWithEmail {
   constructor(private authRepository: IAuthClientRepository) {}

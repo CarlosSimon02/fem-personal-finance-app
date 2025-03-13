@@ -1,4 +1,4 @@
-import { IAuthClientRepository } from "../../interfaces/IAuthClientRepository";
+import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
 
 export class ResetPassword {
   constructor(private authRepository: IAuthClientRepository) {}

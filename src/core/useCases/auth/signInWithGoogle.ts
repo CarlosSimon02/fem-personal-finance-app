@@ -1,4 +1,4 @@
-import { IAuthClientRepository } from "../../interfaces/IAuthClientRepository";
+import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
 
 export class SignInWithGoogle {
   constructor(private authRepository: IAuthClientRepository) {}

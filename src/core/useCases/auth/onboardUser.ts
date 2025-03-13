@@ -1,6 +1,6 @@
+import { UserEntity } from "@/core/entities/UserEntity";
 import { IAuthAdminRepository } from "@/core/interfaces/IAuthAdminRepository";
-import { UserEntity } from "../../entities/UserEntity";
-import { IUserRepository } from "../../interfaces/IUserRepository";
+import { IUserRepository } from "@/core/interfaces/IUserRepository";
 
 export class OnboardUser {
   constructor(
