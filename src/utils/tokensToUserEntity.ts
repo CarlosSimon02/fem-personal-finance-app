@@ -5,7 +5,7 @@ export function tokensToUserEntity(decodedToken: DecodedIdToken): UserEntity {
   const { uid, email, picture, name } = decodedToken;
 
   return {
-    uid: uid,
+    id: uid,
     email: email!,
     displayName: name,
     photoURL: picture,

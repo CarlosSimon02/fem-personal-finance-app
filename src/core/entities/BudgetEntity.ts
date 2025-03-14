@@ -1,6 +1,6 @@
 export class BudgetEntity {
   constructor(
-    public readonly uid: string,
+    public readonly id: string,
     public readonly name: string,
     public readonly maximumSpending: number,
     public readonly colorTag: string,
@@ -10,7 +10,7 @@ export class BudgetEntity {
   ) {}
 
   static create(
-    uid: string,
+    id: string,
     name: string,
     maximumSpending: number,
     colorTag: string,
@@ -19,7 +19,7 @@ export class BudgetEntity {
     userId: string
   ): BudgetEntity {
     return new BudgetEntity(
-      uid,
+      id,
       name,
       maximumSpending,
       colorTag,

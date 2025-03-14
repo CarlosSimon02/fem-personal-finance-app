@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase-admin/firestore";
 
 export type BudgetModel = {
-  uid: string;
+  id: string;
   name: string;
   maximumSpending: number;
   colorTag: string;
@@ -12,7 +12,7 @@ export type BudgetModel = {
 
 export type CreateBudgetModel = Omit<
   BudgetModel,
-  "uid" | "createdAt" | "updatedAt"
+  "id" | "createdAt" | "updatedAt"
 >;
 export type UpdateBudgetModel = Partial<
   Omit<BudgetModel, "id" | "createdAt" | "updatedAt" | "userId">

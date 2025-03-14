@@ -7,7 +7,7 @@ export class UserDatasource {
 
   async createUser(user: UserModel): Promise<UserModel> {
     try {
-      await this.usersCollection.doc(user.uid).set({
+      await this.usersCollection.doc(user.id).set({
         ...user,
         createdAt: FieldValue.serverTimestamp(),
         updatedAt: FieldValue.serverTimestamp(),

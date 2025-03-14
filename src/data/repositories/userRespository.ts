@@ -42,7 +42,7 @@ export class UserRepository implements IUserRepository {
 
   private mapUserEntityToModel(user: UserEntity): UserModel {
     return {
-      uid: user.uid,
+      id: user.id,
       email: user.email,
       displayName: user.displayName ?? null,
       photoURL: user.photoURL ?? null,
@@ -55,7 +55,7 @@ export class UserRepository implements IUserRepository {
 
   private mapUserModelToEntity(user: UserModel): UserEntity {
     return {
-      uid: user.uid,
+      id: user.id,
       email: user.email,
       displayName: user.displayName ?? undefined,
       photoURL: user.photoURL ?? undefined,

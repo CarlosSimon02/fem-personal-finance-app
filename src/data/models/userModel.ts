@@ -1,7 +1,7 @@
 import { Timestamp } from "firebase-admin/firestore";
 
 export interface UserModel {
-  uid: string;
+  id: string;
   email: string;
   displayName: string | null;
   photoURL: string | null;
@@ -13,5 +13,5 @@ export interface UserModel {
 
 export type UserUpdateModel = Omit<
   UserModel,
-  "uid" | "email" | "createdAt" | "updatedAt"
+  "id" | "email" | "createdAt" | "updatedAt"
 >;

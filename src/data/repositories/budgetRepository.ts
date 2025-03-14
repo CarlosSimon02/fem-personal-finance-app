@@ -51,7 +51,7 @@ export class BudgetRepository implements IBudgetRepository {
 
   private mapBudgetModelToEntity(budget: BudgetModel): BudgetEntity {
     return {
-      uid: budget.uid,
+      id: budget.id,
       name: budget.name,
       maximumSpending: budget.maximumSpending,
       colorTag: budget.colorTag,

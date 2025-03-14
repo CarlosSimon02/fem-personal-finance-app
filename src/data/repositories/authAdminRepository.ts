@@ -43,7 +43,7 @@ export class AuthAdminRepository implements IAuthAdminRepository {
 
   private mapAuthUserRecordToUserEntity(user: UserRecord): UserEntity {
     return {
-      uid: user.uid,
+      id: user.uid,
       email: user.email ?? "",
       displayName: user.displayName ?? undefined,
       photoURL: user.photoURL ?? undefined,

@@ -9,10 +9,10 @@ export class OnboardUser {
   ) {}
 
   async execute(user: UserEntity) {
-    const existingUser = await this.userRepository.getUserById(user.uid);
+    const existingUser = await this.userRepository.getUserById(user.id);
     if (!!existingUser) return existingUser;
     const createdUser = await this.userRepository.createUser(user);
-    await this.authRepository.updateUserDisplayName(user.uid, user.displayName);
+    await this.authRepository.updateUserDisplayName(user.id, user.displayName);
     return createdUser;
   }
 }
