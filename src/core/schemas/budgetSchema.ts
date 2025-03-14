@@ -1,7 +1,5 @@
 import { z } from "zod";
-
-// Helper function to validate hex color codes
-const isValidHexColor = (color: string) => /^#[0-9A-F]{6}$/i.test(color);
+import { validateOptionalHexColor } from "./helpers";
 
 export const createBudgetSchema = z.object({
   name: z
@@ -12,7 +10,7 @@ export const createBudgetSchema = z.object({
     .number()
     .positive("Maximum spending must be greater than 0")
     .finite("Maximum spending must be a finite number"),
-  colorTag: z.string().refine(isValidHexColor, {
+  colorTag: z.string().refine(validateOptionalHexColor, {
     message: "Color tag must be a valid hex color code (e.g., #FF5733)",
   }),
   userId: z.string().min(1, "User ID is required"),
