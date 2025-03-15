@@ -20,6 +20,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/presentation/components/ui/sidebar";
+import { logoutAction } from "../_actions/logoutAction";
 
 type NavUserProps = {
   user: UserEntity;
@@ -56,7 +57,7 @@ export function NavUser({ user }: NavUserProps) {
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logoutAction}>
               <LogOut />
               Log out
             </DropdownMenuItem>
