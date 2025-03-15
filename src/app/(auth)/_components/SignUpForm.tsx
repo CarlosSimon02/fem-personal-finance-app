@@ -42,6 +42,7 @@ const SignUpForm = () => {
   };
 
   const isLoading = signUpMutation.isPending || googleSignInMutation.isPending;
+  const isSuccess = signUpMutation.isSuccess || googleSignInMutation.isSuccess;
 
   return (
     <AuthLayout title="Create your account">
@@ -59,7 +60,7 @@ const SignUpForm = () => {
                       {...field}
                       placeholder="Enter your name"
                       aria-describedby="name-error"
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     />
                   </FormControl>
                   <FormMessage id="name-error" />
@@ -79,7 +80,7 @@ const SignUpForm = () => {
                       type="email"
                       placeholder="Enter your email"
                       aria-describedby="email-error"
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     />
                   </FormControl>
                   <FormMessage id="email-error" />
@@ -98,7 +99,7 @@ const SignUpForm = () => {
                       {...field}
                       placeholder="Create a password"
                       aria-describedby="password-error"
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     />
                   </FormControl>
                   <FormMessage id="password-error" />
@@ -107,7 +108,11 @@ const SignUpForm = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || isSuccess}
+          >
             {signUpMutation.isPending
               ? "Creating account..."
               : "Create Account"}
@@ -131,7 +136,7 @@ const SignUpForm = () => {
                 ? "Signing up..."
                 : "Sign up with Google"
             }
-            disabled={isLoading}
+            disabled={isLoading || isSuccess}
           />
 
           <div className="mt-4 text-center text-sm">

@@ -14,45 +14,55 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/presentation/components/ui/sidebar";
+import { cn } from "@/utils/lib/shadcnUtils";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navMain = [
   {
     title: "Overview",
-    url: "#",
+    url: "/overview",
     icon: HomeIcon,
     isActive: true,
   },
   {
     title: "Transactions",
-    url: "#",
+    url: "/transactions",
     icon: ArrowUpDownIcon,
   },
   {
     title: "Budget",
-    url: "#",
+    url: "/budget",
     icon: ChartPieIcon,
   },
   {
     title: "Pots",
-    url: "#",
+    url: "/pots",
     icon: PiggyBankIcon,
   },
   {
     title: "Recurring Bills",
-    url: "#",
+    url: "/recurring-bills",
     icon: ReceiptTextIcon,
   },
 ];
 
 export function NavMain() {
+  const pathname = usePathname();
   return (
     <SidebarGroup>
       <SidebarMenu>
         {navMain.map((item) => (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton tooltip={item.title}>
-              {item.icon && <item.icon />}
-              <span>{item.title}</span>
+            <SidebarMenuButton
+              tooltip={item.title}
+              className={cn(pathname.startsWith(item.url) && "bg-secondary")}
+              asChild
+            >
+              <Link href={item.url}>
+                <item.icon />
+                <span>{item.title}</span>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         ))}

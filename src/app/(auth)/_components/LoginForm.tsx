@@ -41,6 +41,7 @@ const LoginForm = () => {
   };
 
   const isLoading = loginMutation.isPending || googleSignInMutation.isPending;
+  const isSuccess = loginMutation.isSuccess || googleSignInMutation.isSuccess;
 
   return (
     <AuthLayout title="Sign in to your account">
@@ -59,7 +60,7 @@ const LoginForm = () => {
                       type="email"
                       placeholder="Enter your email"
                       aria-describedby="email-error"
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     />
                   </FormControl>
                   <FormMessage id="email-error" />
@@ -87,7 +88,7 @@ const LoginForm = () => {
                       {...field}
                       placeholder="Enter your password"
                       aria-describedby="password-error"
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     />
                   </FormControl>
                   <FormMessage id="password-error" />
@@ -96,7 +97,11 @@ const LoginForm = () => {
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isLoading || isSuccess}
+          >
             {loginMutation.isPending ? "Signing in..." : "Sign In"}
           </Button>
 
@@ -118,7 +123,7 @@ const LoginForm = () => {
                 : "Sign in with Google"
             }
             onClick={handleGoogleSignIn}
-            disabled={isLoading}
+            disabled={isLoading || isSuccess}
           />
 
           <div className="mt-4 text-center text-sm">

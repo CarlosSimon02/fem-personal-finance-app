@@ -44,6 +44,7 @@ const ForgotPasswordForm = () => {
   };
 
   const isLoading = resetPasswordMutation.isPending;
+  const isSuccess = resetPasswordMutation.isSuccess;
 
   return (
     <AuthLayout
@@ -100,7 +101,7 @@ const ForgotPasswordForm = () => {
                       type="email"
                       placeholder="Enter your email"
                       aria-describedby="email-error"
-                      disabled={isLoading}
+                      disabled={isLoading || isSuccess}
                     />
                   </FormControl>
                   <FormMessage id="email-error" />
@@ -108,7 +109,11 @@ const ForgotPasswordForm = () => {
               )}
             />
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoading || isSuccess}
+            >
               {isLoading ? "Sending..." : "Reset Password"}
             </Button>
 
