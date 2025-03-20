@@ -4,7 +4,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/presentation/components/ui/card";
-import Image from "next/image";
 import Link from "next/link";
 import { getTransactionsData } from "../_data";
 
@@ -26,13 +25,9 @@ export async function TransactionsSection() {
         <div className="space-y-4">
           {recentTransactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center space-x-4">
-              <Image
-                src={transaction.image || "/placeholder.svg"}
-                alt={transaction.name}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
+              <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-full">
+                <span className="text-xl">{transaction.emoji}</span>
+              </div>
               <div className="flex-1">
                 <p className="text-sm font-medium">{transaction.name}</p>
                 <p className="text-muted-foreground text-xs">

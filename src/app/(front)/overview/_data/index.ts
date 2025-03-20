@@ -6,7 +6,7 @@ export type Transaction = {
   amount: number;
   date: string;
   type: "income" | "expense";
-  image: string;
+  emoji: string;
 };
 
 export type Pot = {
@@ -39,7 +39,7 @@ export const transactions: Transaction[] = [
     amount: 45000,
     date: "18 Aug 2024",
     type: "income",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "💰", // Emoji for salary
   },
   {
     id: "2",
@@ -47,7 +47,7 @@ export const transactions: Transaction[] = [
     amount: -15000,
     date: "15 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🏠", // Emoji for rent
   },
   {
     id: "3",
@@ -55,7 +55,7 @@ export const transactions: Transaction[] = [
     amount: -3500,
     date: "14 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🛒", // Emoji for grocery
   },
   {
     id: "4",
@@ -63,7 +63,7 @@ export const transactions: Transaction[] = [
     amount: 12000,
     date: "12 Aug 2024",
     type: "income",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "💻", // Emoji for freelance work
   },
   {
     id: "5",
@@ -71,7 +71,7 @@ export const transactions: Transaction[] = [
     amount: -2500,
     date: "10 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "💡", // Emoji for electricity
   },
   {
     id: "6",
@@ -79,7 +79,7 @@ export const transactions: Transaction[] = [
     amount: -800,
     date: "10 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🚰", // Emoji for water
   },
   {
     id: "7",
@@ -87,7 +87,7 @@ export const transactions: Transaction[] = [
     amount: -1500,
     date: "09 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🌐", // Emoji for internet
   },
   {
     id: "8",
@@ -95,7 +95,7 @@ export const transactions: Transaction[] = [
     amount: 8000,
     date: "08 Aug 2024",
     type: "income",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🛠️", // Emoji for side project
   },
   {
     id: "9",
@@ -103,7 +103,7 @@ export const transactions: Transaction[] = [
     amount: -2200,
     date: "07 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🍽️", // Emoji for restaurant
   },
   {
     id: "10",
@@ -111,7 +111,7 @@ export const transactions: Transaction[] = [
     amount: -1000,
     date: "05 Aug 2024",
     type: "expense",
-    image: "/placeholder.svg?height=40&width=40",
+    emoji: "🚗", // Emoji for transportation
   },
 ];
 

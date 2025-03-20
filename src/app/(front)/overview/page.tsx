@@ -8,7 +8,7 @@ import { TransactionsSection } from "./_components/TransactionsSection";
 
 const OverviewPage = () => {
   return (
-    <div className="container space-y-6 py-6">
+    <div className="space-y-6 py-6">
       <h1 className="text-3xl font-bold">Overview</h1>
 
       <Suspense fallback={<OverviewSkeleton />}>
