@@ -7,6 +7,7 @@ export type Transaction = {
   date: string;
   type: "income" | "expense";
   emoji: string;
+  category: string;
 };
 
 export type Pot = {
@@ -32,86 +33,250 @@ export type RecurringBill = {
   color: string;
 };
 
+// List of categories for filtering
+export const categories = [
+  "Salary",
+  "Rent",
+  "Grocery",
+  "Utilities",
+  "Entertainment",
+  "Transportation",
+  "Dining",
+  "Shopping",
+  "Healthcare",
+  "Education",
+  "Travel",
+  "Freelance",
+  "Investment",
+  "Other",
+];
+
+// Extended transactions data
 export const transactions: Transaction[] = [
   {
     id: "1",
     name: "Salary",
-    amount: 45000,
+    category: "Salary",
     date: "18 Aug 2024",
-    type: "income",
-    emoji: "💰", // Emoji for salary
+    amount: 45000,
+    type: "income", // Added type
+    emoji: "💰", // Emoji for Salary
   },
   {
     id: "2",
     name: "Rent",
-    amount: -15000,
+    category: "Rent",
     date: "15 Aug 2024",
-    type: "expense",
-    emoji: "🏠", // Emoji for rent
+    amount: -15000,
+    type: "expense", // Added type
+    emoji: "🏠", // Emoji for Rent
   },
   {
     id: "3",
-    name: "Grocery",
-    amount: -3500,
+    name: "Grocery Store",
+    category: "Grocery",
     date: "14 Aug 2024",
-    type: "expense",
-    emoji: "🛒", // Emoji for grocery
+    amount: -3500,
+    type: "expense", // Added type
+    emoji: "🛒", // Emoji for Grocery
   },
   {
     id: "4",
     name: "Freelance Work",
-    amount: 12000,
+    category: "Freelance",
     date: "12 Aug 2024",
-    type: "income",
-    emoji: "💻", // Emoji for freelance work
+    amount: 12000,
+    type: "income", // Added type
+    emoji: "💻", // Emoji for Freelance
   },
   {
     id: "5",
     name: "Electricity Bill",
-    amount: -2500,
+    category: "Utilities",
     date: "10 Aug 2024",
-    type: "expense",
-    emoji: "💡", // Emoji for electricity
+    amount: -2500,
+    type: "expense", // Added type
+    emoji: "💡", // Emoji for Utilities
   },
   {
     id: "6",
     name: "Water Bill",
-    amount: -800,
+    category: "Utilities",
     date: "10 Aug 2024",
-    type: "expense",
-    emoji: "🚰", // Emoji for water
+    amount: -800,
+    type: "expense", // Added type
+    emoji: "🚰", // Emoji for Water
   },
   {
     id: "7",
     name: "Internet Bill",
-    amount: -1500,
+    category: "Utilities",
     date: "09 Aug 2024",
-    type: "expense",
-    emoji: "🌐", // Emoji for internet
+    amount: -1500,
+    type: "expense", // Added type
+    emoji: "🌐", // Emoji for Internet
   },
   {
     id: "8",
     name: "Side Project",
-    amount: 8000,
+    category: "Freelance",
     date: "08 Aug 2024",
-    type: "income",
-    emoji: "🛠️", // Emoji for side project
+    amount: 8000,
+    type: "income", // Added type
+    emoji: "🛠️", // Emoji for Side Project
   },
   {
     id: "9",
     name: "Restaurant",
-    amount: -2200,
+    category: "Dining",
     date: "07 Aug 2024",
-    type: "expense",
-    emoji: "🍽️", // Emoji for restaurant
+    amount: -2200,
+    type: "expense", // Added type
+    emoji: "🍽️", // Emoji for Dining
   },
   {
     id: "10",
     name: "Transportation",
-    amount: -1000,
+    category: "Transportation",
     date: "05 Aug 2024",
-    type: "expense",
-    emoji: "🚗", // Emoji for transportation
+    amount: -1000,
+    type: "expense", // Added type
+    emoji: "🚗", // Emoji for Transportation
+  },
+  {
+    id: "11",
+    name: "Movie Tickets",
+    category: "Entertainment",
+    date: "03 Aug 2024",
+    amount: -800,
+    type: "expense", // Added type
+    emoji: "🎬", // Emoji for Entertainment
+  },
+  {
+    id: "12",
+    name: "Clothing Store",
+    category: "Shopping",
+    date: "02 Aug 2024",
+    amount: -3500,
+    type: "expense", // Added type
+    emoji: "🛍️", // Emoji for Shopping
+  },
+  {
+    id: "13",
+    name: "Dividend Payment",
+    category: "Investment",
+    date: "01 Aug 2024",
+    amount: 5000,
+    type: "income", // Added type
+    emoji: "📈", // Emoji for Investment
+  },
+  {
+    id: "14",
+    name: "Doctor Visit",
+    category: "Healthcare",
+    date: "30 Jul 2024",
+    amount: -1500,
+    type: "expense", // Added type
+    emoji: "🏥", // Emoji for Healthcare
+  },
+  {
+    id: "15",
+    name: "Online Course",
+    category: "Education",
+    date: "28 Jul 2024",
+    amount: -2000,
+    type: "expense", // Added type
+    emoji: "📚", // Emoji for Education
+  },
+  {
+    id: "16",
+    name: "Gym Membership",
+    category: "Healthcare",
+    date: "27 Jul 2024",
+    amount: -1200,
+    type: "expense", // Added type
+    emoji: "💪", // Emoji for Gym
+  },
+  {
+    id: "17",
+    name: "Bonus",
+    category: "Salary",
+    date: "25 Jul 2024",
+    amount: 15000,
+    type: "income", // Added type
+    emoji: "🎉", // Emoji for Bonus
+  },
+  {
+    id: "18",
+    name: "Flight Tickets",
+    category: "Travel",
+    date: "23 Jul 2024",
+    amount: -12000,
+    type: "expense", // Added type
+    emoji: "✈️", // Emoji for Travel
+  },
+  {
+    id: "19",
+    name: "Hotel Booking",
+    category: "Travel",
+    date: "23 Jul 2024",
+    amount: -8000,
+    type: "expense", // Added type
+    emoji: "🏨", // Emoji for Hotel
+  },
+  {
+    id: "20",
+    name: "Smartphone Purchase",
+    category: "Shopping",
+    date: "20 Jul 2024",
+    amount: -25000,
+    type: "expense", // Added type
+    emoji: "📱", // Emoji for Shopping
+  },
+  {
+    id: "21",
+    name: "Consulting Fee",
+    category: "Freelance",
+    date: "18 Jul 2024",
+    amount: 20000,
+    type: "income", // Added type
+    emoji: "💼", // Emoji for Freelance
+  },
+  {
+    id: "22",
+    name: "Car Maintenance",
+    category: "Transportation",
+    date: "15 Jul 2024",
+    amount: -5000,
+    type: "expense", // Added type
+    emoji: "🔧", // Emoji for Car Maintenance
+  },
+  {
+    id: "23",
+    name: "Coffee Shop",
+    category: "Dining",
+    date: "12 Jul 2024",
+    amount: -300,
+    type: "expense", // Added type
+    emoji: "☕", // Emoji for Coffee
+  },
+  {
+    id: "24",
+    name: "Book Store",
+    category: "Education",
+    date: "10 Jul 2024",
+    amount: -1200,
+    type: "expense", // Added type
+    emoji: "📖", // Emoji for Education
+  },
+  {
+    id: "25",
+    name: "Stock Dividend",
+    category: "Investment",
+    date: "08 Jul 2024",
+    amount: 3500,
+    type: "income", // Added type
+    emoji: "💹", // Emoji for Investment
   },
 ];
 
@@ -310,5 +475,72 @@ export async function getRecurringBillsData() {
 
   return {
     topBills,
+  };
+}
+
+// New function for filtered transactions with pagination
+export async function getFilteredTransactions({
+  search = "",
+  category = "",
+  sortBy = "date",
+  order = "desc",
+  page = 1,
+  pageSize = 10,
+}: {
+  search?: string;
+  category?: string;
+  sortBy?: string;
+  order?: string;
+  page?: number;
+  pageSize?: number;
+}) {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+
+  // Filter transactions
+  let filteredTransactions = [...transactions];
+
+  // Apply search filter
+  if (search) {
+    const searchLower = search.toLowerCase();
+    filteredTransactions = filteredTransactions.filter(
+      (t) =>
+        t.name.toLowerCase().includes(searchLower) ||
+        t.category.toLowerCase().includes(searchLower)
+    );
+  }
+
+  // Apply category filter
+  if (category) {
+    filteredTransactions = filteredTransactions.filter(
+      (t) => t.category === category
+    );
+  }
+
+  // Apply sorting
+  filteredTransactions.sort((a, b) => {
+    if (sortBy === "date") {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return order === "asc" ? dateA - dateB : dateB - dateA;
+    } else if (sortBy === "amount") {
+      return order === "asc" ? a.amount - b.amount : b.amount - a.amount;
+    }
+    return 0;
+  });
+
+  // Calculate pagination
+  const totalTransactions = filteredTransactions.length;
+  const totalPages = Math.ceil(totalTransactions / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedTransactions = filteredTransactions.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+
+  return {
+    transactions: paginatedTransactions,
+    totalTransactions,
+    totalPages,
   };
 }
