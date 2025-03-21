@@ -16,7 +16,8 @@ export type Transaction = {
 export type Pot = {
   id: string;
   name: string;
-  amount: number;
+  saved: number;
+  target: number;
   color: string;
 };
 
@@ -294,38 +295,44 @@ export const pots: Pot[] = [
   {
     id: "1",
     name: "Emergency Fund",
-    amount: 50000,
+    saved: 50000,
     color: "#FF6384",
+    target: 80000,
   },
   {
     id: "2",
     name: "Vacation",
-    amount: 25000,
+    saved: 25000,
     color: "#36A2EB",
+    target: 100000,
   },
   {
     id: "3",
     name: "New Laptop",
-    amount: 35000,
+    saved: 35000,
     color: "#FFCE56",
+    target: 40000,
   },
   {
     id: "4",
     name: "Home Renovation",
-    amount: 40000,
+    saved: 40000,
     color: "#4BC0C0",
+    target: 200000,
   },
   {
     id: "5",
     name: "Wedding",
-    amount: 60000,
+    saved: 60000,
     color: "#9966FF",
+    target: 80000,
   },
   {
     id: "6",
     name: "Car Fund",
-    amount: 75000,
+    saved: 75000,
     color: "#FF9F40",
+    target: 90000,
   },
 ];
 
@@ -528,8 +535,8 @@ export async function getPotsData() {
   // Simulate API delay
   await new Promise((resolve) => setTimeout(resolve, 1200));
 
-  const totalSaved = pots.reduce((sum, pot) => sum + pot.amount, 0);
-  const topPots = [...pots].sort((a, b) => b.amount - a.amount).slice(0, 4);
+  const totalSaved = pots.reduce((sum, pot) => sum + pot.saved, 0);
+  const topPots = [...pots].sort((a, b) => b.saved - a.saved).slice(0, 4);
 
   return {
     totalSaved,
@@ -711,3 +718,19 @@ const generateTransaction = (): Transaction => {
 export const transactions: Transaction[] = Array.from({ length: 50 }, () =>
   generateTransaction()
 );
+
+export async function getPaginatedPots(page = 1, pageSize = 6) {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  const totalPots = pots.length;
+  const totalPages = Math.ceil(totalPots / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedPots = pots.slice(startIndex, startIndex + pageSize);
+
+  return {
+    pots: paginatedPots,
+    totalPots,
+    totalPages,
+  };
+}

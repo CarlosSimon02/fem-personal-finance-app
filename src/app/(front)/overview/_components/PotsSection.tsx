@@ -41,7 +41,7 @@ export async function PotsSection() {
                 <div className="flex-1">
                   <p className="text-sm font-medium">{pot.name}</p>
                   <p className="text-muted-foreground text-sm">
-                    ₱{pot.amount.toLocaleString()}
+                    ₱{pot.saved.toLocaleString()}
                   </p>
                 </div>
               </div>
