@@ -1,3 +1,4 @@
+import TransactionEmoji from "@/presentation/components/TransactionEmoji";
 import {
   Card,
   CardContent,
@@ -25,9 +26,7 @@ export async function TransactionsSection() {
         <div className="space-y-4">
           {recentTransactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center space-x-4">
-              <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-full">
-                <span className="text-xl">{transaction.emoji}</span>
-              </div>
+              <TransactionEmoji emoji={transaction.emoji} />
               <div className="flex-1">
                 <p className="text-sm font-medium">{transaction.name}</p>
                 <p className="text-muted-foreground text-xs">

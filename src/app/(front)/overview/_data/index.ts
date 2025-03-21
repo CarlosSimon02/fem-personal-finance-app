@@ -1,4 +1,4 @@
-// Temporary data for the financial dashboard
+import { faker } from "@faker-js/faker";
 
 export type Transaction = {
   id: string;
@@ -7,7 +7,10 @@ export type Transaction = {
   date: string;
   type: "income" | "expense";
   emoji: string;
-  category: string;
+  category: {
+    id: string;
+    name: string;
+  };
 };
 
 export type Pot = {
@@ -22,6 +25,13 @@ export type Budget = {
   name: string;
   spent: number;
   limit: number;
+  color: string;
+};
+
+export type IncomeSource = {
+  id: string;
+  name: string;
+  earned: number;
   color: string;
 };
 
@@ -52,233 +62,233 @@ export const categories = [
 ];
 
 // Extended transactions data
-export const transactions: Transaction[] = [
-  {
-    id: "1",
-    name: "Salary",
-    category: "Salary",
-    date: "18 Aug 2024",
-    amount: 45000,
-    type: "income", // Added type
-    emoji: "💰", // Emoji for Salary
-  },
-  {
-    id: "2",
-    name: "Rent",
-    category: "Rent",
-    date: "15 Aug 2024",
-    amount: -15000,
-    type: "expense", // Added type
-    emoji: "🏠", // Emoji for Rent
-  },
-  {
-    id: "3",
-    name: "Grocery Store",
-    category: "Grocery",
-    date: "14 Aug 2024",
-    amount: -3500,
-    type: "expense", // Added type
-    emoji: "🛒", // Emoji for Grocery
-  },
-  {
-    id: "4",
-    name: "Freelance Work",
-    category: "Freelance",
-    date: "12 Aug 2024",
-    amount: 12000,
-    type: "income", // Added type
-    emoji: "💻", // Emoji for Freelance
-  },
-  {
-    id: "5",
-    name: "Electricity Bill",
-    category: "Utilities",
-    date: "10 Aug 2024",
-    amount: -2500,
-    type: "expense", // Added type
-    emoji: "💡", // Emoji for Utilities
-  },
-  {
-    id: "6",
-    name: "Water Bill",
-    category: "Utilities",
-    date: "10 Aug 2024",
-    amount: -800,
-    type: "expense", // Added type
-    emoji: "🚰", // Emoji for Water
-  },
-  {
-    id: "7",
-    name: "Internet Bill",
-    category: "Utilities",
-    date: "09 Aug 2024",
-    amount: -1500,
-    type: "expense", // Added type
-    emoji: "🌐", // Emoji for Internet
-  },
-  {
-    id: "8",
-    name: "Side Project",
-    category: "Freelance",
-    date: "08 Aug 2024",
-    amount: 8000,
-    type: "income", // Added type
-    emoji: "🛠️", // Emoji for Side Project
-  },
-  {
-    id: "9",
-    name: "Restaurant",
-    category: "Dining",
-    date: "07 Aug 2024",
-    amount: -2200,
-    type: "expense", // Added type
-    emoji: "🍽️", // Emoji for Dining
-  },
-  {
-    id: "10",
-    name: "Transportation",
-    category: "Transportation",
-    date: "05 Aug 2024",
-    amount: -1000,
-    type: "expense", // Added type
-    emoji: "🚗", // Emoji for Transportation
-  },
-  {
-    id: "11",
-    name: "Movie Tickets",
-    category: "Entertainment",
-    date: "03 Aug 2024",
-    amount: -800,
-    type: "expense", // Added type
-    emoji: "🎬", // Emoji for Entertainment
-  },
-  {
-    id: "12",
-    name: "Clothing Store",
-    category: "Shopping",
-    date: "02 Aug 2024",
-    amount: -3500,
-    type: "expense", // Added type
-    emoji: "🛍️", // Emoji for Shopping
-  },
-  {
-    id: "13",
-    name: "Dividend Payment",
-    category: "Investment",
-    date: "01 Aug 2024",
-    amount: 5000,
-    type: "income", // Added type
-    emoji: "📈", // Emoji for Investment
-  },
-  {
-    id: "14",
-    name: "Doctor Visit",
-    category: "Healthcare",
-    date: "30 Jul 2024",
-    amount: -1500,
-    type: "expense", // Added type
-    emoji: "🏥", // Emoji for Healthcare
-  },
-  {
-    id: "15",
-    name: "Online Course",
-    category: "Education",
-    date: "28 Jul 2024",
-    amount: -2000,
-    type: "expense", // Added type
-    emoji: "📚", // Emoji for Education
-  },
-  {
-    id: "16",
-    name: "Gym Membership",
-    category: "Healthcare",
-    date: "27 Jul 2024",
-    amount: -1200,
-    type: "expense", // Added type
-    emoji: "💪", // Emoji for Gym
-  },
-  {
-    id: "17",
-    name: "Bonus",
-    category: "Salary",
-    date: "25 Jul 2024",
-    amount: 15000,
-    type: "income", // Added type
-    emoji: "🎉", // Emoji for Bonus
-  },
-  {
-    id: "18",
-    name: "Flight Tickets",
-    category: "Travel",
-    date: "23 Jul 2024",
-    amount: -12000,
-    type: "expense", // Added type
-    emoji: "✈️", // Emoji for Travel
-  },
-  {
-    id: "19",
-    name: "Hotel Booking",
-    category: "Travel",
-    date: "23 Jul 2024",
-    amount: -8000,
-    type: "expense", // Added type
-    emoji: "🏨", // Emoji for Hotel
-  },
-  {
-    id: "20",
-    name: "Smartphone Purchase",
-    category: "Shopping",
-    date: "20 Jul 2024",
-    amount: -25000,
-    type: "expense", // Added type
-    emoji: "📱", // Emoji for Shopping
-  },
-  {
-    id: "21",
-    name: "Consulting Fee",
-    category: "Freelance",
-    date: "18 Jul 2024",
-    amount: 20000,
-    type: "income", // Added type
-    emoji: "💼", // Emoji for Freelance
-  },
-  {
-    id: "22",
-    name: "Car Maintenance",
-    category: "Transportation",
-    date: "15 Jul 2024",
-    amount: -5000,
-    type: "expense", // Added type
-    emoji: "🔧", // Emoji for Car Maintenance
-  },
-  {
-    id: "23",
-    name: "Coffee Shop",
-    category: "Dining",
-    date: "12 Jul 2024",
-    amount: -300,
-    type: "expense", // Added type
-    emoji: "☕", // Emoji for Coffee
-  },
-  {
-    id: "24",
-    name: "Book Store",
-    category: "Education",
-    date: "10 Jul 2024",
-    amount: -1200,
-    type: "expense", // Added type
-    emoji: "📖", // Emoji for Education
-  },
-  {
-    id: "25",
-    name: "Stock Dividend",
-    category: "Investment",
-    date: "08 Jul 2024",
-    amount: 3500,
-    type: "income", // Added type
-    emoji: "💹", // Emoji for Investment
-  },
-];
+// export const transactions: Transaction[] = [
+//   {
+//     id: "1",
+//     name: "Salary",
+//     category: { id: "1", name: "Salary" },
+//     date: "18 Aug 2024",
+//     amount: 45000,
+//     type: "income",
+//     emoji: "💰",
+//   },
+//   {
+//     id: "2",
+//     name: "Rent",
+//     category: { id: "2", name: "Rent" },
+//     date: "15 Aug 2024",
+//     amount: -15000,
+//     type: "expense",
+//     emoji: "🏠",
+//   },
+//   {
+//     id: "3",
+//     name: "Grocery Store",
+//     category: { id: "3", name: "Grocery" },
+//     date: "14 Aug 2024",
+//     amount: -3500,
+//     type: "expense",
+//     emoji: "🛒",
+//   },
+//   {
+//     id: "4",
+//     name: "Freelance Work",
+//     category: { id: "4", name: "Freelance" },
+//     date: "12 Aug 2024",
+//     amount: 12000,
+//     type: "income",
+//     emoji: "💻",
+//   },
+//   {
+//     id: "5",
+//     name: "Electricity Bill",
+//     category: { id: "5", name: "Utilities" },
+//     date: "10 Aug 2024",
+//     amount: -2500,
+//     type: "expense",
+//     emoji: "💡",
+//   },
+//   {
+//     id: "6",
+//     name: "Water Bill",
+//     category: { id: "6", name: "Utilities" },
+//     date: "10 Aug 2024",
+//     amount: -800,
+//     type: "expense",
+//     emoji: "🚰",
+//   },
+//   {
+//     id: "7",
+//     name: "Internet Bill",
+//     category: { id: "7", name: "Utilities" },
+//     date: "09 Aug 2024",
+//     amount: -1500,
+//     type: "expense",
+//     emoji: "🌐",
+//   },
+//   {
+//     id: "8",
+//     name: "Side Project",
+//     category: { id: "8", name: "Freelance" },
+//     date: "08 Aug 2024",
+//     amount: 8000,
+//     type: "income",
+//     emoji: "🛠️",
+//   },
+//   {
+//     id: "9",
+//     name: "Restaurant",
+//     category: { id: "9", name: "Dining" },
+//     date: "07 Aug 2024",
+//     amount: -2200,
+//     type: "expense",
+//     emoji: "🍽️",
+//   },
+//   {
+//     id: "10",
+//     name: "Transportation",
+//     category: { id: "10", name: "Transportation" },
+//     date: "05 Aug 2024",
+//     amount: -1000,
+//     type: "expense",
+//     emoji: "🚗",
+//   },
+//   {
+//     id: "11",
+//     name: "Movie Tickets",
+//     category: { id: "11", name: "Entertainment" },
+//     date: "03 Aug 2024",
+//     amount: -800,
+//     type: "expense",
+//     emoji: "🎬",
+//   },
+//   {
+//     id: "12",
+//     name: "Clothing Store",
+//     category: { id: "12", name: "Shopping" },
+//     date: "02 Aug 2024",
+//     amount: -3500,
+//     type: "expense",
+//     emoji: "🛍️",
+//   },
+//   {
+//     id: "13",
+//     name: "Dividend Payment",
+//     category: { id: "13", name: "Investment" },
+//     date: "01 Aug 2024",
+//     amount: 5000,
+//     type: "income",
+//     emoji: "📈",
+//   },
+//   {
+//     id: "14",
+//     name: "Doctor Visit",
+//     category: { id: "14", name: "Healthcare" },
+//     date: "30 Jul 2024",
+//     amount: -1500,
+//     type: "expense",
+//     emoji: "🏥",
+//   },
+//   {
+//     id: "15",
+//     name: "Online Course",
+//     category: { id: "15", name: "Education" },
+//     date: "28 Jul 2024",
+//     amount: -2000,
+//     type: "expense",
+//     emoji: "📚",
+//   },
+//   {
+//     id: "16",
+//     name: "Gym Membership",
+//     category: { id: "16", name: "Healthcare" },
+//     date: "27 Jul 2024",
+//     amount: -1200,
+//     type: "expense",
+//     emoji: "💪",
+//   },
+//   {
+//     id: "17",
+//     name: "Bonus",
+//     category: { id: "17", name: "Salary" },
+//     date: "25 Jul 2024",
+//     amount: 15000,
+//     type: "income",
+//     emoji: "🎉",
+//   },
+//   {
+//     id: "18",
+//     name: "Flight Tickets",
+//     category: { id: "18", name: "Travel" },
+//     date: "23 Jul 2024",
+//     amount: -12000,
+//     type: "expense",
+//     emoji: "✈️",
+//   },
+//   {
+//     id: "19",
+//     name: "Hotel Booking",
+//     category: { id: "19", name: "Travel" },
+//     date: "23 Jul 2024",
+//     amount: -8000,
+//     type: "expense",
+//     emoji: "🏨",
+//   },
+//   {
+//     id: "20",
+//     name: "Smartphone Purchase",
+//     category: { id: "20", name: "Shopping" },
+//     date: "20 Jul 2024",
+//     amount: -25000,
+//     type: "expense",
+//     emoji: "📱",
+//   },
+//   {
+//     id: "21",
+//     name: "Consulting Fee",
+//     category: { id: "21", name: "Freelance" },
+//     date: "18 Jul 2024",
+//     amount: 20000,
+//     type: "income",
+//     emoji: "💼",
+//   },
+//   {
+//     id: "22",
+//     name: "Car Maintenance",
+//     category: { id: "22", name: "Transportation" },
+//     date: "15 Jul 2024",
+//     amount: -5000,
+//     type: "expense",
+//     emoji: "🔧",
+//   },
+//   {
+//     id: "23",
+//     name: "Coffee Shop",
+//     category: { id: "23", name: "Dining" },
+//     date: "12 Jul 2024",
+//     amount: -300,
+//     type: "expense",
+//     emoji: "☕",
+//   },
+//   {
+//     id: "24",
+//     name: "Book Store",
+//     category: { id: "24", name: "Education" },
+//     date: "10 Jul 2024",
+//     amount: -1200,
+//     type: "expense",
+//     emoji: "📖",
+//   },
+//   {
+//     id: "25",
+//     name: "Stock Dividend",
+//     category: { id: "25", name: "Investment" },
+//     date: "08 Jul 2024",
+//     amount: 3500,
+//     type: "income",
+//     emoji: "💹",
+//   },
+// ];
 
 export const pots: Pot[] = [
   {
@@ -322,7 +332,97 @@ export const pots: Pot[] = [
 export const budgets: Budget[] = [
   {
     id: "1",
-    name: "Groceries",
+    name: "Grocery",
+    spent: 7500,
+    limit: 10000,
+    color: "#FF6384",
+  },
+  {
+    id: "2",
+    name: "Dining Out",
+    spent: 5000,
+    limit: 8000,
+    color: "#36A2EB",
+  },
+  {
+    id: "3",
+    name: "Transportation",
+    spent: 3000,
+    limit: 5000,
+    color: "#FFCE56",
+  },
+  {
+    id: "4",
+    name: "Entertainment",
+    spent: 2500,
+    limit: 4000,
+    color: "#4BC0C0",
+  },
+  {
+    id: "5",
+    name: "Shopping",
+    spent: 6000,
+    limit: 7000,
+    color: "#9966FF",
+  },
+  {
+    id: "6",
+    name: "Utilities",
+    spent: 4800,
+    limit: 5000,
+    color: "#FF9F40",
+  },
+];
+
+export const incomeSources: IncomeSource[] = [
+  {
+    id: "1",
+    name: "Salary",
+    earned: 45000,
+    color: "#4CAF50", // Green for Salary
+  },
+  {
+    id: "2",
+    name: "Freelance Work",
+    earned: 12000,
+    color: "#FF9800", // Orange for Freelance
+  },
+  {
+    id: "3",
+    name: "Side Project",
+    earned: 8000,
+    color: "#FFC107", // Yellow for Side Project
+  },
+  {
+    id: "4",
+    name: "Dividend Payment",
+    earned: 5000,
+    color: "#2196F3", // Blue for Investment
+  },
+  {
+    id: "5",
+    name: "Bonus",
+    earned: 15000,
+    color: "#9C27B0", // Purple for Bonus
+  },
+  {
+    id: "6",
+    name: "Consulting Fee",
+    earned: 20000,
+    color: "#E91E63", // Pink for Consulting
+  },
+  {
+    id: "7",
+    name: "Stock Dividend",
+    earned: 3500,
+    color: "#00BCD4", // Cyan for Stock Investment
+  },
+];
+
+export const incomeSource: Budget[] = [
+  {
+    id: "1",
+    name: "Grocery",
     spent: 7500,
     limit: 10000,
     color: "#FF6384",
@@ -446,9 +546,26 @@ export async function getBudgetsData() {
   const topBudgets = [...budgets].sort((a, b) => b.spent - a.spent).slice(0, 4);
 
   return {
+    budgets,
     totalSpent,
     totalLimit,
     topBudgets,
+  };
+}
+
+export async function getPaginatedBudgets(page = 1, pageSize = 6) {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
+  const totalBudgets = budgets.length;
+  const totalPages = Math.ceil(totalBudgets / pageSize);
+  const startIndex = (page - 1) * pageSize;
+  const paginatedBudgets = budgets.slice(startIndex, startIndex + pageSize);
+
+  return {
+    budgets: paginatedBudgets,
+    totalBudgets,
+    totalPages,
   };
 }
 
@@ -506,14 +623,14 @@ export async function getFilteredTransactions({
     filteredTransactions = filteredTransactions.filter(
       (t) =>
         t.name.toLowerCase().includes(searchLower) ||
-        t.category.toLowerCase().includes(searchLower)
+        t.category.name.toLowerCase().includes(searchLower)
     );
   }
 
   // Apply category filter
   if (category) {
     filteredTransactions = filteredTransactions.filter(
-      (t) => t.category === category
+      (t) => t.category.name === category
     );
   }
 
@@ -544,3 +661,52 @@ export async function getFilteredTransactions({
     totalPages,
   };
 }
+
+export async function getBudgetTransactions(budgetId: string) {
+  // Simulate API delay
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
+  // Get transactions for this budget
+  const budgetTransactions = transactions
+    .filter((t) => t.category.id === budgetId && t.type === "expense")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
+
+  return {
+    transactions: budgetTransactions,
+  };
+}
+
+// Helper function to generate a random transaction
+const generateTransaction = (): Transaction => {
+  const type = faker.helpers.arrayElement(["income", "expense"]);
+  const amount = faker.number.int({ min: 100, max: 50000 });
+
+  // Choose category based on transaction type
+  const category =
+    type === "income"
+      ? faker.helpers.arrayElement(incomeSources) // Use incomeSources for income
+      : faker.helpers.arrayElement(budgets); // Use budgets for expense
+
+  return {
+    id: faker.string.uuid(),
+    name: faker.finance.transactionType(),
+    amount: type === "income" ? amount : -amount, // Negative for expenses
+    date: faker.date.recent({ days: 30 }).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
+    type: type as "income" | "expense",
+    emoji: faker.internet.emoji(),
+    category: {
+      id: category.id,
+      name: category.name,
+    },
+  };
+};
+
+// Generate a list of transactions
+export const transactions: Transaction[] = Array.from({ length: 50 }, () =>
+  generateTransaction()
+);

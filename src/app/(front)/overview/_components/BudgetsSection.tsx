@@ -5,8 +5,8 @@ import {
   CardTitle,
 } from "@/presentation/components/ui/card";
 import Link from "next/link";
+import { BudgetChart } from "../../../../presentation/components/BudgetChart";
 import { getBudgetsData } from "../_data";
-import { BudgetChart } from "./BudgetChart";
 
 export async function BudgetsSection() {
   const { totalSpent, totalLimit, topBudgets } = await getBudgetsData();

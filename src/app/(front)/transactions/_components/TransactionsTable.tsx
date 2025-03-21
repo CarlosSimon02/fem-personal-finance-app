@@ -1,3 +1,4 @@
+import TransactionEmoji from "@/presentation/components/TransactionEmoji";
 import { Button } from "@/presentation/components/ui/button";
 import {
   DropdownMenu,
@@ -57,15 +58,13 @@ export async function TransactionsTable({
                 <tr key={transaction.id} className="border-b">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-full">
-                        <span className="text-xl">{transaction.emoji}</span>
-                      </div>
+                      <TransactionEmoji emoji={transaction.emoji} />
                       <span className="font-medium">{transaction.name}</span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <span className="bg-muted inline-flex items-center rounded-full px-2 py-1 text-xs">
-                      {transaction.category}
+                      {transaction.category.name}
                     </span>
                   </td>
                   <td className="text-muted-foreground px-4 py-3">
@@ -112,13 +111,11 @@ export async function TransactionsTable({
             className="flex items-center justify-between rounded-lg border p-4"
           >
             <div className="flex items-start gap-3">
-              <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-full">
-                <span className="text-xl">{transaction.emoji}</span>
-              </div>
+              <TransactionEmoji emoji={transaction.emoji} />
               <div>
                 <p className="font-medium">{transaction.name}</p>
                 <span className="bg-muted mt-1 inline-flex items-center rounded-full px-2 py-1 text-xs">
-                  {transaction.category}
+                  {transaction.category.name}
                 </span>
               </div>
             </div>
