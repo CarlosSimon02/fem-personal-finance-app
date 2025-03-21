@@ -681,6 +681,7 @@ export async function getBudgetTransactions(budgetId: string) {
 const generateTransaction = (): Transaction => {
   const type = faker.helpers.arrayElement(["income", "expense"]);
   const amount = faker.number.int({ min: 100, max: 50000 });
+  const name = faker.finance.transactionType();
 
   // Choose category based on transaction type
   const category =
@@ -690,7 +691,7 @@ const generateTransaction = (): Transaction => {
 
   return {
     id: faker.string.uuid(),
-    name: faker.finance.transactionType(),
+    name: String(name).charAt(0).toUpperCase() + String(name).slice(1),
     amount: type === "income" ? amount : -amount, // Negative for expenses
     date: faker.date.recent({ days: 30 }).toLocaleDateString("en-GB", {
       day: "2-digit",

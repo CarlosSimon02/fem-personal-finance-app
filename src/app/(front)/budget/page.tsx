@@ -5,14 +5,15 @@ import { BudgetCardsGrid } from "./_components/BudgetCardsGrid";
 import { BudgetsSkeleton } from "./_components/BudgetsSkeleton";
 import { SpendingSummaryCard } from "./_components/SpendingSummaryCard";
 
-export default function BudgetsPage({
+export default async function BudgetsPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     page?: string;
-  };
+  }>;
 }) {
-  const page = Number.parseInt(searchParams.page || "1", 10);
+  const paramsResult = await searchParams;
+  const page = Number.parseInt(paramsResult.page || "1", 10);
 
   return (
     <div className="container space-y-6 py-6">
