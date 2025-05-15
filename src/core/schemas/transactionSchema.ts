@@ -1,10 +1,20 @@
+import emojiRegex from "emoji-regex";
 import { z } from "zod";
 import { validateOptionalHexColor } from "./helpers";
+
+// Helper function to validate if a string contains only emoji
+const isValidEmoji = (value: string) => {
+  const trimmed = value.trim();
+  return (
+    trimmed.length > 0 &&
+    [...trimmed.matchAll(emojiRegex())].join("") === trimmed
+  );
+};
 
 export const transactionCategorySchema = z.object({
   id: z.string().min(1, "Category ID is required"),
   name: z.string().min(1, "Category name is required"),
-  color: z.string().nullable().refine(validateOptionalHexColor, {
+  color: z.string().refine(validateOptionalHexColor, {
     message: "Color must be a valid hex color code (e.g., #FF5733) or null",
   }),
 });
@@ -22,11 +32,25 @@ export const createTransactionSchema = z.object({
     .positive("Amount must be greater than 0")
     .finite("Amount must be a finite number"),
   recipientOrPayer: z.string().nullable(),
-  category: transactionCategorySchema,
+  category: z
+    .unknown()
+    .refine(
+      (val): val is z.infer<typeof transactionCategorySchema> =>
+        val !== undefined,
+      {
+        message: "Category is required",
+      }
+    )
+    .refine((val) => transactionCategorySchema.safeParse(val).success, {
+      message: "Invalid category structure",
+    }),
   transactionDate: z.instanceof(Date, {
     message: "Transaction date must be a valid date",
   }),
   description: z.string().nullable(),
+  emoji: z.string().refine(isValidEmoji, {
+    message: "Only emoji characters are allowed",
+  }),
   userId: z.string().min(1, "User ID is required"),
 });
 

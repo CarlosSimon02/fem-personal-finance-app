@@ -1,7 +1,7 @@
 "use client";
 
 import { AuthCredentials } from "@/data/models/authModel";
-import { signUpWithEmailFactory } from "@/factories/auth/signUpWithEmailFactory";
+import { signUpWithEmailUseCase } from "@/factories/authClient";
 import { useRedirectParam } from "@/presentation/hooks/useRedirectParam";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -13,7 +13,6 @@ type SignUpData = AuthCredentials & {
 };
 
 export const useSignUp = () => {
-  const signUpWithEmail = signUpWithEmailFactory();
   const redirect = useRedirectParam();
   const router = useRouter();
 
@@ -21,7 +20,7 @@ export const useSignUp = () => {
     mutationFn: async (data: SignUpData) => {
       try {
         const { email, password, name } = data;
-        const authEntity = await signUpWithEmail.execute({
+        const authEntity = await signUpWithEmailUseCase.execute({
           email,
           password,
         });

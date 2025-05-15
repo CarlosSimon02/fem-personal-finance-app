@@ -1,12 +1,11 @@
+import { TransactionType } from "@/core/entities/TransactionEntity";
 import { Timestamp } from "firebase-admin/firestore";
 
 export type TransactionCategoryModel = {
   id: string;
   name: string;
-  color: string | null;
+  color: string;
 };
-
-export type TransactionType = "income" | "expense";
 
 export type TransactionModel = {
   id: string;
@@ -16,9 +15,11 @@ export type TransactionModel = {
   category: TransactionCategoryModel;
   transactionDate: Timestamp;
   description: string | null;
+  emoji: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   userId: string;
+  name: string;
 };
 
 export type CreateTransactionModel = Omit<

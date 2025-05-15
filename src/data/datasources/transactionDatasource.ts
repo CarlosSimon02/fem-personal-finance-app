@@ -77,7 +77,7 @@ export class TransactionAdminDatasource {
     }
   }
 
-  async getAllTransactions(
+  async getMultipleTransactions(
     userId: string,
     limit: number = 10,
     cursor: string | null = null

@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import AddNewTransaction from "./_components/AddNewTransaction";
 import { SearchFilterBar } from "./_components/SearchFilterBar";
 import { TransactionsSkeleton } from "./_components/TransactionsSkeleton";
 import { TransactionsTable } from "./_components/TransactionsTable";
@@ -23,7 +24,10 @@ export default async function TransactionsPage({
 
   return (
     <div className="container space-y-6 py-6">
-      <h1 className="text-3xl font-bold">Transactions</h1>
+      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+        <h1 className="text-3xl font-bold">Transactions</h1>
+        <AddNewTransaction />
+      </div>
 
       <SearchFilterBar
         search={search}

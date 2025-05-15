@@ -35,6 +35,8 @@ export class TransactionRepository implements ITransactionRepository {
         category: input.category,
         transactionDate: transactionDate,
         description: input.description,
+        emoji: input.emoji,
+        name: input.name,
         userId: input.userId,
       }
     );
@@ -53,11 +55,11 @@ export class TransactionRepository implements ITransactionRepository {
     return this.mapTransactionModelToEntity(transaction);
   }
 
-  async getAllTransactions(
+  async getMultipleTransactions(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedTransactionsResponse> {
-    const result = await this.transactionDatasource.getAllTransactions(
+    const result = await this.transactionDatasource.getMultipleTransactions(
       userId,
       params.limit,
       params.cursor
@@ -108,21 +110,19 @@ export class TransactionRepository implements ITransactionRepository {
       color: transaction.category.color,
     };
 
-    return {
-      id: transaction.id,
-      type: transaction.type,
-      amount: transaction.amount,
-      recipientOrPayer: transaction.recipientOrPayer,
+    return TransactionEntity.create(
+      transaction.id,
+      transaction.type,
+      transaction.amount,
+      transaction.name,
+      transaction.recipientOrPayer,
       category,
-      transactionDate: transaction.transactionDate.toDate(),
-      description: transaction.description,
-      createdAt: transaction.createdAt
-        ? transaction.createdAt.toDate()
-        : undefined,
-      updatedAt: transaction.updatedAt
-        ? transaction.updatedAt.toDate()
-        : undefined,
-      userId: transaction.userId,
-    };
+      transaction.transactionDate.toDate(),
+      transaction.description,
+      transaction.emoji,
+      transaction.createdAt ? transaction.createdAt.toDate() : undefined,
+      transaction.updatedAt ? transaction.updatedAt.toDate() : undefined,
+      transaction.userId
+    );
   }
 }

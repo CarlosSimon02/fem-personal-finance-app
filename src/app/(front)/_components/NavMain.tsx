@@ -3,6 +3,7 @@
 import {
   ArrowUpDownIcon,
   ChartPieIcon,
+  DollarSign,
   HomeIcon,
   PiggyBankIcon,
   ReceiptTextIcon,
@@ -29,6 +30,11 @@ const navMain = [
     title: "Transactions",
     url: "/transactions",
     icon: ArrowUpDownIcon,
+  },
+  {
+    title: "Income",
+    url: "/income",
+    icon: DollarSign,
   },
   {
     title: "Budget",

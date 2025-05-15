@@ -16,7 +16,7 @@ export interface ITransactionRepository {
     userId: string,
     transactionId: string
   ): Promise<TransactionEntity>;
-  getAllTransactions(
+  getMultipleTransactions(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedTransactionsResponse>;
