@@ -16,7 +16,7 @@ export const useGoogleSignIn = () => {
       try {
         const authEntity = await signInWithGoogleUseCase.execute();
         const response = await postSignInAction(authEntity.idToken);
-        if (!response.success) throw new Error(response.error);
+        if (response.error) throw new Error(response.error);
         return authEntity;
       } catch (error) {
         console.error("Google sign-in error:", error);

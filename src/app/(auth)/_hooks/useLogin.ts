@@ -16,7 +16,7 @@ export const useLogin = () => {
       try {
         const authEntity = await loginWithEmailUseCase.execute(credentials);
         const response = await postSignInAction(authEntity.idToken);
-        if (!response.success) throw new Error(response.error);
+        if (response.error) throw new Error(response.error);
         return authEntity;
       } catch (error) {
         console.error("Login error:", error);

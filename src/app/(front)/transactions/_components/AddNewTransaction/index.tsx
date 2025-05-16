@@ -14,6 +14,7 @@ import {
 
 import { CreateTransactionInput } from "@/core/schemas/transactionSchema";
 import { toast } from "sonner";
+import createTransactionAction from "../../_actions/createTransactionAction";
 import { TransactionForm } from "./TransactionForm";
 
 const AddNewTransaction = () => {
@@ -23,9 +24,7 @@ const AddNewTransaction = () => {
   const handleSubmit = async (data: CreateTransactionInput) => {
     try {
       setIsSubmitting(true);
-      // API call would go here
-      console.log("Submitting transaction:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await createTransactionAction(data);
       toast.success("Transaction created successfully!");
       setOpen(false);
     } catch (error) {

@@ -1,29 +1,30 @@
 import { UserEntity } from "@/core/entities/UserEntity";
-import { verifyIdTokenUseCase } from "@/factories/authAdmin";
 import { tokensToUserEntity } from "@/utils/tokensToUserEntity";
-import { cookies } from "next/headers";
+import { debugLog } from "./debugLog";
+import { getAuthTokens } from "./getAuthTokens";
 import getServerActionError from "./getServerActionError";
 
 type ActionWithAuthProps<T> = {
   user: UserEntity;
-} & T;
+  data: T;
+};
 
 export function actionWithAuth<T, R>(
   action: (params: ActionWithAuthProps<T>) => Promise<ServerActionResponse<R>>
 ) {
   return async (params: T): Promise<ServerActionResponse<R>> => {
     try {
-      const cookieStore = await cookies();
-      const idToken = cookieStore.get("idToken")?.value;
+      const tokens = await getAuthTokens();
 
-      if (!idToken) {
+      if (!tokens) {
+        debugLog("actionWithAuth", "No tokens found");
         throw new Error("Unauthorized");
       }
 
-      const decodedToken = await verifyIdTokenUseCase.execute(idToken);
-      const user = tokensToUserEntity(decodedToken);
+      const user = tokensToUserEntity(tokens.decodedToken);
 
-      return action({ ...params, user });
+      const result = await action({ data: params, user });
+      return result;
     } catch (error) {
       return getServerActionError(error);
     }

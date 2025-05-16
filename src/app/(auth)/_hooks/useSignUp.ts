@@ -25,7 +25,7 @@ export const useSignUp = () => {
           password,
         });
         const response = await postSignInAction(authEntity.idToken, { name });
-        if (!response.success) throw new Error(response.error);
+        if (response.error) throw new Error(response.error);
         return authEntity;
       } catch (error) {
         console.error("Sign up error:", error);
