@@ -7,11 +7,15 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/presentation/components/ui/sidebar";
-import { withAuth, WithAuthProps } from "@/utils/withAuth";
+import {
+  ServerCompWithAuthProps,
+  serverCompWithAuth,
+} from "@/utils/serverCompWithAuth";
 import { NavMain } from "./NavMain";
 import { NavUser } from "./NavUser";
 
-type AppSidebarProps = React.ComponentProps<typeof Sidebar> & WithAuthProps;
+type AppSidebarProps = React.ComponentProps<typeof Sidebar> &
+  ServerCompWithAuthProps;
 
 function AppSidebar({ user, ...props }: AppSidebarProps) {
   return (
@@ -28,4 +32,4 @@ function AppSidebar({ user, ...props }: AppSidebarProps) {
   );
 }
 
-export default withAuth(AppSidebar);
+export default serverCompWithAuth(AppSidebar);

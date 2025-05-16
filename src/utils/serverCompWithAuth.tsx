@@ -3,15 +3,15 @@ import { getAuthTokens } from "@/utils/getAuthTokens";
 import { redirect } from "next/navigation";
 import { tokensToUserEntity } from "./tokensToUserEntity";
 
-export type WithAuthProps = {
+export type ServerCompWithAuthProps = {
   user: UserEntity;
 };
 
-export function withAuth<P extends WithAuthProps>(
+export function serverCompWithAuth<P extends ServerCompWithAuthProps>(
   WrappedComponent: React.ComponentType<P>
 ) {
   return async function AuthenticatedComponent(
-    props: Omit<P, keyof WithAuthProps>
+    props: Omit<P, keyof ServerCompWithAuthProps>
   ) {
     const tokens = await getAuthTokens();
 
