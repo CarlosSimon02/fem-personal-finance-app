@@ -1,21 +1,26 @@
-import { TransactionEntity } from "@/core/entities/TransactionEntity";
 import {
-  CreateTransactionInput,
-  PaginationParams,
+  CreateTransactionDto,
+  TransactionCategory,
+  TransactionDto,
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
+import { PaginationParams } from "../schemas/paginationParams";
 
 export type PaginatedTransactionsResponse = {
-  transactions: TransactionEntity[];
+  transactions: TransactionDto[];
   nextCursor: string | null;
 };
 
 export interface ITransactionRepository {
-  createTransaction(input: CreateTransactionInput): Promise<TransactionEntity>;
+  createTransaction(
+    userId: string,
+    input: CreateTransactionDto,
+    category: TransactionCategory
+  ): Promise<TransactionDto>;
   getTransaction(
     userId: string,
     transactionId: string
-  ): Promise<TransactionEntity>;
+  ): Promise<TransactionDto>;
   getMultipleTransactions(
     userId: string,
     params: PaginationParams
@@ -24,6 +29,6 @@ export interface ITransactionRepository {
     userId: string,
     transactionId: string,
     input: UpdateTransactionInput
-  ): Promise<TransactionEntity>;
+  ): Promise<TransactionDto>;
   deleteTransaction(userId: string, transactionId: string): Promise<void>;
 }

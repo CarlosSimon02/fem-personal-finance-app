@@ -1,31 +1,23 @@
-import { TransactionType } from "@/core/entities/TransactionEntity";
-import { Timestamp } from "firebase-admin/firestore";
+import { TransactionDto } from "@/core/schemas/transactionSchema";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
-export type TransactionCategoryModel = {
-  id: string;
-  name: string;
-  color: string;
-};
-
-export type TransactionModel = {
-  id: string;
-  type: TransactionType;
-  amount: number;
-  recipientOrPayer: string | null;
-  category: TransactionCategoryModel;
-  transactionDate: Timestamp;
-  description: string | null;
-  emoji: string;
+export type TransactionModel = Omit<
+  TransactionDto,
+  "createdAt" | "updatedAt" | "transactionDate"
+> & {
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  userId: string;
-  name: string;
+  transactionDate: Timestamp;
 };
 
 export type CreateTransactionModel = Omit<
   TransactionModel,
-  "id" | "createdAt" | "updatedAt"
->;
+  "createdAt" | "updatedAt"
+> & {
+  createdAt: FieldValue;
+  updatedAt: FieldValue;
+};
+
 export type UpdateTransactionModel = Partial<
   Omit<TransactionModel, "id" | "createdAt" | "updatedAt" | "userId">
 >;

@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/presentation/components/ui/dialog";
 
-import { CreateTransactionInput } from "@/core/schemas/transactionSchema";
+import { CreateTransactionDto } from "@/core/schemas/transactionSchema";
 import { toast } from "sonner";
 import createTransactionAction from "../../_actions/createTransactionAction";
 import { TransactionForm } from "./TransactionForm";
@@ -21,7 +21,7 @@ const AddNewTransaction = () => {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (data: CreateTransactionInput) => {
+  const handleSubmit = async (data: CreateTransactionDto) => {
     try {
       setIsSubmitting(true);
       await createTransactionAction(data);

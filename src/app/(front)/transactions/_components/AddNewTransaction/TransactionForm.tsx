@@ -23,7 +23,7 @@ import {
 import { Textarea } from "@/presentation/components/ui/textarea";
 
 import {
-  CreateTransactionInput,
+  CreateTransactionDto,
   createTransactionSchema,
 } from "@/core/schemas/transactionSchema";
 import { CategorySelectField } from "./CategorySelectField";
@@ -32,10 +32,10 @@ import { EmojiPickerField } from "./EmojiPickerField";
 import { TransactionDatePicker } from "./TransactionDatePicker";
 
 interface TransactionFormProps {
-  onSubmit: (data: CreateTransactionInput) => Promise<void>;
+  onSubmit: (data: CreateTransactionDto) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
-  defaultValues?: Partial<CreateTransactionInput>;
+  defaultValues?: Partial<CreateTransactionDto>;
 }
 
 export const TransactionForm = ({
@@ -44,7 +44,7 @@ export const TransactionForm = ({
   isSubmitting,
   defaultValues,
 }: TransactionFormProps) => {
-  const form = useForm<CreateTransactionInput>({
+  const form = useForm<CreateTransactionDto>({
     resolver: zodResolver(createTransactionSchema),
     defaultValues: {
       name: "",

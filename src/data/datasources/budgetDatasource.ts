@@ -35,14 +35,17 @@ export class BudgetDatasource {
     }
   }
 
-  async getBudget(userId: string, budgetId: string): Promise<BudgetModel> {
+  async getBudget(
+    userId: string,
+    budgetId: string
+  ): Promise<BudgetModel | null> {
     try {
       const budgetDoc = await this.getBudgetCollection(userId)
         .doc(budgetId)
         .get();
 
       if (!budgetDoc.exists) {
-        throw new Error("Budget not found");
+        return null;
       }
 
       return budgetDoc.data() as BudgetModel;

@@ -16,9 +16,14 @@ export const createBudgetSchema = z.object({
   userId: z.string().min(1, "User ID is required"),
 });
 
-export const updateBudgetSchema = createBudgetSchema
-  .partial()
-  .omit({ userId: true });
+export const updateBudgetSchema = createBudgetSchema.partial();
 
-export type CreateBudgetInput = z.infer<typeof createBudgetSchema>;
-export type UpdateBudgetInput = z.infer<typeof updateBudgetSchema>;
+export const budgetSchema = createBudgetSchema.extend({
+  id: z.string().min(1, "Budget ID is required"),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type CreateBudgetDto = z.infer<typeof createBudgetSchema>;
+export type UpdateBudgetDto = z.infer<typeof updateBudgetSchema>;
+export type BudgetDto = z.infer<typeof budgetSchema>;

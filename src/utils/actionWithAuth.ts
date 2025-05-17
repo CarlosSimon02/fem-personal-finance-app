@@ -1,5 +1,6 @@
 import { UserEntity } from "@/core/entities/UserEntity";
 import { tokensToUserEntity } from "@/utils/tokensToUserEntity";
+import { AuthError } from "./authError";
 import { debugLog } from "./debugLog";
 import { getAuthTokens } from "./getAuthTokens";
 import getServerActionError from "./getServerActionError";
@@ -18,7 +19,7 @@ export function actionWithAuth<T, R>(
 
       if (!tokens) {
         debugLog("actionWithAuth", "No tokens found");
-        throw new Error("Unauthorized");
+        throw new AuthError();
       }
 
       const user = tokensToUserEntity(tokens.decodedToken);

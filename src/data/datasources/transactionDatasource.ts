@@ -1,5 +1,5 @@
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
 import {
   CreateTransactionModel,
   PaginatedTransactionsResponse,
@@ -20,17 +20,8 @@ export class TransactionAdminDatasource {
     data: CreateTransactionModel
   ): Promise<TransactionModel> {
     try {
-      const transactionRef = this.getTransactionCollection(userId).doc();
-      const timestamp = FieldValue.serverTimestamp();
-
-      const transactionData = {
-        ...data,
-        id: transactionRef.id,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
-
-      await transactionRef.set(transactionData);
+      const transactionRef = this.getTransactionCollection(userId).doc(data.id);
+      await transactionRef.set(data);
 
       const transactionDoc = await transactionRef.get();
       const docData = transactionDoc.data();
@@ -39,13 +30,7 @@ export class TransactionAdminDatasource {
         throw new Error("Transaction not found after creation");
       }
 
-      return {
-        ...docData,
-        id: transactionDoc.id,
-        createdAt: docData.createdAt as Timestamp,
-        updatedAt: docData.updatedAt as Timestamp,
-        transactionDate: data.transactionDate, // Use the provided date since Firestore might convert it
-      } as TransactionModel;
+      return docData as TransactionModel;
     } catch (error) {
       const err = error as Error;
       throw new Error(`Failed to create transaction: ${err.message}`);

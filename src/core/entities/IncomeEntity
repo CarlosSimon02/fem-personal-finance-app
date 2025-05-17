@@ -1,7 +1,6 @@
 export class BudgetEntity {
   private id?: string;
   private name?: string;
-  private maximumSpending?: number;
   private colorTag?: string;
   private createdAt?: Date;
   private updatedAt?: Date;
@@ -10,7 +9,6 @@ export class BudgetEntity {
   constructor({
     id,
     name,
-    maximumSpending,
     colorTag,
     createdAt,
     updatedAt,
@@ -26,7 +24,6 @@ export class BudgetEntity {
   }) {
     this.id = id;
     this.name = name;
-    this.maximumSpending = maximumSpending;
     this.colorTag = colorTag;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -39,10 +36,6 @@ export class BudgetEntity {
 
   getName() {
     return this.name;
-  }
-
-  getMaximumSpending() {
-    return this.maximumSpending;
   }
 
   getColorTag() {
@@ -67,10 +60,6 @@ export class BudgetEntity {
 
   setName(name: string) {
     this.name = name;
-  }
-
-  setMaximumSpending(maximumSpending: number) {
-    this.maximumSpending = maximumSpending;
   }
 
   setColorTag(colorTag: string) {

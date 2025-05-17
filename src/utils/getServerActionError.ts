@@ -1,8 +1,4 @@
-import { ZodError } from "zod";
-
-type FieldErrors = {
-  [x: string]: string[] | undefined;
-};
+import { ValidationError } from "./validationError";
 
 const getErrorMessage = (error: unknown): string => {
   if (error instanceof Error) return error.message;
@@ -10,9 +6,11 @@ const getErrorMessage = (error: unknown): string => {
   return "An unknown error occurred";
 };
 
-const getValidationErrors = (error: unknown): FieldErrors | undefined => {
-  if (error instanceof ZodError) {
-    return error.flatten().fieldErrors;
+const getValidationErrors = (
+  error: unknown
+): Record<string, string | undefined> | undefined => {
+  if (error instanceof ValidationError) {
+    return error.errors;
   }
   return undefined;
 };

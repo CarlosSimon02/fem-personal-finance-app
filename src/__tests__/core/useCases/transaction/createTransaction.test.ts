@@ -1,6 +1,6 @@
 import { TransactionEntity } from "@/core/entities/TransactionEntity";
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
-import { CreateTransactionInput } from "@/core/schemas/transactionSchema";
+import { CreateTransactionDto } from "@/core/schemas/transactionSchema";
 import { CreateTransactionUseCase } from "@/core/useCases/transaction/createTransaction";
 
 // Mock the repository
@@ -22,7 +22,7 @@ describe("CreateTransactionUseCase", () => {
   });
 
   it("should create a transaction", async () => {
-    const input: CreateTransactionInput = {
+    const input: CreateTransactionDto = {
       name: "Groceries",
       type: "expense",
       amount: 100,
@@ -47,7 +47,7 @@ describe("CreateTransactionUseCase", () => {
       category: {
         name: "Food",
         id: "1",
-        color: "#000000",
+        colorTag: "#000000",
       },
       transactionDate: new Date(),
       description: "Groceries",
@@ -70,7 +70,7 @@ describe("CreateTransactionUseCase", () => {
   });
 
   it("should throw an error if the transaction is not created", async () => {
-    const input: CreateTransactionInput = {
+    const input: CreateTransactionDto = {
       name: "Groceries",
       type: "expense",
       amount: 100,

@@ -1,17 +1,15 @@
 "use server";
 
-import { CreateTransactionInput } from "@/core/schemas/transactionSchema";
+import { CreateTransactionDto } from "@/core/schemas/transactionSchema";
+import { createTransactionUseCase } from "@/factories/transaction";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 
-const createTransactionAction = actionWithAuth<CreateTransactionInput, null>(
+const createTransactionAction = actionWithAuth<CreateTransactionDto, null>(
   async ({ user, data }) => {
     console.log(user, data, "Test data");
+    const transaction = await createTransactionUseCase.execute(data);
     return { data: null, error: null };
   }
 );
-
-// const createTransactionAction = (data: CreateTransactionInput) => {
-//   console.log(data, "Test data");
-// };
 
 export default createTransactionAction;

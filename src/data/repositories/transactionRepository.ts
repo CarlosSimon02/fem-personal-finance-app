@@ -1,14 +1,12 @@
 import {
-  TransactionCategoryEntity,
-  TransactionEntity,
-} from "@/core/entities/TransactionEntity";
-import {
   ITransactionRepository,
   PaginatedTransactionsResponse,
 } from "@/core/interfaces/ITransactionRepository";
+import { PaginationParams } from "@/core/schemas/paginationParams";
 import {
-  CreateTransactionInput,
-  PaginationParams,
+  CreateTransactionDto,
+  TransactionCategory,
+  TransactionDto,
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
 import { TransactionAdminDatasource } from "@/data/datasources/transactionDatasource";
@@ -16,43 +14,50 @@ import {
   TransactionModel,
   UpdateTransactionModel,
 } from "@/data/models/transactionModel";
-import { Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { nanoid } from "nanoid";
 
 export class TransactionRepository implements ITransactionRepository {
   constructor(private transactionDatasource: TransactionAdminDatasource) {}
 
   async createTransaction(
-    input: CreateTransactionInput
-  ): Promise<TransactionEntity> {
+    userId: string,
+    input: CreateTransactionDto,
+    category: TransactionCategory
+  ): Promise<TransactionDto> {
     const transactionDate = Timestamp.fromDate(input.transactionDate);
+    const id = nanoid(10);
+    const timestamp = FieldValue.serverTimestamp();
 
     const transaction = await this.transactionDatasource.createTransaction(
-      input.userId,
+      userId,
       {
+        id,
+        createdAt: timestamp,
+        updatedAt: timestamp,
         type: input.type,
         amount: input.amount,
         recipientOrPayer: input.recipientOrPayer,
-        category: input.category,
+        category: category,
         transactionDate: transactionDate,
         description: input.description,
         emoji: input.emoji,
         name: input.name,
-        userId: input.userId,
       }
     );
 
-    return this.mapTransactionModelToEntity(transaction);
+    return this.mapTransactionModelToDto(transaction);
   }
 
   async getTransaction(
     userId: string,
     transactionId: string
-  ): Promise<TransactionEntity> {
+  ): Promise<TransactionDto> {
     const transaction = await this.transactionDatasource.getTransaction(
       userId,
       transactionId
     );
-    return this.mapTransactionModelToEntity(transaction);
+    return this.mapTransactionModelToDto(transaction);
   }
 
   async getMultipleTransactions(
@@ -67,7 +72,7 @@ export class TransactionRepository implements ITransactionRepository {
 
     return {
       transactions: result.transactions.map((transaction) =>
-        this.mapTransactionModelToEntity(transaction)
+        this.mapTransactionModelToDto(transaction)
       ),
       nextCursor: result.nextCursor,
     };
@@ -77,7 +82,7 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     transactionId: string,
     input: UpdateTransactionInput
-  ): Promise<TransactionEntity> {
+  ): Promise<TransactionDto> {
     const updateData: UpdateTransactionModel = {
       ...input,
       transactionDate: input.transactionDate
@@ -91,7 +96,7 @@ export class TransactionRepository implements ITransactionRepository {
       updateData
     );
 
-    return this.mapTransactionModelToEntity(transaction);
+    return this.mapTransactionModelToDto(transaction);
   }
 
   async deleteTransaction(
@@ -101,28 +106,27 @@ export class TransactionRepository implements ITransactionRepository {
     await this.transactionDatasource.deleteTransaction(userId, transactionId);
   }
 
-  private mapTransactionModelToEntity(
+  private mapTransactionModelToDto(
     transaction: TransactionModel
-  ): TransactionEntity {
-    const category: TransactionCategoryEntity = {
+  ): TransactionDto {
+    const category: TransactionCategory = {
       id: transaction.category.id,
       name: transaction.category.name,
-      color: transaction.category.color,
+      colorTag: transaction.category.color,
     };
 
-    return TransactionEntity.create(
-      transaction.id,
-      transaction.type,
-      transaction.amount,
-      transaction.name,
-      transaction.recipientOrPayer,
+    return {
+      id: transaction.id,
+      type: transaction.type,
+      amount: transaction.amount,
+      name: transaction.name,
+      recipientOrPayer: transaction.recipientOrPayer,
       category,
-      transaction.transactionDate.toDate(),
-      transaction.description,
-      transaction.emoji,
-      transaction.createdAt ? transaction.createdAt.toDate() : undefined,
-      transaction.updatedAt ? transaction.updatedAt.toDate() : undefined,
-      transaction.userId
-    );
+      transactionDate: transaction.transactionDate.toDate(),
+      description: transaction.description,
+      emoji: transaction.emoji,
+      createdAt: transaction.createdAt.toDate(),
+      updatedAt: transaction.updatedAt.toDate(),
+    };
   }
 }

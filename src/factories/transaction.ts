@@ -1,5 +1,6 @@
 import { CreateTransactionUseCase } from "@/core/useCases/transaction/createTransaction";
 import { DeleteTransactionUseCase } from "@/core/useCases/transaction/deleteTransaction";
+import { GetMultipleTransactionsUseCase } from "@/core/useCases/transaction/getMultipleTransactions";
 import { GetTransactionUseCase } from "@/core/useCases/transaction/getTransaction";
 import { UpdateTransactionUseCase } from "@/core/useCases/transaction/updateTransaction";
 import { TransactionAdminDatasource } from "@/data/datasources/transactionDatasource";

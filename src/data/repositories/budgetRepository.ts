@@ -1,16 +1,13 @@
 import { BudgetEntity } from "@/core/entities/BudgetEntity";
 import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
-import {
-  CreateBudgetInput,
-  UpdateBudgetInput,
-} from "@/core/schemas/budgetSchema";
+import { CreateBudgetDto, UpdateBudgetDto } from "@/core/schemas/budgetSchema";
 import { BudgetDatasource } from "../datasources/budgetDatasource";
 import { BudgetModel } from "../models/budgetModel";
 
 export class BudgetRepository implements IBudgetRepository {
   constructor(private budgetDatasource: BudgetDatasource) {}
 
-  async createBudget(input: CreateBudgetInput): Promise<BudgetEntity> {
+  async createBudget(input: CreateBudgetDto): Promise<BudgetEntity> {
     const budget = await this.budgetDatasource.createBudget(input.userId, {
       name: input.name,
       maximumSpending: input.maximumSpending,
@@ -34,7 +31,7 @@ export class BudgetRepository implements IBudgetRepository {
   async updateBudget(
     userId: string,
     budgetId: string,
-    input: UpdateBudgetInput
+    input: UpdateBudgetDto
   ): Promise<BudgetEntity> {
     const budget = await this.budgetDatasource.updateBudget(
       userId,
