@@ -8,6 +8,8 @@ export const env = createEnv({
     USE_SECURE_COOKIES: z.string().transform((val) => val === "true"),
     COOKIE_SECRET_CURRENT: z.string(),
     COOKIE_SECRET_PREVIOUS: z.string(),
+    ALGOLIA_APP_ID: z.string(),
+    ALGOLIA_API_KEY: z.string(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -60,5 +62,7 @@ export const env = createEnv({
     NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT:
       process.env.NEXT_PUBLIC_FUNCTIONS_EMULATOR_PORT,
     NEXT_PUBLIC_AUTH_EMULATOR_HOST: process.env.NEXT_PUBLIC_AUTH_EMULATOR_HOST,
+    ALGOLIA_APP_ID: process.env.ALGOLIA_APP_ID,
+    ALGOLIA_API_KEY: process.env.ALGOLIA_API_KEY,
   },
 });

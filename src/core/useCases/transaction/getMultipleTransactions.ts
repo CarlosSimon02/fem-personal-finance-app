@@ -1,16 +1,21 @@
-import { TransactionEntity } from "@/core/entities/TransactionEntity";
-import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
+import {
+  ITransactionRepository,
+  PaginatedTransactionsResponse,
+} from "@/core/interfaces/ITransactionRepository";
+import { TransactionPaginationParams } from "@/core/schemas/transactionSchema";
+import { AuthError } from "@/utils/authError";
 
 export class GetMultipleTransactionsUseCase {
   constructor(private transactionRepository: ITransactionRepository) {}
 
   async execute(
     userId: string,
-    transactionId: string
-  ): Promise<TransactionEntity> {
-    if (!userId) throw new Error("User ID is required");
-    if (!transactionId) throw new Error("Transaction ID is required");
+    params: TransactionPaginationParams
+  ): Promise<PaginatedTransactionsResponse> {
+    if (!userId) {
+      throw new AuthError();
+    }
 
-    return this.transactionRepository.getTransaction(userId, transactionId);
+    return this.transactionRepository.getMultipleTransactions(userId, params);
   }
 }

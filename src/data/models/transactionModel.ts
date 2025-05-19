@@ -21,8 +21,3 @@ export type CreateTransactionModel = Omit<
 export type UpdateTransactionModel = Partial<
   Omit<TransactionModel, "id" | "createdAt" | "updatedAt" | "userId">
 >;
-
-export type PaginatedTransactionsResponse = {
-  transactions: TransactionModel[];
-  nextCursor: string | null;
-};

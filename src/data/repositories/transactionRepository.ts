@@ -1,37 +1,42 @@
-import {
-  ITransactionRepository,
-  PaginatedTransactionsResponse,
-} from "@/core/interfaces/ITransactionRepository";
-import { PaginationParams } from "@/core/schemas/paginationParams";
+import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
 import {
   CreateTransactionDto,
+  PaginatedTransactionsResponse,
   TransactionCategory,
   TransactionDto,
+  TransactionPaginationParams,
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
-import { TransactionAdminDatasource } from "@/data/datasources/transactionDatasource";
 import {
+  CreateTransactionModel,
   TransactionModel,
-  UpdateTransactionModel,
 } from "@/data/models/transactionModel";
+import { ALGOLIA_TRANSACTIONS_INDEX, algoliaClient } from "@/services/algolia";
+import { adminFirestore } from "@/services/firebase/firebaseAdmin";
+import { SearchMethodParams } from "algoliasearch";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
 
 export class TransactionRepository implements ITransactionRepository {
-  constructor(private transactionDatasource: TransactionAdminDatasource) {}
+  private getTransactionCollection(userId: string) {
+    return adminFirestore
+      .collection("users")
+      .doc(userId)
+      .collection("transactions");
+  }
+
+  constructor() {}
 
   async createTransaction(
     userId: string,
     input: CreateTransactionDto,
     category: TransactionCategory
   ): Promise<TransactionDto> {
-    const transactionDate = Timestamp.fromDate(input.transactionDate);
-    const id = nanoid(10);
-    const timestamp = FieldValue.serverTimestamp();
-
-    const transaction = await this.transactionDatasource.createTransaction(
-      userId,
-      {
+    try {
+      const transactionDate = Timestamp.fromDate(input.transactionDate);
+      const id = nanoid(10);
+      const timestamp = FieldValue.serverTimestamp();
+      const data: CreateTransactionModel = {
         id,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -43,39 +48,55 @@ export class TransactionRepository implements ITransactionRepository {
         description: input.description,
         emoji: input.emoji,
         name: input.name,
-      }
-    );
+      };
 
-    return this.mapTransactionModelToDto(transaction);
+      const transactionRef = this.getTransactionCollection(userId).doc(data.id);
+      await transactionRef.set(data);
+
+      const transactionDoc = await transactionRef.get();
+      const docData = transactionDoc.data();
+
+      if (!docData) {
+        throw new Error("Transaction not found after creation");
+      }
+
+      return this.mapTransactionModelToDto(docData as TransactionModel);
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to create transaction: ${err.message}`);
+    }
   }
 
   async getTransaction(
     userId: string,
     transactionId: string
   ): Promise<TransactionDto> {
-    const transaction = await this.transactionDatasource.getTransaction(
-      userId,
-      transactionId
-    );
-    return this.mapTransactionModelToDto(transaction);
+    try {
+      const transactionDoc = await this.getTransactionCollection(userId)
+        .doc(transactionId)
+        .get();
+
+      if (!transactionDoc.exists) {
+        throw new Error("Transaction not found");
+      }
+
+      const docData = transactionDoc.data();
+
+      return this.mapTransactionModelToDto(docData as TransactionModel);
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to get transaction: ${err.message}`);
+    }
   }
 
   async getMultipleTransactions(
     userId: string,
-    params: PaginationParams
+    params: TransactionPaginationParams
   ): Promise<PaginatedTransactionsResponse> {
-    const result = await this.transactionDatasource.getMultipleTransactions(
-      userId,
-      params.limit,
-      params.cursor
-    );
+    // TODO: Implement this
+    console.log(userId, params);
 
-    return {
-      transactions: result.transactions.map((transaction) =>
-        this.mapTransactionModelToDto(transaction)
-      ),
-      nextCursor: result.nextCursor,
-    };
+    return {} as PaginatedTransactionsResponse;
   }
 
   async updateTransaction(
@@ -83,27 +104,44 @@ export class TransactionRepository implements ITransactionRepository {
     transactionId: string,
     input: UpdateTransactionInput
   ): Promise<TransactionDto> {
-    const updateData: UpdateTransactionModel = {
-      ...input,
-      transactionDate: input.transactionDate
-        ? Timestamp.fromDate(input.transactionDate)
-        : undefined,
-    };
+    try {
+      const transactionRef =
+        this.getTransactionCollection(userId).doc(transactionId);
+      const timestamp = FieldValue.serverTimestamp();
 
-    const transaction = await this.transactionDatasource.updateTransaction(
-      userId,
-      transactionId,
-      updateData
-    );
+      const updateData = {
+        ...input,
+        updatedAt: timestamp,
+      };
 
-    return this.mapTransactionModelToDto(transaction);
+      await transactionRef.update(updateData);
+
+      // Get the updated document
+      const updatedDoc = await transactionRef.get();
+
+      if (!updatedDoc.exists) {
+        throw new Error("Transaction not found after update");
+      }
+
+      const docData = updatedDoc.data();
+
+      return this.mapTransactionModelToDto(docData as TransactionModel);
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to update transaction: ${err.message}`);
+    }
   }
 
   async deleteTransaction(
     userId: string,
     transactionId: string
   ): Promise<void> {
-    await this.transactionDatasource.deleteTransaction(userId, transactionId);
+    try {
+      await this.getTransactionCollection(userId).doc(transactionId).delete();
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to delete transaction: ${err.message}`);
+    }
   }
 
   private mapTransactionModelToDto(
@@ -112,7 +150,7 @@ export class TransactionRepository implements ITransactionRepository {
     const category: TransactionCategory = {
       id: transaction.category.id,
       name: transaction.category.name,
-      colorTag: transaction.category.color,
+      colorTag: transaction.category.colorTag,
     };
 
     return {
@@ -128,5 +166,24 @@ export class TransactionRepository implements ITransactionRepository {
       createdAt: transaction.createdAt.toDate(),
       updatedAt: transaction.updatedAt.toDate(),
     };
+  }
+
+  private async handleAlgoliaSearch(params: TransactionPaginationParams) {
+    const searchOptions: SearchMethodParams = {
+      requests: [
+        {
+          indexName: ALGOLIA_TRANSACTIONS_INDEX,
+          query: params.search!,
+          filters: params.filter.categoryId
+            ? `category.id:${params.filter.categoryId}`
+            : "",
+          page: params.pagination.page - 1,
+          hitsPerPage: params.pagination.limitPerPage,
+          ranking: ["filterOnly(category.id)"],
+        },
+      ],
+    };
+
+    return algoliaClient.search<TransactionModel>(searchOptions);
   }
 }
