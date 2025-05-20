@@ -7,6 +7,6 @@ export class GetAllBudgetsUseCase {
   async execute(userId: string): Promise<BudgetEntity[]> {
     if (!userId) throw new Error("User ID is required");
 
-    return this.budgetRepository.getAllBudgets(userId);
+    return this.budgetRepository.getPaginatedBudgets(userId);
   }
 }

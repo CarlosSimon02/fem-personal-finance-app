@@ -30,11 +30,11 @@ const paginationResponseSchema = z.object({
   }),
 });
 
-export const createPaginationParamsSchema = <T extends ZodTypeAny>(
+export const createPaginationParamsSchema = <T extends ZodTypeAny | null>(
   filterSchema: T
 ) => {
   return paginationParamsSchema.extend({
-    filter: filterSchema,
+    filter: filterSchema ?? z.null(),
   });
 };
 

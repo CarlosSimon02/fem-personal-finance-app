@@ -1,3 +1,7 @@
+import { ValidationError } from "@/utils/validationError";
+import { ZodError } from "zod";
+import { CreateBudgetDto, createBudgetSchema } from "../schemas/budgetSchema";
+
 export class BudgetEntity {
   private id?: string;
   private name?: string;
@@ -87,5 +91,22 @@ export class BudgetEntity {
 
   setUserId(userId: string) {
     this.userId = userId;
+  }
+
+  validateCreateBudget() {
+    try {
+      return createBudgetSchema.parse(this);
+    } catch (err) {
+      const error = err as ZodError;
+      const errors = error.flatten().fieldErrors;
+      throw new ValidationError(
+        {
+          name: errors.name?.[0],
+          maximumSpending: errors.maximumSpending?.[0],
+          colorTag: errors.colorTag?.[0],
+        } satisfies AllUnknown<CreateBudgetDto>,
+        "Invalid budget data"
+      );
+    }
   }
 }

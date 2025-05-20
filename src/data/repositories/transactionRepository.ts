@@ -174,7 +174,7 @@ export class TransactionRepository implements ITransactionRepository {
         {
           indexName: ALGOLIA_TRANSACTIONS_INDEX,
           query: params.search!,
-          filters: params.filter.categoryId
+          filters: params.filter?.categoryId
             ? `category.id:${params.filter.categoryId}`
             : "",
           page: params.pagination.page - 1,

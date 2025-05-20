@@ -1,5 +1,9 @@
 import { z } from "zod";
 import { validateOptionalHexColor } from "./helpers";
+import {
+  createPaginationParamsSchema,
+  createPaginationResponseSchema,
+} from "./paginationSchema";
 
 export const createBudgetSchema = z.object({
   name: z
@@ -13,7 +17,6 @@ export const createBudgetSchema = z.object({
   colorTag: z.string().refine(validateOptionalHexColor, {
     message: "Color tag must be a valid hex color code (e.g., #FF5733)",
   }),
-  userId: z.string().min(1, "User ID is required"),
 });
 
 export const updateBudgetSchema = createBudgetSchema.partial();
@@ -24,6 +27,16 @@ export const budgetSchema = createBudgetSchema.extend({
   updatedAt: z.date(),
 });
 
+export const budgetPaginationParamsSchema = createPaginationParamsSchema(null);
+export const budgetPaginationResponseSchema =
+  createPaginationResponseSchema(budgetSchema);
+
 export type CreateBudgetDto = z.infer<typeof createBudgetSchema>;
 export type UpdateBudgetDto = z.infer<typeof updateBudgetSchema>;
 export type BudgetDto = z.infer<typeof budgetSchema>;
+export type BudgetPaginationParams = z.infer<
+  typeof budgetPaginationParamsSchema
+>;
+export type BudgetPaginationResponse = z.infer<
+  typeof budgetPaginationResponseSchema
+>;

@@ -5,9 +5,8 @@ export type BudgetModel = {
   name: string;
   maximumSpending: number;
   colorTag: string;
-  createdAt: Timestamp | null;
-  updatedAt: Timestamp | null;
-  userId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 export type CreateBudgetModel = Omit<
