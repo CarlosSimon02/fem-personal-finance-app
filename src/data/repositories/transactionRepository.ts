@@ -90,32 +90,37 @@ export class TransactionRepository implements ITransactionRepository {
     }
   }
 
-  async getMultipleTransactions(
+  async getPaginatedTransactions(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedTransactionsResponse> {
-    let response: TransactionModelPaginationResponse;
+    try {
+      let response: TransactionModelPaginationResponse;
 
-    if (params.search) {
-      response = await getPaginatedAlgoliaData(
-        this.ALGOLIA_TRANSACTIONS_INDEX,
-        params,
-        transactionModelSchema
-      );
-    } else {
-      response = await getFirestorePaginatedData(
-        this.getTransactionCollection(userId),
-        params,
-        transactionModelSchema
-      );
+      if (params.search) {
+        response = await getPaginatedAlgoliaData(
+          this.ALGOLIA_TRANSACTIONS_INDEX,
+          params,
+          transactionModelSchema
+        );
+      } else {
+        response = await getFirestorePaginatedData(
+          this.getTransactionCollection(userId),
+          params,
+          transactionModelSchema
+        );
+      }
+
+      return {
+        data: response.data.map((transaction) =>
+          this.mapTransactionModelToDto(transaction)
+        ),
+        meta: response.meta,
+      };
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to get paginated transactions: ${err.message}`);
     }
-
-    return {
-      data: response.data.map((transaction) =>
-        this.mapTransactionModelToDto(transaction)
-      ),
-      meta: response.meta,
-    };
   }
 
   async updateTransaction(

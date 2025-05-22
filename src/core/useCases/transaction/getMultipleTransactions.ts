@@ -14,6 +14,6 @@ export class GetMultipleTransactionsUseCase {
       throw new AuthError();
     }
 
-    return this.transactionRepository.getMultipleTransactions(userId, params);
+    return this.transactionRepository.getPaginatedTransactions(userId, params);
   }
 }

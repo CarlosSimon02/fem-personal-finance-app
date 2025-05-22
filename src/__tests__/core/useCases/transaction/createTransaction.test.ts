@@ -7,7 +7,7 @@ import { CreateTransactionUseCase } from "@/core/useCases/transaction/createTran
 const mockTransactionRepository: jest.Mocked<ITransactionRepository> = {
   createTransaction: jest.fn(),
   getTransaction: jest.fn(),
-  getMultipleTransactions: jest.fn(),
+  getPaginatedTransactions: jest.fn(),
   updateTransaction: jest.fn(),
   deleteTransaction: jest.fn(),
 };
