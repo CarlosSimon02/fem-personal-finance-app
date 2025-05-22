@@ -1,10 +1,7 @@
 import emojiRegex from "emoji-regex";
 import { z } from "zod";
 import { validateOptionalHexColor } from "./helpers";
-import {
-  createPaginationParamsSchema,
-  createPaginationResponseSchema,
-} from "./paginationSchema";
+import { createPaginationResponseSchema } from "./paginationSchema";
 
 const isValidEmoji = (value: string) => {
   const trimmed = value.trim();
@@ -59,12 +56,6 @@ export const transactionSchema = baseTransactionSchema.extend({
   category: transactionCategorySchema,
 });
 
-export const transactionPaginationParamsSchema = createPaginationParamsSchema(
-  z.object({
-    categoryId: z.string().nullable(),
-  })
-);
-
 export const transactionPaginationResponseSchema =
   createPaginationResponseSchema(transactionSchema);
 
@@ -73,9 +64,6 @@ export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 export type TransactionDto = z.infer<typeof transactionSchema>;
 export type TransactionCategory = z.infer<typeof transactionCategorySchema>;
 export type TransactionType = z.infer<typeof transactionTypeSchema>;
-export type TransactionPaginationParams = z.infer<
-  typeof transactionPaginationParamsSchema
->;
 export type PaginatedTransactionsResponse = z.infer<
   typeof transactionPaginationResponseSchema
 >;

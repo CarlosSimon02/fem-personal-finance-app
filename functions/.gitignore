@@ -6,5 +6,5 @@ lib/**/*.js.map
 typings/
 
 # Node.js dependency directory
-node_modules/
+/node_modules
 *.local

@@ -1,6 +1,6 @@
 import { z, ZodTypeAny } from "zod";
 
-const paginationParamsSchema = z.object({
+export const paginationParamsSchema = z.object({
   pagination: z.object({
     page: z.number().int().positive().default(1),
     limitPerPage: z.number().int().positive().default(10),
@@ -9,6 +9,13 @@ const paginationParamsSchema = z.object({
     field: z.string(),
     order: z.enum(["asc", "desc"]),
   }),
+  filters: z.array(
+    z.object({
+      field: z.string(),
+      operator: z.enum(["==", ">", ">=", "<", "<=", "!="]),
+      value: z.string(),
+    })
+  ),
   search: z.string().optional(),
 });
 
@@ -26,17 +33,16 @@ const paginationResponseSchema = z.object({
       field: z.string(),
       order: z.enum(["asc", "desc"]),
     }),
+    filters: z.array(
+      z.object({
+        field: z.string(),
+        operator: z.enum(["==", ">", ">=", "<", "<=", "!="]),
+        value: z.string(),
+      })
+    ),
     search: z.string().optional(),
   }),
 });
-
-export const createPaginationParamsSchema = <T extends ZodTypeAny | null>(
-  filterSchema: T
-) => {
-  return paginationParamsSchema.extend({
-    filter: filterSchema ?? z.null(),
-  });
-};
 
 export const createPaginationResponseSchema = <T extends ZodTypeAny>(
   dataSchema: T

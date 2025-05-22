@@ -1,10 +1,10 @@
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
+import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
   PaginatedTransactionsResponse,
   TransactionCategory,
   TransactionDto,
-  TransactionPaginationParams,
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
 import {
@@ -91,7 +91,7 @@ export class TransactionRepository implements ITransactionRepository {
 
   async getMultipleTransactions(
     userId: string,
-    params: TransactionPaginationParams
+    params: PaginationParams
   ): Promise<PaginatedTransactionsResponse> {
     // TODO: Implement this
     console.log(userId, params);
@@ -168,15 +168,15 @@ export class TransactionRepository implements ITransactionRepository {
     };
   }
 
-  private async handleAlgoliaSearch(params: TransactionPaginationParams) {
+  private async handleAlgoliaSearch(params: PaginationParams) {
     const searchOptions: SearchMethodParams = {
       requests: [
         {
           indexName: ALGOLIA_TRANSACTIONS_INDEX,
           query: params.search!,
-          filters: params.filter?.categoryId
-            ? `category.id:${params.filter.categoryId}`
-            : "",
+          filters: params.filters
+            .map((filter) => `${filter.field}:${filter.value}`)
+            .join(" AND "),
           page: params.pagination.page - 1,
           hitsPerPage: params.pagination.limitPerPage,
           ranking: ["filterOnly(category.id)"],

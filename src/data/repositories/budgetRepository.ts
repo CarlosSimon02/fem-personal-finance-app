@@ -63,11 +63,8 @@ export class BudgetRepository implements IBudgetRepository {
     params: BudgetPaginationParams
   ): Promise<BudgetPaginationResponse> {
     try {
-      const q = this.handleFirestoreQuery(userId, params);
-      const snapshot = await q.get();
-      return snapshot.docs.map((doc) =>
-        this.mapBudgetModelToDto(doc.data() as BudgetModel)
-      );
+      console.log(params, userId);
+      return {} as BudgetPaginationResponse;
     } catch (error) {
       const err = error as Error;
       throw new Error(`Failed to get budgets: ${err.message}`);
@@ -131,37 +128,39 @@ export class BudgetRepository implements IBudgetRepository {
     };
   }
 
-  private async handleFirestoreQuery(
-    userId: string,
-    params: Omit<BudgetPaginationParams, "search">
-  ): Promise<BudgetPaginationResponse> {
-    const q = this.getBudgetCollection(userId)
-      .orderBy(params.sort.field, params.sort.order)
-      .startAfter(params.pagination.page * params.pagination.limitPerPage)
-      .limit(params.pagination.limitPerPage);
+  // private async handleFirestoreQuery(
+  //   userId: string,
+  //   params: Omit<BudgetPaginationParams, "search">
+  // ): Promise<BudgetPaginationResponse> {
+  //   const q = this.getBudgetCollection(userId)
+  //     .orderBy(params.sort.field, params.sort.order)
+  //     .(params.pagination.page * params.pagination.limitPerPage)
+  //     .limit(params.pagination.limitPerPage);
 
-    const [snapshot, countQuery] = await Promise.all([
-      q.get(),
-      this.getBudgetCollection(userId).count().get(),
-    ]);
+  //   const [snapshot, countQuery] = await Promise.all([
+  //     q.get(),
+  //     this.getBudgetCollection(userId).count().get(),
+  //   ]);
 
-    const lastVisible = snapshot.docs[snapshot.docs.length - 1];
-    const totalCount = countQuery.data().count;
+  //   const lastVisible = snapshot.docs[snapshot.docs.length - 1];
+  //   const totalCount = countQuery.data().count;
 
-    return {
-      data: snapshot.docs.map((doc) =>
-        this.mapBudgetModelToDto(doc.data() as BudgetModel)
-      ),
-      meta: {
-        pagination: {
-          totalItems: totalCount,
-          page: params.pagination.page,
-          limitPerPage: params.pagination.limitPerPage,
-          nextPage: params.pagination.page + 1,
-          previousPage: params.pagination.page - 1,
-        },
-        lastVisible,
-      },
-    };
-  }
+  //   return {
+  //     data: snapshot.docs.map((doc) =>
+  //       this.mapBudgetModelToDto(doc.data() as BudgetModel)
+  //     ),
+  //     meta: {
+  //       pagination: {
+  //         totalItems: totalCount,
+  //         page: params.pagination.page,
+  //         limitPerPage: params.pagination.limitPerPage,
+  //         nextPage: params.pagination.page + 1,
+  //         previousPage: params.pagination.page - 1,
+  //       },
+  //       sort: params.sort,
+  //       filters: params.filters,
+  //       search: params.search,
+  //     },
+  //   };
+  // }
 }

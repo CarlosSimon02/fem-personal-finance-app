@@ -3,9 +3,9 @@ import {
   PaginatedTransactionsResponse,
   TransactionCategory,
   TransactionDto,
-  TransactionPaginationParams,
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
+import { PaginationParams } from "../schemas/paginationSchema";
 
 export interface ITransactionRepository {
   createTransaction(
@@ -19,7 +19,7 @@ export interface ITransactionRepository {
   ): Promise<TransactionDto>;
   getMultipleTransactions(
     userId: string,
-    params: TransactionPaginationParams
+    params: PaginationParams
   ): Promise<PaginatedTransactionsResponse>;
   updateTransaction(
     userId: string,

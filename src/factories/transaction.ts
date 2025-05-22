@@ -3,14 +3,18 @@ import { DeleteTransactionUseCase } from "@/core/useCases/transaction/deleteTran
 import { GetMultipleTransactionsUseCase } from "@/core/useCases/transaction/getMultipleTransactions";
 import { GetTransactionUseCase } from "@/core/useCases/transaction/getTransaction";
 import { UpdateTransactionUseCase } from "@/core/useCases/transaction/updateTransaction";
-import { TransactionAdminDatasource } from "@/data/datasources/transactionDatasource";
+import { BudgetRepository } from "@/data/repositories/budgetRepository";
+import { IncomeRepository } from "@/data/repositories/incomeRepository";
 import { TransactionRepository } from "@/data/repositories/transactionRepository";
 
-const transactionDatasource = new TransactionAdminDatasource();
-const transactionRepository = new TransactionRepository(transactionDatasource);
+const transactionRepository = new TransactionRepository();
+const budgetRepository = new BudgetRepository();
+const incomeRepository = new IncomeRepository();
 
 export const createTransactionUseCase = new CreateTransactionUseCase(
-  transactionRepository
+  transactionRepository,
+  budgetRepository,
+  incomeRepository
 );
 export const deleteTransactionUseCase = new DeleteTransactionUseCase(
   transactionRepository
@@ -24,4 +28,4 @@ export const getTransactionUseCase = new GetTransactionUseCase(
 export const getMultipleTransactionsUseCase =
   new GetMultipleTransactionsUseCase(transactionRepository);
 
-export { transactionDatasource, transactionRepository };
+export { transactionRepository };
