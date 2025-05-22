@@ -10,12 +10,13 @@ import {
 import {
   CreateTransactionModel,
   TransactionModel,
+  TransactionModelPaginationResponse,
+  transactionModelSchema,
 } from "@/data/models/transactionModel";
-import { ALGOLIA_TRANSACTIONS_INDEX, algoliaClient } from "@/services/algolia";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
-import { SearchMethodParams } from "algoliasearch";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
+import { getFirestorePaginatedData, getPaginatedAlgoliaData } from "./_utils";
 
 export class TransactionRepository implements ITransactionRepository {
   private getTransactionCollection(userId: string) {
@@ -25,7 +26,7 @@ export class TransactionRepository implements ITransactionRepository {
       .collection("transactions");
   }
 
-  constructor() {}
+  private ALGOLIA_TRANSACTIONS_INDEX = "transactions";
 
   async createTransaction(
     userId: string,
@@ -93,10 +94,28 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedTransactionsResponse> {
-    // TODO: Implement this
-    console.log(userId, params);
+    let response: TransactionModelPaginationResponse;
 
-    return {} as PaginatedTransactionsResponse;
+    if (params.search) {
+      response = await getPaginatedAlgoliaData(
+        this.ALGOLIA_TRANSACTIONS_INDEX,
+        params,
+        transactionModelSchema
+      );
+    } else {
+      response = await getFirestorePaginatedData(
+        this.getTransactionCollection(userId),
+        params,
+        transactionModelSchema
+      );
+    }
+
+    return {
+      data: response.data.map((transaction) =>
+        this.mapTransactionModelToDto(transaction)
+      ),
+      meta: response.meta,
+    };
   }
 
   async updateTransaction(
@@ -166,24 +185,5 @@ export class TransactionRepository implements ITransactionRepository {
       createdAt: transaction.createdAt.toDate(),
       updatedAt: transaction.updatedAt.toDate(),
     };
-  }
-
-  private async handleAlgoliaSearch(params: PaginationParams) {
-    const searchOptions: SearchMethodParams = {
-      requests: [
-        {
-          indexName: ALGOLIA_TRANSACTIONS_INDEX,
-          query: params.search!,
-          filters: params.filters
-            .map((filter) => `${filter.field}:${filter.value}`)
-            .join(" AND "),
-          page: params.pagination.page - 1,
-          hitsPerPage: params.pagination.limitPerPage,
-          ranking: ["filterOnly(category.id)"],
-        },
-      ],
-    };
-
-    return algoliaClient.search<TransactionModel>(searchOptions);
   }
 }

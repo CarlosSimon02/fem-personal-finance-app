@@ -6,7 +6,9 @@
   "etags": {
     "firecms-example": {
       "extensionInstances": {
-        "firestore-algolia-search": "cd9f94325b7f286ea9df905ee8d9095ac05755645ac37bf7a6e35f2919e5b75c"
+        "firestore-algolia-search": "cd9f94325b7f286ea9df905ee8d9095ac05755645ac37bf7a6e35f2919e5b75c",
+        "firestore-algolia-search-budgets": "5dbb5f6e1d46e1fa9bd0b1fb2dd1363d4f8ffa157441994b821576852d967d99",
+        "firestore-algolia-search-income": "383af5d9e876780404a0f3c38c04f5c9db62a0597295990723aee88dca9b0284"
       }
     }
   }

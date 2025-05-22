@@ -42,6 +42,8 @@
     "singleProjectMode": true
   },
   "extensions": {
-    "firestore-algolia-search": "algolia/firestore-algolia-search@1.2.7"
+    "firestore-algolia-search": "algolia/firestore-algolia-search@1.2.7",
+    "firestore-algolia-search-budgets": "algolia/firestore-algolia-search@1.2.7",
+    "firestore-algolia-search-income": "algolia/firestore-algolia-search@1.2.7"
   }
 }

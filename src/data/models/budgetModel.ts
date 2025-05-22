@@ -1,13 +1,18 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { budgetSchema } from "@/core/schemas/budgetSchema";
+import { z } from "zod";
+import { zTimestamp } from "./_utils";
 
-export type BudgetModel = {
-  id: string;
-  name: string;
-  maximumSpending: number;
-  colorTag: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-};
+export const budgetModelSchema = budgetSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zTimestamp,
+    updatedAt: zTimestamp,
+  });
+
+export type BudgetModel = z.infer<typeof budgetModelSchema>;
 
 export type CreateBudgetModel = Omit<
   BudgetModel,

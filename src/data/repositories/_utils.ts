@@ -4,7 +4,10 @@ import {
 } from "@/core/schemas/paginationSchema";
 import { z } from "zod";
 
-export async function getPaginatedData<T extends z.ZodTypeAny>(
+import { algoliaClient } from "@/services/algolia";
+import { Hit } from "algoliasearch";
+
+export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
   collection: FirebaseFirestore.CollectionReference<
     FirebaseFirestore.DocumentData,
     FirebaseFirestore.DocumentData
@@ -12,6 +15,10 @@ export async function getPaginatedData<T extends z.ZodTypeAny>(
   params: PaginationParams,
   dataSchema: T
 ): Promise<z.infer<ReturnType<typeof createPaginationResponseSchema<T>>>> {
+  if (params.search) {
+    throw new Error("Search is not supported in this function");
+  }
+
   // Create the base query
   let queryRef = collection
     .orderBy(params.sort.field, params.sort.order)
@@ -52,6 +59,60 @@ export async function getPaginatedData<T extends z.ZodTypeAny>(
     meta: {
       pagination: {
         totalItems,
+        page: params.pagination.page,
+        limitPerPage: params.pagination.limitPerPage,
+        nextPage,
+        previousPage,
+      },
+      sort: params.sort,
+      filters: params.filters,
+      search: params.search,
+    },
+  };
+}
+
+export async function getPaginatedAlgoliaData<T extends z.ZodTypeAny>(
+  indexName: string,
+  params: PaginationParams,
+  dataSchema: T
+): Promise<z.infer<ReturnType<typeof createPaginationResponseSchema<T>>>> {
+  // Prepare Algolia search parameters
+  const algoliaParams = {
+    query: params.search || "",
+    page: params.pagination.page - 1, // Algolia uses 0-based page index
+    hitsPerPage: params.pagination.limitPerPage,
+    attributesToRetrieve: ["*"],
+    attributesToHighlight: params.search ? ["*"] : [],
+    filters: params.filters
+      ?.map((filter) => `${filter.field} ${filter.operator} ${filter.value}`)
+      .join(" AND "),
+    sort: `${params.sort.field}:${params.sort.order}`,
+  };
+
+  // Execute search
+  const { hits, nbHits, nbPages } = await algoliaClient.searchSingleIndex({
+    indexName,
+    searchParams: algoliaParams,
+  });
+
+  // Parse and validate the data
+  const items = hits.map((hit: Hit<unknown>) => {
+    return dataSchema.parse({
+      ...hit,
+    });
+  });
+
+  // Calculate pagination metadata
+  const nextPage =
+    params.pagination.page < (nbPages ?? 0) ? params.pagination.page + 1 : null;
+  const previousPage =
+    params.pagination.page > 1 ? params.pagination.page - 1 : null;
+
+  return {
+    data: items,
+    meta: {
+      pagination: {
+        totalItems: nbHits ?? 0,
         page: params.pagination.page,
         limitPerPage: params.pagination.limitPerPage,
         nextPage,
