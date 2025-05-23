@@ -1,4 +1,11 @@
-export class BudgetEntity {
+import {
+  CreateIncomeDto,
+  createIncomeSchema,
+} from "@/core/schemas/incomeSchema";
+import { ValidationError } from "@/utils/validationError";
+import { ZodError } from "zod";
+
+export class IncomeEntity {
   private id?: string;
   private name?: string;
   private colorTag?: string;
@@ -16,7 +23,6 @@ export class BudgetEntity {
   }: {
     id?: string;
     name?: string;
-    maximumSpending?: number;
     colorTag?: string;
     createdAt?: Date;
     updatedAt?: Date;
@@ -76,5 +82,21 @@ export class BudgetEntity {
 
   setUserId(userId: string) {
     this.userId = userId;
+  }
+
+  validateCreateIncome() {
+    try {
+      return createIncomeSchema.parse(this);
+    } catch (err) {
+      const error = err as ZodError;
+      const errors = error.flatten().fieldErrors;
+      throw new ValidationError(
+        {
+          name: errors.name?.[0],
+          colorTag: errors.colorTag?.[0],
+        } satisfies AllUnknown<CreateIncomeDto>,
+        "Invalid income data"
+      );
+    }
   }
 }

@@ -1,6 +1,6 @@
-import { BudgetEntity } from "@/core/entities/BudgetEntity";
 import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
 import {
+  BudgetDto,
   UpdateBudgetDto,
   updateBudgetSchema,
 } from "@/core/schemas/budgetSchema";
@@ -12,7 +12,7 @@ export class UpdateBudgetUseCase {
     userId: string,
     budgetId: string,
     input: UpdateBudgetDto
-  ): Promise<BudgetEntity> {
+  ): Promise<BudgetDto> {
     if (!userId) throw new Error("User ID is required");
     if (!budgetId) throw new Error("Budget ID is required");
 

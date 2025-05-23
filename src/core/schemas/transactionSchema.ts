@@ -56,7 +56,7 @@ export const transactionSchema = baseTransactionSchema.extend({
   category: transactionCategorySchema,
 });
 
-export const transactionPaginationResponseSchema =
+export const paginatedTransactionsResponseSchema =
   createPaginationResponseSchema(transactionSchema);
 
 export type CreateTransactionDto = z.infer<typeof createTransactionSchema>;
@@ -65,5 +65,5 @@ export type TransactionDto = z.infer<typeof transactionSchema>;
 export type TransactionCategory = z.infer<typeof transactionCategorySchema>;
 export type TransactionType = z.infer<typeof transactionTypeSchema>;
 export type PaginatedTransactionsResponse = z.infer<
-  typeof transactionPaginationResponseSchema
+  typeof paginatedTransactionsResponseSchema
 >;

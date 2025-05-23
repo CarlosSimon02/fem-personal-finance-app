@@ -1,20 +1,27 @@
 import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
 import {
   BudgetDto,
-  BudgetPaginationParams,
-  BudgetPaginationResponse,
   CreateBudgetDto,
+  PaginatedBudgetsResponse,
   UpdateBudgetDto,
 } from "@/core/schemas/budgetSchema";
+import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
-import { BudgetModel } from "../models/budgetModel";
+import {
+  BudgetModel,
+  BudgetModelPaginationResponse,
+  budgetModelSchema,
+} from "../models/budgetModel";
+import { getFirestorePaginatedData, getPaginatedAlgoliaData } from "./_utils";
 
 export class BudgetRepository implements IBudgetRepository {
   private getBudgetCollection(userId: string) {
     return adminFirestore.collection("users").doc(userId).collection("budgets");
   }
+
+  private ALGOLIA_BUDGETS_INDEX = "budgets";
 
   async createBudget(
     userId: string,
@@ -60,11 +67,29 @@ export class BudgetRepository implements IBudgetRepository {
 
   async getPaginatedBudgets(
     userId: string,
-    params: BudgetPaginationParams
-  ): Promise<BudgetPaginationResponse> {
+    params: PaginationParams
+  ): Promise<PaginatedBudgetsResponse> {
     try {
-      console.log(params, userId);
-      return {} as BudgetPaginationResponse;
+      let response: BudgetModelPaginationResponse;
+
+      if (params.search) {
+        response = await getPaginatedAlgoliaData(
+          this.ALGOLIA_BUDGETS_INDEX,
+          params,
+          budgetModelSchema
+        );
+      } else {
+        response = await getFirestorePaginatedData(
+          this.getBudgetCollection(userId),
+          params,
+          budgetModelSchema
+        );
+      }
+
+      return {
+        data: response.data.map((budget) => this.mapBudgetModelToDto(budget)),
+        meta: response.meta,
+      };
     } catch (error) {
       const err = error as Error;
       throw new Error(`Failed to get budgets: ${err.message}`);
@@ -127,40 +152,4 @@ export class BudgetRepository implements IBudgetRepository {
       updatedAt: budget.updatedAt.toDate(),
     };
   }
-
-  // private async handleFirestoreQuery(
-  //   userId: string,
-  //   params: Omit<BudgetPaginationParams, "search">
-  // ): Promise<BudgetPaginationResponse> {
-  //   const q = this.getBudgetCollection(userId)
-  //     .orderBy(params.sort.field, params.sort.order)
-  //     .(params.pagination.page * params.pagination.limitPerPage)
-  //     .limit(params.pagination.limitPerPage);
-
-  //   const [snapshot, countQuery] = await Promise.all([
-  //     q.get(),
-  //     this.getBudgetCollection(userId).count().get(),
-  //   ]);
-
-  //   const lastVisible = snapshot.docs[snapshot.docs.length - 1];
-  //   const totalCount = countQuery.data().count;
-
-  //   return {
-  //     data: snapshot.docs.map((doc) =>
-  //       this.mapBudgetModelToDto(doc.data() as BudgetModel)
-  //     ),
-  //     meta: {
-  //       pagination: {
-  //         totalItems: totalCount,
-  //         page: params.pagination.page,
-  //         limitPerPage: params.pagination.limitPerPage,
-  //         nextPage: params.pagination.page + 1,
-  //         previousPage: params.pagination.page - 1,
-  //       },
-  //       sort: params.sort,
-  //       filters: params.filters,
-  //       search: params.search,
-  //     },
-  //   };
-  // }
 }

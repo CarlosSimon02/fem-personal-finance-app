@@ -28,6 +28,6 @@ export class CreateBudgetUseCase {
       throw new Error("Budget already exists");
     }
 
-    return this.budgetRepository.createBudget(validatedData);
+    return this.budgetRepository.createBudget(user.id, validatedData);
   }
 }

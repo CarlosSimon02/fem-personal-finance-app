@@ -1,18 +1,18 @@
 import {
   BudgetDto,
-  BudgetPaginationParams,
-  BudgetPaginationResponse,
   CreateBudgetDto,
+  PaginatedBudgetsResponse,
   UpdateBudgetDto,
 } from "../schemas/budgetSchema";
+import { PaginationParams } from "../schemas/paginationSchema";
 
 export interface IBudgetRepository {
   createBudget(userId: string, input: CreateBudgetDto): Promise<BudgetDto>;
   getBudget(userId: string, budgetId: string): Promise<BudgetDto | null>;
   getPaginatedBudgets(
     userId: string,
-    params: BudgetPaginationParams
-  ): Promise<BudgetPaginationResponse>;
+    params: PaginationParams
+  ): Promise<PaginatedBudgetsResponse>;
   updateBudget(
     userId: string,
     budgetId: string,

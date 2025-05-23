@@ -3,7 +3,7 @@ import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { PaginatedTransactionsResponse } from "@/core/schemas/transactionSchema";
 import { AuthError } from "@/utils/authError";
 
-export class GetMultipleTransactionsUseCase {
+export class GetPaginatedTransactionsUseCase {
   constructor(private transactionRepository: ITransactionRepository) {}
 
   async execute(

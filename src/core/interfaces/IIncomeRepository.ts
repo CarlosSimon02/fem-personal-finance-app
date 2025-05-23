@@ -1,17 +1,23 @@
 import {
   CreateIncomeDto,
   IncomeDto,
+  PaginatedIncomesResponse,
   UpdateIncomeDto,
 } from "@/core/schemas/incomeSchema";
+import { PaginationParams } from "../schemas/paginationSchema";
 
 export interface IIncomeRepository {
-  createIncome(input: CreateIncomeDto): Promise<IncomeDto>;
+  createIncome(userId: string, input: CreateIncomeDto): Promise<IncomeDto>;
   getIncome(userId: string, incomeId: string): Promise<IncomeDto | null>;
-  getAllIncomes(userId: string): Promise<IncomeDto[]>;
+  getPaginatedIncomes(
+    userId: string,
+    params: PaginationParams
+  ): Promise<PaginatedIncomesResponse>;
   updateIncome(
     userId: string,
     incomeId: string,
     input: UpdateIncomeDto
   ): Promise<IncomeDto>;
+  incomeExists(userId: string, incomeName: string): Promise<boolean>;
   deleteIncome(userId: string, incomeId: string): Promise<void>;
 }
