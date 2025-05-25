@@ -28,7 +28,7 @@ import {
   createTransactionSchema,
 } from "@/core/schemas/transactionSchema";
 import { CategorySelectField } from "./CategorySelectField";
-import { DEFAULT_EMOJI, mockCategories } from "./constants";
+import { DEFAULT_EMOJI } from "./constants";
 import { EmojiPickerField } from "./EmojiPickerField";
 import { TransactionDatePicker } from "./TransactionDatePicker";
 
@@ -175,17 +175,11 @@ export const TransactionForm = ({
                 <CategorySelectField
                   value={field.value}
                   onChange={(value) => {
-                    const categories =
-                      transactionType === "income"
-                        ? mockCategories.income
-                        : mockCategories.expense;
-                    const category = categories.find((c) => c.id === value);
-                    if (category) {
-                      field.onChange(category);
-                    }
+                    field.onChange(value);
                   }}
                   transactionType={transactionType}
                   disabled={isSubmitting}
+                  selectRef={field.ref}
                 />
               </FormControl>
               <FormMessage />

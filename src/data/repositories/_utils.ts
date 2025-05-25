@@ -96,8 +96,6 @@ export async function getPaginatedAlgoliaData<T extends z.ZodTypeAny>(
     searchParams: algoliaParams,
   });
 
-  console.log(hits);
-
   // Parse and validate the data
   const items = hits.map((hit: Hit<unknown>) => {
     return dataSchema.parse({

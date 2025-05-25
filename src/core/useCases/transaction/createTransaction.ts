@@ -1,5 +1,4 @@
 import { TransactionEntity } from "@/core/entities/TransactionEntity";
-import { UserEntity } from "@/core/entities/UserEntity";
 import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
 import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
@@ -17,16 +16,16 @@ export class CreateTransactionUseCase {
   ) {}
 
   async execute(
-    input: CreateTransactionDto,
-    user: UserEntity
+    userId: string,
+    input: CreateTransactionDto
   ): Promise<TransactionDto> {
-    if (!user) {
+    if (!userId) {
       throw new AuthError();
     }
 
     const transactionEntity = new TransactionEntity({
       ...input,
-      userId: user.id,
+      userId,
     });
 
     const validatedTransaction = transactionEntity.validateCreateTransaction();
@@ -35,7 +34,7 @@ export class CreateTransactionUseCase {
 
     if (validatedTransaction.type === "income") {
       const income = await this.incomeRepository.getIncome(
-        user.id,
+        userId,
         validatedTransaction.categoryId
       );
 
@@ -50,7 +49,7 @@ export class CreateTransactionUseCase {
       };
     } else {
       const budget = await this.budgetRepository.getBudget(
-        user.id,
+        userId,
         validatedTransaction.categoryId
       );
 
@@ -66,7 +65,7 @@ export class CreateTransactionUseCase {
     }
 
     return this.transactionRepository.createTransaction(
-      user.id,
+      userId,
       validatedTransaction,
       category
     );

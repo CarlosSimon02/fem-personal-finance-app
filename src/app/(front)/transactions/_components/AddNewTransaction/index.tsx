@@ -24,9 +24,18 @@ const AddNewTransaction = () => {
   const handleSubmit = async (data: CreateTransactionDto) => {
     try {
       setIsSubmitting(true);
-      await createTransactionAction(data);
-      toast.success("Transaction created successfully!");
-      setOpen(false);
+      const response = await createTransactionAction(data);
+      if (response.error && response.validationErrors) {
+        throw new Error(
+          Object.keys(response.validationErrors).reduce(
+            (acc, curr) => `${acc} ${curr}`,
+            ""
+          )
+        );
+      } else {
+        toast.success("Transaction created successfully!");
+        setOpen(false);
+      }
     } catch (error) {
       console.error("Error creating transaction:", error);
       toast.error("Failed to create transaction. Please try again.");

@@ -15,6 +15,7 @@ import { TransactionType } from "@/core/schemas/transactionSchema";
 import { useBudgetDialogStore } from "@/presentation/stores/useBudgetDialogStore";
 import { useIncomeDialogStore } from "@/presentation/stores/useIncomeDialogStore";
 import { ReactElement, useEffect, useState } from "react";
+import { RefCallBack } from "react-hook-form";
 import { GroupBase, OptionsOrGroups } from "react-select";
 import {
   ComponentProps,
@@ -35,6 +36,7 @@ interface CategorySelectFieldProps {
   onChange: (categoryId: string) => void;
   transactionType: TransactionType;
   disabled?: boolean;
+  selectRef: RefCallBack;
 }
 
 type Additional = {
@@ -68,6 +70,7 @@ export const CategorySelectField = ({
   onChange,
   transactionType,
   disabled,
+  selectRef,
 }: CategorySelectFieldProps) => {
   const [cacheUniq, setCacheUniq] = useState(0);
   const [isAddingInProgress, setIsAddingInProgress] = useState(false);
@@ -143,7 +146,6 @@ export const CategorySelectField = ({
         name: inputValue,
       });
       setIncomeCallbackFn((newCategory: IncomeDto) => {
-        console.log(newCategory, "this is the new category");
         setIsAddingInProgress(false);
         setCacheUniq(increaseUniq);
 
@@ -166,7 +168,6 @@ export const CategorySelectField = ({
         name: inputValue,
       });
       setBudgetCallbackFn((newCategory: BudgetDto) => {
-        console.log(newCategory, "this is the new category");
         setIsAddingInProgress(false);
         setCacheUniq(increaseUniq);
 
@@ -216,6 +217,7 @@ export const CategorySelectField = ({
       cacheUniqs={[cacheUniq]}
       formatOptionLabel={formatOptionLabel}
       placeholder={`Select or create a ${transactionType === "income" ? "income" : "budget"} category`}
+      selectRef={selectRef}
     />
   );
 };

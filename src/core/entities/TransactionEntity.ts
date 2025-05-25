@@ -14,6 +14,7 @@ export class TransactionEntity {
   private name?: string;
   private recipientOrPayer?: string | null;
   private category?: TransactionCategory;
+  private categoryId?: string;
   private transactionDate?: Date;
   private description?: string | null;
   private emoji?: string;
@@ -28,6 +29,7 @@ export class TransactionEntity {
     name,
     recipientOrPayer,
     category,
+    categoryId,
     transactionDate,
     description,
     emoji,
@@ -41,6 +43,7 @@ export class TransactionEntity {
     name?: string;
     recipientOrPayer?: string | null;
     category?: TransactionCategory;
+    categoryId?: string;
     transactionDate?: Date;
     description?: string | null;
     emoji?: string;
@@ -54,6 +57,7 @@ export class TransactionEntity {
     this.name = name;
     this.recipientOrPayer = recipientOrPayer;
     this.category = category;
+    this.categoryId = categoryId;
     this.transactionDate = transactionDate;
     this.description = description;
     this.emoji = emoji;
@@ -84,6 +88,10 @@ export class TransactionEntity {
 
   getCategory() {
     return this.category;
+  }
+
+  getCategoryId() {
+    return this.categoryId;
   }
 
   getTransactionDate() {
@@ -132,6 +140,10 @@ export class TransactionEntity {
 
   setCategory(category: TransactionCategory) {
     this.category = category;
+  }
+
+  setCategoryId(categoryId: string) {
+    this.categoryId = categoryId;
   }
 
   setTransactionDate(transactionDate: Date) {

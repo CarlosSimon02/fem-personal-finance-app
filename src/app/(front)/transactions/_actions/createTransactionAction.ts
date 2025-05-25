@@ -11,7 +11,7 @@ const createTransactionAction = actionWithAuth<
   CreateTransactionDto,
   TransactionDto
 >(async ({ user, data }) => {
-  const transaction = await createTransactionUseCase.execute(data, user);
+  const transaction = await createTransactionUseCase.execute(user.id, data);
   return { data: transaction, error: null };
 });
 
