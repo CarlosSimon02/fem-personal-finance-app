@@ -2,7 +2,7 @@ import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
 import { PaginatedBudgetsResponse } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 
-export class GetAllBudgetsUseCase {
+export class GetPaginatedBudgetsUseCase {
   constructor(private budgetRepository: IBudgetRepository) {}
 
   async execute(

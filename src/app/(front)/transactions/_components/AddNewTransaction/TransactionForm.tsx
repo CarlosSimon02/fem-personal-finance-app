@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/presentation/components/ui/button";
@@ -51,16 +52,20 @@ export const TransactionForm = ({
       type: "expense",
       amount: 0,
       recipientOrPayer: "",
-      category: undefined,
+      categoryId: "",
       transactionDate: new Date(),
       description: "",
       emoji: DEFAULT_EMOJI,
-      userId: "current-user",
       ...defaultValues,
     },
   });
 
   const transactionType = form.watch("type");
+
+  // Clear categoryId when transaction type changes
+  useEffect(() => {
+    form.setValue("categoryId", "");
+  }, [transactionType, form]);
 
   return (
     <Form {...form}>
@@ -162,13 +167,13 @@ export const TransactionForm = ({
         {/* Category */}
         <FormField
           control={form.control}
-          name="category"
+          name="categoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
               <FormControl>
                 <CategorySelectField
-                  value={field.value?.id}
+                  value={field.value}
                   onChange={(value) => {
                     const categories =
                       transactionType === "income"

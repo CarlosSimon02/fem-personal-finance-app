@@ -9,19 +9,13 @@ import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
-import {
-  BudgetModel,
-  BudgetModelPaginationResponse,
-  budgetModelSchema,
-} from "../models/budgetModel";
-import { getFirestorePaginatedData, getPaginatedAlgoliaData } from "./_utils";
+import { BudgetModel, budgetModelSchema } from "../models/budgetModel";
+import { getFirestorePaginatedData } from "./_utils";
 
 export class BudgetRepository implements IBudgetRepository {
   private getBudgetCollection(userId: string) {
     return adminFirestore.collection("users").doc(userId).collection("budgets");
   }
-
-  private ALGOLIA_BUDGETS_INDEX = "budgets";
 
   async createBudget(
     userId: string,
@@ -70,22 +64,11 @@ export class BudgetRepository implements IBudgetRepository {
     params: PaginationParams
   ): Promise<PaginatedBudgetsResponse> {
     try {
-      let response: BudgetModelPaginationResponse;
-
-      if (params.search) {
-        response = await getPaginatedAlgoliaData(
-          this.ALGOLIA_BUDGETS_INDEX,
-          params,
-          budgetModelSchema
-        );
-      } else {
-        response = await getFirestorePaginatedData(
-          this.getBudgetCollection(userId),
-          params,
-          budgetModelSchema
-        );
-      }
-
+      const response = await getFirestorePaginatedData(
+        this.getBudgetCollection(userId),
+        params,
+        budgetModelSchema
+      );
       return {
         data: response.data.map((budget) => this.mapBudgetModelToDto(budget)),
         meta: response.meta,

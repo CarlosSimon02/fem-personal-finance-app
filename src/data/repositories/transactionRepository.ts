@@ -10,13 +10,12 @@ import {
 import {
   CreateTransactionModel,
   TransactionModel,
-  TransactionModelPaginationResponse,
   transactionModelSchema,
 } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
-import { getFirestorePaginatedData, getPaginatedAlgoliaData } from "./_utils";
+import { getFirestorePaginatedData } from "./_utils";
 
 export class TransactionRepository implements ITransactionRepository {
   private getTransactionCollection(userId: string) {
@@ -25,8 +24,6 @@ export class TransactionRepository implements ITransactionRepository {
       .doc(userId)
       .collection("transactions");
   }
-
-  private ALGOLIA_TRANSACTIONS_INDEX = "transactions";
 
   async createTransaction(
     userId: string,
@@ -95,21 +92,11 @@ export class TransactionRepository implements ITransactionRepository {
     params: PaginationParams
   ): Promise<PaginatedTransactionsResponse> {
     try {
-      let response: TransactionModelPaginationResponse;
-
-      if (params.search) {
-        response = await getPaginatedAlgoliaData(
-          this.ALGOLIA_TRANSACTIONS_INDEX,
-          params,
-          transactionModelSchema
-        );
-      } else {
-        response = await getFirestorePaginatedData(
-          this.getTransactionCollection(userId),
-          params,
-          transactionModelSchema
-        );
-      }
+      const response = await getFirestorePaginatedData(
+        this.getTransactionCollection(userId),
+        params,
+        transactionModelSchema
+      );
 
       return {
         data: response.data.map((transaction) =>

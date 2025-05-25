@@ -5,7 +5,7 @@ import {
 import { z } from "zod";
 
 import { algoliaClient } from "@/services/algolia";
-import { Hit } from "algoliasearch";
+import { Hit, SearchParams } from "algoliasearch";
 
 export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
   collection: FirebaseFirestore.CollectionReference<
@@ -15,12 +15,14 @@ export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
   params: PaginationParams,
   dataSchema: T
 ): Promise<z.infer<ReturnType<typeof createPaginationResponseSchema<T>>>> {
-  if (params.search) {
-    throw new Error("Search is not supported in this function");
-  }
+  const searchCollection = params.search
+    ? collection
+        .where("name", ">=", params.search)
+        .where("name", "<=", params.search + "\uf8ff")
+    : collection;
 
   // Create the base query
-  let queryRef = collection
+  let queryRef = searchCollection
     .orderBy(params.sort.field, params.sort.order)
     .limit(params.pagination.limitPerPage);
 
@@ -37,7 +39,8 @@ export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
 
   // Execute the query
   const snapshot = await queryRef.get();
-  const totalItems = (await collection.count().get()).data().count;
+  const totalItems = (await searchCollection.count().get()).data().count;
+  const totalPages = Math.ceil(totalItems / params.pagination.limitPerPage);
 
   // Parse and validate the data
   const items = snapshot.docs.map((doc) => {
@@ -48,7 +51,6 @@ export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
   });
 
   // Calculate pagination metadata
-  const totalPages = Math.ceil(totalItems / params.pagination.limitPerPage);
   const nextPage =
     params.pagination.page < totalPages ? params.pagination.page + 1 : null;
   const previousPage =
@@ -77,7 +79,7 @@ export async function getPaginatedAlgoliaData<T extends z.ZodTypeAny>(
   dataSchema: T
 ): Promise<z.infer<ReturnType<typeof createPaginationResponseSchema<T>>>> {
   // Prepare Algolia search parameters
-  const algoliaParams = {
+  const algoliaParams: SearchParams = {
     query: params.search || "",
     page: params.pagination.page - 1, // Algolia uses 0-based page index
     hitsPerPage: params.pagination.limitPerPage,
@@ -86,7 +88,6 @@ export async function getPaginatedAlgoliaData<T extends z.ZodTypeAny>(
     filters: params.filters
       ?.map((filter) => `${filter.field} ${filter.operator} ${filter.value}`)
       .join(" AND "),
-    sort: `${params.sort.field}:${params.sort.order}`,
   };
 
   // Execute search
@@ -94,6 +95,8 @@ export async function getPaginatedAlgoliaData<T extends z.ZodTypeAny>(
     indexName,
     searchParams: algoliaParams,
   });
+
+  console.log(hits);
 
   // Parse and validate the data
   const items = hits.map((hit: Hit<unknown>) => {

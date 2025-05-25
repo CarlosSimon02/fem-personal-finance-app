@@ -1,5 +1,4 @@
 import { IncomeEntity } from "@/core/entities/IncomeEntity";
-import { UserEntity } from "@/core/entities/UserEntity";
 import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
 import { CreateIncomeDto, IncomeDto } from "@/core/schemas/incomeSchema";
 import { AuthError } from "@/utils/authError";
@@ -7,20 +6,20 @@ import { AuthError } from "@/utils/authError";
 export class CreateIncomeUseCase {
   constructor(private incomeRepository: IIncomeRepository) {}
 
-  async execute(input: CreateIncomeDto, user: UserEntity): Promise<IncomeDto> {
-    if (!user) {
+  async execute(userId: string, input: CreateIncomeDto): Promise<IncomeDto> {
+    if (!userId) {
       throw new AuthError();
     }
 
     const incomeEntity = new IncomeEntity({
       ...input,
-      userId: user.id,
+      userId,
     });
 
     const validatedData = incomeEntity.validateCreateIncome();
 
     const incomeExists = await this.incomeRepository.incomeExists(
-      user.id,
+      userId,
       validatedData.name
     );
 
@@ -28,6 +27,6 @@ export class CreateIncomeUseCase {
       throw new Error("Income already exists");
     }
 
-    return this.incomeRepository.createIncome(user.id, validatedData);
+    return this.incomeRepository.createIncome(userId, validatedData);
   }
 }

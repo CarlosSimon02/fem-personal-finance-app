@@ -9,19 +9,13 @@ import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { FieldValue } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
-import {
-  IncomeModel,
-  IncomeModelPaginationResponse,
-  incomeModelSchema,
-} from "../models/incomeModel";
-import { getFirestorePaginatedData, getPaginatedAlgoliaData } from "./_utils";
+import { IncomeModel, incomeModelSchema } from "../models/incomeModel";
+import { getFirestorePaginatedData } from "./_utils";
 
 export class IncomeRepository implements IIncomeRepository {
   private getIncomeCollection(userId: string) {
-    return adminFirestore.collection("users").doc(userId).collection("income");
+    return adminFirestore.collection("users").doc(userId).collection("incomes");
   }
-
-  private ALGOLIA_INCOMES_INDEX = "income";
 
   async createIncome(
     userId: string,
@@ -70,22 +64,11 @@ export class IncomeRepository implements IIncomeRepository {
     params: PaginationParams
   ): Promise<PaginatedIncomesResponse> {
     try {
-      let response: IncomeModelPaginationResponse;
-
-      if (params.search) {
-        response = await getPaginatedAlgoliaData(
-          this.ALGOLIA_INCOMES_INDEX,
-          params,
-          incomeModelSchema
-        );
-      } else {
-        response = await getFirestorePaginatedData(
-          this.getIncomeCollection(userId),
-          params,
-          incomeModelSchema
-        );
-      }
-
+      const response = await getFirestorePaginatedData(
+        this.getIncomeCollection(userId),
+        params,
+        incomeModelSchema
+      );
       return {
         data: response.data.map((income) => this.mapIncomeModelToDto(income)),
         meta: response.meta,

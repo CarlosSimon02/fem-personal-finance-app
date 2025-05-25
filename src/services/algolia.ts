@@ -7,3 +7,5 @@ export const algoliaClient = algoliasearch(
 );
 
 export const ALGOLIA_TRANSACTIONS_INDEX = "transactions";
+export const ALGOLIA_BUDGETS_INDEX = "budgets";
+export const ALGOLIA_INCOMES_INDEX = "income";

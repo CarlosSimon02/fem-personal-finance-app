@@ -2,7 +2,7 @@ import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
 import { PaginatedIncomesResponse } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 
-export class GetAllIncomesUseCase {
+export class GetPaginatedIncomesUseCase {
   constructor(private incomeRepository: IIncomeRepository) {}
 
   async execute(
