@@ -58,9 +58,9 @@ const selectStyles = {
 /**
  * This factory method is used to build custom classNames configuration
  */
-export const createClassNames = (
-  classNames: ClassNamesConfig<OptionType, boolean, GroupBase<OptionType>>
-): ClassNamesConfig<OptionType, boolean, GroupBase<OptionType>> => {
+export const createClassNames = <T extends OptionType>(
+  classNames: ClassNamesConfig<T, boolean, GroupBase<T>>
+): ClassNamesConfig<T, boolean, GroupBase<T>> => {
   return {
     clearIndicator: (state) =>
       cn(

@@ -2,21 +2,20 @@
 
 import getPaginatedBudgetsAction from "@/app/(front)/_actions/getPaginatedBudgetsAction";
 import getPaginatedIncomesAction from "@/app/(front)/_actions/getPaginatedIncomesAction";
-import {
-  BudgetDto,
-  PaginatedBudgetsResponse,
-} from "@/core/schemas/budgetSchema";
-import {
-  IncomeDto,
-  PaginatedIncomesResponse,
-} from "@/core/schemas/incomeSchema";
+import { BudgetDto } from "@/core/schemas/budgetSchema";
+import { IncomeDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { TransactionType } from "@/core/schemas/transactionSchema";
 import { useBudgetDialogStore } from "@/presentation/stores/useBudgetDialogStore";
 import { useIncomeDialogStore } from "@/presentation/stores/useIncomeDialogStore";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useCallback, useEffect, useState } from "react";
 import { RefCallBack } from "react-hook-form";
-import { GroupBase, OptionsOrGroups } from "react-select";
+import {
+  GroupBase,
+  MultiValue,
+  OptionsOrGroups,
+  SingleValue,
+} from "react-select";
 import {
   ComponentProps,
   UseAsyncPaginateParams,
@@ -25,19 +24,19 @@ import {
 import type { CreatableProps } from "react-select/creatable";
 import Creatable from "react-select/creatable";
 
-type OptionType = {
+type CategoryOptionType = {
   value: string;
   label: string;
   colorTag: string;
 };
 
-interface CategorySelectFieldProps {
+type CategorySelectFieldProps = {
   value?: string;
   onChange: (categoryId: string) => void;
   transactionType: TransactionType;
   disabled?: boolean;
   selectRef: RefCallBack;
-}
+};
 
 type Additional = {
   page: number;
@@ -63,24 +62,71 @@ const CreatableAsyncPaginate = withAsyncPaginate(
   Creatable
 ) as AsyncPaginateCreatableType;
 
-const increaseUniq = (uniq: number) => uniq + 1;
+const CategoryOptionLabel = ({ label, colorTag }: CategoryOptionType) => (
+  <div className="flex items-center gap-2">
+    <div
+      className="size-3 rounded-full"
+      style={{ backgroundColor: colorTag }}
+    />
+    <div>{label}</div>
+  </div>
+);
 
-export const CategorySelectField = ({
-  value,
-  onChange,
-  transactionType,
-  disabled,
-  selectRef,
-}: CategorySelectFieldProps) => {
-  const [cacheUniq, setCacheUniq] = useState(0);
+const useCategoryOptions = (transactionType: TransactionType) => {
+  const loadOptions = useCallback(
+    async (
+      search: string,
+      prevOptions: OptionsOrGroups<
+        CategoryOptionType,
+        GroupBase<CategoryOptionType>
+      >
+    ) => {
+      const limitPerPage = 10;
+      const params: PaginationParams = {
+        sort: {
+          field: "name",
+          order: "asc",
+        },
+        pagination: {
+          page: Math.floor(prevOptions.length / limitPerPage) + 1,
+          limitPerPage,
+        },
+        filters: [],
+        search,
+      };
+
+      const response =
+        transactionType === "income"
+          ? await getPaginatedIncomesAction(params)
+          : await getPaginatedBudgetsAction(params);
+
+      return {
+        options:
+          response.data?.data.map((item) => ({
+            value: item.id,
+            label: item.name,
+            colorTag: item.colorTag,
+          })) ?? [],
+        hasMore: response.data?.meta.pagination.nextPage !== null,
+      };
+    },
+    [transactionType]
+  );
+
+  return { loadOptions };
+};
+
+const useCategoryDialogs = (transactionType: TransactionType) => {
   const [isAddingInProgress, setIsAddingInProgress] = useState(false);
-  const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
+  const [cacheUniq, setCacheUniq] = useState(0);
+
   const {
     setIsOpen: setIncomeIsOpen,
     setCallbackFn: setIncomeCallbackFn,
     setCloseCallbackFn: setIncomeCloseCallbackFn,
     setInitialData: setIncomeInitialData,
   } = useIncomeDialogStore();
+
   const {
     setIsOpen: setBudgetIsOpen,
     setCallbackFn: setBudgetCallbackFn,
@@ -88,133 +134,149 @@ export const CategorySelectField = ({
     setInitialData: setBudgetInitialData,
   } = useBudgetDialogStore();
 
-  const loadOptions = async (
-    search: string,
-    prevOptions: OptionsOrGroups<OptionType, GroupBase<OptionType>>
-  ) => {
-    const limitPerPage = 10;
-    const params: PaginationParams = {
-      sort: {
-        field: "name",
-        order: "asc",
-      },
-      pagination: {
-        page: Math.floor(prevOptions.length / limitPerPage) + 1,
-        limitPerPage,
-      },
-      filters: [],
-      search,
-    };
-    let response: ServerActionResponse<
-      PaginatedIncomesResponse | PaginatedBudgetsResponse
-    >;
-
-    if (transactionType === "income") {
-      response = await getPaginatedIncomesAction(params);
-    } else {
-      response = await getPaginatedBudgetsAction(params);
-    }
-
-    return {
-      options:
-        response.data?.data.map((item) => ({
-          value: item.id,
-          label: item.name,
-          colorTag: item.colorTag,
-        })) ?? [],
-      hasMore: response.data?.meta.pagination.nextPage !== null,
-    };
-  };
-
-  const formatOptionLabel = ({ label, colorTag }: OptionType) => (
-    <div className="flex items-center gap-2">
-      <div
-        className="size-3 rounded-full"
-        style={{ backgroundColor: colorTag }}
-      />
-      <div>{label}</div>
-    </div>
-  );
-
-  const onCreateOption = (inputValue: string) => {
-    setIsAddingInProgress(true);
-
-    // Open the appropriate dialog based on transaction type
-    if (transactionType === "income") {
+  const handleIncomeCreation = useCallback(
+    (inputValue: string, onSuccess: (option: CategoryOptionType) => void) => {
       setIncomeIsOpen(true);
-      setIncomeInitialData({
-        name: inputValue,
-      });
+      setIncomeInitialData({ name: inputValue });
+
       setIncomeCallbackFn((newCategory: IncomeDto) => {
         setIsAddingInProgress(false);
-        setCacheUniq(increaseUniq);
+        setCacheUniq((prev) => prev + 1);
 
-        // Convert the new category to an option
-        const newOption: OptionType = {
+        const newOption: CategoryOptionType = {
           value: newCategory.id,
           label: newCategory.name,
           colorTag: newCategory.colorTag,
         };
 
-        setSelectedOption(newOption);
-        onChange(newOption.value);
+        onSuccess(newOption);
       });
+
       setIncomeCloseCallbackFn(() => {
         setIsAddingInProgress(false);
       });
-    } else {
+    },
+    [
+      setIncomeIsOpen,
+      setIncomeInitialData,
+      setIncomeCallbackFn,
+      setIncomeCloseCallbackFn,
+    ]
+  );
+
+  const handleBudgetCreation = useCallback(
+    (inputValue: string, onSuccess: (option: CategoryOptionType) => void) => {
       setBudgetIsOpen(true);
-      setBudgetInitialData({
-        name: inputValue,
-      });
+      setBudgetInitialData({ name: inputValue });
+
       setBudgetCallbackFn((newCategory: BudgetDto) => {
         setIsAddingInProgress(false);
-        setCacheUniq(increaseUniq);
+        setCacheUniq((prev) => prev + 1);
 
-        // Convert the new category to an option
-        const newOption: OptionType = {
+        const newOption: CategoryOptionType = {
           value: newCategory.id,
           label: newCategory.name,
           colorTag: newCategory.colorTag,
         };
 
-        setSelectedOption(newOption);
-        onChange(newOption.value);
+        onSuccess(newOption);
       });
+
       setBudgetCloseCallbackFn(() => {
         setIsAddingInProgress(false);
       });
-    }
-  };
+    },
+    [
+      setBudgetIsOpen,
+      setBudgetInitialData,
+      setBudgetCallbackFn,
+      setBudgetCloseCallbackFn,
+    ]
+  );
 
-  // Handle changes from the select
-  const handleChange = (newValue: OptionType | null) => {
-    setSelectedOption(newValue);
-    if (newValue) {
-      onChange(newValue.value);
-    } else {
-      onChange("");
-    }
-  };
+  const handleCreateOption = useCallback(
+    (inputValue: string, onSuccess: (option: CategoryOptionType) => void) => {
+      setIsAddingInProgress(true);
 
-  // Synchronize selectedOption with value prop
+      if (transactionType === "income") {
+        handleIncomeCreation(inputValue, onSuccess);
+      } else {
+        handleBudgetCreation(inputValue, onSuccess);
+      }
+    },
+    [transactionType, handleIncomeCreation, handleBudgetCreation]
+  );
+
+  useEffect(() => {
+    setCacheUniq((prev) => prev + 1);
+  }, [transactionType]);
+
+  return {
+    isAddingInProgress,
+    cacheUniq,
+    handleCreateOption,
+  };
+};
+
+const useCategorySelection = (
+  value?: string,
+  onChange?: (categoryId: string) => void
+) => {
+  const [selectedOption, setSelectedOption] =
+    useState<SingleValue<CategoryOptionType>>(null);
+
+  const handleChange = useCallback(
+    (
+      newValue: MultiValue<CategoryOptionType> | SingleValue<CategoryOptionType>
+    ) => {
+      // Cast to SingleValue since this is a single-select component
+      const singleValue = newValue as SingleValue<CategoryOptionType>;
+      setSelectedOption(singleValue);
+      onChange?.(singleValue?.value ?? "");
+    },
+    [onChange]
+  );
+
   useEffect(() => {
     if (!value || value === "") {
-      // Clear selection when value is empty
       setSelectedOption(null);
     } else if (value && (!selectedOption || selectedOption.value !== value)) {
-      // In a real app, you would fetch the category details if not available
-      // For now, we'll leave it as null and it will be populated when options load
-      // This handles the case where value exists but selectedOption doesn't match
       setSelectedOption(null);
     }
   }, [value, selectedOption]);
 
-  useEffect(() => {
-    setCacheUniq(increaseUniq);
-    // Clear selection when transaction type changes
-    setSelectedOption(null);
-  }, [transactionType]);
+  return {
+    selectedOption,
+    setSelectedOption,
+    handleChange,
+  };
+};
+
+const CategorySelectField = ({
+  value,
+  onChange,
+  transactionType,
+  disabled,
+  selectRef,
+}: CategorySelectFieldProps) => {
+  const { loadOptions } = useCategoryOptions(transactionType);
+  const { isAddingInProgress, cacheUniq, handleCreateOption } =
+    useCategoryDialogs(transactionType);
+  const { selectedOption, setSelectedOption, handleChange } =
+    useCategorySelection(value, onChange);
+
+  const onCreateOption = useCallback(
+    (inputValue: string) => {
+      handleCreateOption(inputValue, (newOption) => {
+        setSelectedOption(newOption);
+        onChange(newOption.value);
+      });
+    },
+    [handleCreateOption, setSelectedOption, onChange]
+  );
+
+  const categoryType = transactionType === "income" ? "income" : "budget";
+  const placeholder = `Select or create a ${categoryType} category`;
 
   return (
     <CreatableAsyncPaginate
@@ -224,9 +286,11 @@ export const CategorySelectField = ({
       onCreateOption={onCreateOption}
       onChange={handleChange}
       cacheUniqs={[cacheUniq]}
-      formatOptionLabel={formatOptionLabel}
-      placeholder={`Select or create a ${transactionType === "income" ? "income" : "budget"} category`}
+      formatOptionLabel={CategoryOptionLabel}
+      placeholder={placeholder}
       selectRef={selectRef}
     />
   );
 };
+
+export default CategorySelectField;
