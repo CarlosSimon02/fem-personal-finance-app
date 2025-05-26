@@ -192,19 +192,28 @@ export const CategorySelectField = ({
     setSelectedOption(newValue);
     if (newValue) {
       onChange(newValue.value);
+    } else {
+      onChange("");
     }
   };
 
-  // Initialize selected option from value prop
+  // Synchronize selectedOption with value prop
   useEffect(() => {
-    if (value && !selectedOption) {
+    if (!value || value === "") {
+      // Clear selection when value is empty
+      setSelectedOption(null);
+    } else if (value && (!selectedOption || selectedOption.value !== value)) {
       // In a real app, you would fetch the category details if not available
       // For now, we'll leave it as null and it will be populated when options load
+      // This handles the case where value exists but selectedOption doesn't match
+      setSelectedOption(null);
     }
   }, [value, selectedOption]);
 
   useEffect(() => {
     setCacheUniq(increaseUniq);
+    // Clear selection when transaction type changes
+    setSelectedOption(null);
   }, [transactionType]);
 
   return (
