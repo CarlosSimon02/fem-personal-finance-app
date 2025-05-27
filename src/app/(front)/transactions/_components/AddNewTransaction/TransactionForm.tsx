@@ -27,7 +27,7 @@ import {
   CreateTransactionDto,
   createTransactionSchema,
 } from "@/core/schemas/transactionSchema";
-import { CategorySelectField } from "./CategorySelectField";
+import CategorySelectField from "./CategorySelectField";
 import { DEFAULT_EMOJI } from "./constants";
 import { EmojiPickerField } from "./EmojiPickerField";
 import { TransactionDatePicker } from "./TransactionDatePicker";

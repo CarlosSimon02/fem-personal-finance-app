@@ -131,8 +131,12 @@ export function SearchFilterBar({
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date-desc">Date (Newest first)</SelectItem>
-              <SelectItem value="date-asc">Date (Oldest first)</SelectItem>
+              <SelectItem value="transactionDate-desc">
+                Date (Newest first)
+              </SelectItem>
+              <SelectItem value="transactionDate-asc">
+                Date (Oldest first)
+              </SelectItem>
               <SelectItem value="amount-desc">
                 Amount (Highest first)
               </SelectItem>
@@ -177,8 +181,12 @@ export function SearchFilterBar({
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date-desc">Date (Newest first)</SelectItem>
-              <SelectItem value="date-asc">Date (Oldest first)</SelectItem>
+              <SelectItem value="transactionDate-desc">
+                Date (Newest first)
+              </SelectItem>
+              <SelectItem value="transactionDate-asc">
+                Date (Oldest first)
+              </SelectItem>
               <SelectItem value="amount-desc">
                 Amount (Highest first)
               </SelectItem>
