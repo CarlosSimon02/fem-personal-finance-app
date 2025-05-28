@@ -11,7 +11,7 @@ import {
 } from "@/presentation/components/ui/select";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { categories } from "../../overview/_data";
 
 interface SearchFilterBarProps {
@@ -36,48 +36,45 @@ export function SearchFilterBar({
   const [order, setOrder] = useState(initialOrder);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Update URL with new parameters
-  const updateUrl = useCallback(
-    (params: Record<string, string>) => {
-      const searchParams = new URLSearchParams();
-
-      // Add current params
-      if (search && !("search" in params)) searchParams.set("search", search);
-      if (category && !("category" in params))
-        searchParams.set("category", category);
-      if (sortBy && !("sortBy" in params)) searchParams.set("sortBy", sortBy);
-      if (order && !("order" in params)) searchParams.set("order", order);
-
-      // Add new params
-      Object.entries(params).forEach(([key, value]) => {
-        if (value) {
-          searchParams.set(key, value);
-        } else {
-          searchParams.delete(key);
-        }
-      });
-
-      // Reset to page 1 when filters change
-      if (!("page" in params)) {
-        searchParams.delete("page");
-      }
-
-      const query = searchParams.toString();
-      router.push(`${pathname}${query ? `?${query}` : ""}`);
-    },
-    [pathname, router, search, category, sortBy, order]
-  );
-
   // Debounce search input
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (search !== initialSearch) {
         updateUrl({ search });
       }
-    }, 300);
+    }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [search, initialSearch, updateUrl]);
+  }, [search, initialSearch]);
+
+  // Update URL with new parameters
+  const updateUrl = (params: Record<string, string>) => {
+    const searchParams = new URLSearchParams();
+
+    // Add current params
+    if (search && !("search" in params)) searchParams.set("search", search);
+    if (category && !("category" in params))
+      searchParams.set("category", category);
+    if (sortBy && !("sortBy" in params)) searchParams.set("sortBy", sortBy);
+    if (order && !("order" in params)) searchParams.set("order", order);
+
+    // Add new params
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        searchParams.set(key, value);
+      } else {
+        searchParams.delete(key);
+      }
+    });
+
+    // Reset to page 1 when filters change
+    if (!("page" in params)) {
+      searchParams.delete("page");
+    }
+
+    const query = searchParams.toString();
+    router.push(`${pathname}${query ? `?${query}` : ""}`);
+  };
 
   return (
     <div className="space-y-4">
@@ -184,12 +181,8 @@ export function SearchFilterBar({
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="transactionDate-desc">
-                Date (Newest first)
-              </SelectItem>
-              <SelectItem value="transactionDate-asc">
-                Date (Oldest first)
-              </SelectItem>
+              <SelectItem value="date-desc">Date (Newest first)</SelectItem>
+              <SelectItem value="date-asc">Date (Oldest first)</SelectItem>
               <SelectItem value="amount-desc">
                 Amount (Highest first)
               </SelectItem>

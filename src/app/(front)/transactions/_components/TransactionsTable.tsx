@@ -1,5 +1,4 @@
-"use client";
-
+import { getPaginatedTransactionsAction } from "@/presentation/actions/transactionActions";
 import TransactionEmoji from "@/presentation/components/TransactionEmoji";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -8,10 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
-import { useTransactions } from "@/presentation/hooks/useTransactions";
-import { AlertCircle, MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "lucide-react";
 import { Pagination } from "./Pagination";
-import { TransactionsSkeleton } from "./TransactionsSkeleton";
 
 interface TransactionsTableProps {
   search: string;
@@ -21,53 +18,46 @@ interface TransactionsTableProps {
   page: number;
 }
 
-export function TransactionsTable({
+export async function TransactionsTable({
   search,
   category,
   sortBy,
   order,
   page,
 }: TransactionsTableProps) {
-  const { data, isLoading, error, isError } = useTransactions({
+  // Fetch and process data on the server
+  const { data, error } = await getPaginatedTransactionsAction({
+    filters:
+      category && category !== "all"
+        ? [
+            {
+              field: "category.name",
+              operator: "==",
+              value: category,
+            },
+          ]
+        : [],
+    pagination: {
+      page,
+      limitPerPage: 10,
+    },
+    sort: {
+      order: order === "asc" ? "asc" : "desc",
+      field: sortBy,
+    },
     search,
-    category,
-    sortBy,
-    order,
-    page,
   });
 
-  if (isLoading) {
-    return <TransactionsSkeleton />;
+  if (error) {
+    return <div>Error: {error}</div>;
   }
 
-  if (isError) {
-    return (
-      <div className="border-destructive bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border p-4">
-        <AlertCircle className="h-4 w-4" />
-        <p>
-          {error instanceof Error
-            ? error.message
-            : "Failed to load transactions. Please try again."}
-        </p>
-      </div>
-    );
-  }
-
-  if (!data || !data.data.length) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-muted-foreground text-lg">No transactions found</p>
-        <p className="text-muted-foreground text-sm">
-          Try adjusting your search or filter criteria
-        </p>
-      </div>
-    );
-  }
-
-  const transactions = data.data;
-  const totalPages = Math.ceil(
-    data.meta.pagination.totalItems / data.meta.pagination.limitPerPage
-  );
+  const transactions = data?.data || [];
+  const totalPages =
+    Math.ceil(
+      (data?.meta.pagination.totalItems || 0) /
+        (data?.meta.pagination.limitPerPage || 10)
+    ) || 1;
 
   return (
     <div className="space-y-4">
@@ -103,7 +93,7 @@ export function TransactionsTable({
                     </span>
                   </td>
                   <td className="text-muted-foreground px-4 py-3">
-                    {new Date(transaction.transactionDate).toLocaleDateString()}
+                    {transaction.transactionDate.toLocaleDateString()}
                   </td>
                   <td className="px-4 py-3 text-right">
                     <span
@@ -157,16 +147,16 @@ export function TransactionsTable({
             <div className="flex flex-col items-end">
               <span
                 className={
-                  transaction.amount > 0
+                  transaction.type === "income"
                     ? "font-medium text-green-600"
                     : "font-medium text-red-600"
                 }
               >
-                {transaction.amount > 0 ? "+" : ""}₱
+                {transaction.type === "income" ? "+" : "-"}₱
                 {Math.abs(transaction.amount).toLocaleString()}
               </span>
               <span className="text-muted-foreground mt-1 text-xs">
-                {new Date(transaction.transactionDate).toLocaleDateString()}
+                {transaction.transactionDate.toLocaleDateString()}
               </span>
             </div>
             <DropdownMenu>

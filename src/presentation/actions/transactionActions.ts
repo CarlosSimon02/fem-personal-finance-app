@@ -16,6 +16,8 @@ export const getPaginatedTransactionsAction = actionWithAuth<
   PaginationParams,
   PaginatedTransactionsResponse
 >(async ({ user, data }) => {
+  "use cache";
+
   const response = await getPaginatedTransactionsUseCase.execute(user.id, data);
   return { data: response, error: null };
 });
