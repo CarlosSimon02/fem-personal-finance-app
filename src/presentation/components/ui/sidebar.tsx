@@ -22,7 +22,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/presentation/components/ui/tooltip";
-import { useIsMobile } from "@/presentation/hooks/use-mobile";
+import { useIsMobile } from "@/presentation/hooks/useMobile";
 import { cn } from "@/utils/lib/shadcnUtils";
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state";

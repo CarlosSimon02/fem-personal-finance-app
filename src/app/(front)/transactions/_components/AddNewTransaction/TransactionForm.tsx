@@ -28,7 +28,6 @@ import {
   createTransactionSchema,
 } from "@/core/schemas/transactionSchema";
 import CategorySelectField from "./CategorySelectField";
-import { DEFAULT_EMOJI } from "./constants";
 import { EmojiPickerField } from "./EmojiPickerField";
 import { TransactionDatePicker } from "./TransactionDatePicker";
 
@@ -55,7 +54,7 @@ export const TransactionForm = ({
       categoryId: "",
       transactionDate: new Date(),
       description: "",
-      emoji: DEFAULT_EMOJI,
+      emoji: "📃",
       ...defaultValues,
     },
   });

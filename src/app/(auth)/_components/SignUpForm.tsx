@@ -12,11 +12,10 @@ import {
   FormMessage,
 } from "@/presentation/components/ui/form";
 import { Input } from "@/presentation/components/ui/input";
+import { useGoogleSignIn, useSignUp } from "@/presentation/hooks/useAuth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-import { useGoogleSignIn } from "../_hooks/useGoogleSignIn";
-import { useSignUp } from "../_hooks/useSignUp";
 import AuthLayout from "./AuthLayout";
 import GoogleSignInButton from "./GoogleSignInButton";
 

@@ -3,6 +3,7 @@
 import { ChevronsUpDown, LogOut } from "lucide-react";
 
 import { UserEntity } from "@/core/entities/UserEntity";
+import { logoutAction } from "@/presentation/actions/authActions";
 import {
   Avatar,
   AvatarFallback,
@@ -20,7 +21,6 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/presentation/components/ui/sidebar";
-import { logoutAction } from "../_actions/logoutAction";
 
 type NavUserProps = {
   user: UserEntity;

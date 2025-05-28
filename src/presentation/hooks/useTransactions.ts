@@ -1,6 +1,6 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { useQuery } from "@tanstack/react-query";
-import getPaginatedTransactionsAction from "../../_actions/getPaginatedTransactionsAction";
+import { getPaginatedTransactionsAction } from "../actions/transactionActions";
 
 interface UseTransactionsParams {
   search?: string;

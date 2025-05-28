@@ -1,10 +1,10 @@
 "use client";
 
-import createIncomeAction from "@/app/(front)/_actions/createIncomeAction";
 import {
   createIncomeSchema,
   type CreateIncomeDto,
 } from "@/core/schemas/incomeSchema";
+import { createIncomeAction } from "@/presentation/actions/incomeActions";
 import { Button } from "@/presentation/components/ui/button";
 import { ColorPicker } from "@/presentation/components/ui/color-picker";
 import {

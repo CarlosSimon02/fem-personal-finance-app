@@ -7,7 +7,6 @@ import {
   PopoverTrigger,
 } from "@/presentation/components/ui/popover";
 import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
-import { DEFAULT_EMOJI } from "./constants";
 
 interface EmojiPickerFieldProps {
   value: string;
@@ -20,7 +19,7 @@ export const EmojiPickerField = ({
   onChange,
   disabled,
 }: EmojiPickerFieldProps) => {
-  const currentEmoji = value || DEFAULT_EMOJI;
+  const currentEmoji = value || "📃";
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     onChange(emojiData.emoji);

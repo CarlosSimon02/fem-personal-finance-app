@@ -8,8 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
+import { useTransactions } from "@/presentation/hooks/useTransactions";
 import { AlertCircle, MoreHorizontal } from "lucide-react";
-import { useTransactions } from "../_hooks/useTransactions";
 import { Pagination } from "./Pagination";
 import { TransactionsSkeleton } from "./TransactionsSkeleton";
 
@@ -108,12 +108,12 @@ export function TransactionsTable({
                   <td className="px-4 py-3 text-right">
                     <span
                       className={
-                        transaction.amount > 0
+                        transaction.type === "income"
                           ? "text-green-600"
                           : "text-red-600"
                       }
                     >
-                      {transaction.amount > 0 ? "+" : ""}₱
+                      {transaction.type === "income" ? "+" : "-"}₱
                       {Math.abs(transaction.amount).toLocaleString()}
                     </span>
                   </td>

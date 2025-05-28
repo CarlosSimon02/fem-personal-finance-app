@@ -1,10 +1,10 @@
 "use client";
 
-import createBudgetAction from "@/app/(front)/_actions/createBudgetAction";
 import {
   createBudgetSchema,
   type CreateBudgetDto,
 } from "@/core/schemas/budgetSchema";
+import { createBudgetAction } from "@/presentation/actions/budgetActions";
 import { Button } from "@/presentation/components/ui/button";
 import { ColorPicker } from "@/presentation/components/ui/color-picker";
 import {

@@ -14,11 +14,11 @@ import {
   FormMessage,
 } from "@/presentation/components/ui/form";
 import { Input } from "@/presentation/components/ui/input";
+import { useResetPassword } from "@/presentation/hooks/useAuth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useResetPassword } from "../_hooks/useResetPassword";
 import AuthLayout from "./AuthLayout";
 
 const ForgotPasswordForm = () => {

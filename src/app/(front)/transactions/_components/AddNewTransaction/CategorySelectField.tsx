@@ -1,11 +1,11 @@
 "use client";
 
-import getPaginatedBudgetsAction from "@/app/(front)/_actions/getPaginatedBudgetsAction";
-import getPaginatedIncomesAction from "@/app/(front)/_actions/getPaginatedIncomesAction";
 import { BudgetDto } from "@/core/schemas/budgetSchema";
 import { IncomeDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { TransactionType } from "@/core/schemas/transactionSchema";
+import { getPaginatedBudgetsAction } from "@/presentation/actions/budgetActions";
+import { getPaginatedIncomesAction } from "@/presentation/actions/incomeActions";
 import { useBudgetDialogStore } from "@/presentation/stores/useBudgetDialogStore";
 import { useIncomeDialogStore } from "@/presentation/stores/useIncomeDialogStore";
 import { ReactElement, useCallback, useEffect, useState } from "react";
