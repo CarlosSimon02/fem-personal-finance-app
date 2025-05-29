@@ -1,5 +1,6 @@
 import {
   CreateTransactionDto,
+  PaginatedCategoriesResponse,
   PaginatedTransactionsResponse,
   TransactionCategory,
   TransactionDto,
@@ -27,5 +28,9 @@ export interface ITransactionRepository {
     input: UpdateTransactionInput
   ): Promise<TransactionDto>;
   deleteTransaction(userId: string, transactionId: string): Promise<void>;
+  getPaginatedCategories(
+    userId: string,
+    params: PaginationParams
+  ): Promise<PaginatedCategoriesResponse>;
   migrateTransactionCategoriesToCollection(): Promise<void>;
 }

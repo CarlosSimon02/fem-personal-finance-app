@@ -1,13 +1,17 @@
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
+  CategoryDto,
   CreateTransactionDto,
+  PaginatedCategoriesResponse,
   PaginatedTransactionsResponse,
   TransactionCategory,
   TransactionDto,
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
 import {
+  CategoryModel,
+  categoryModelSchema,
   TransactionModel,
   transactionModelSchema,
 } from "@/data/models/transactionModel";
@@ -51,6 +55,16 @@ export class TransactionRepository implements ITransactionRepository {
       emoji: transaction.emoji,
       createdAt: transaction.createdAt.toDate(),
       updatedAt: transaction.updatedAt.toDate(),
+    };
+  }
+
+  private mapCategoryModelToDto(category: CategoryModel): CategoryDto {
+    return {
+      id: category.id,
+      name: category.name,
+      colorTag: category.colorTag,
+      createdAt: category.createdAt.toDate(),
+      updatedAt: category.updatedAt.toDate(),
     };
   }
 
@@ -197,6 +211,29 @@ export class TransactionRepository implements ITransactionRepository {
     } catch (error) {
       const err = error as Error;
       throw new Error(`Failed to delete transaction: ${err.message}`);
+    }
+  }
+
+  async getPaginatedCategories(
+    userId: string,
+    params: PaginationParams
+  ): Promise<PaginatedCategoriesResponse> {
+    try {
+      const response = await getFirestorePaginatedData(
+        this.getCategoryCollection(userId),
+        params,
+        categoryModelSchema
+      );
+
+      return {
+        data: response.data.map((category) =>
+          this.mapCategoryModelToDto(category)
+        ),
+        meta: response.meta,
+      };
+    } catch (error) {
+      const err = error as Error;
+      throw new Error(`Failed to get paginated transactions: ${err.message}`);
     }
   }
 

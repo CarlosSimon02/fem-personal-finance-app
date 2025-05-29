@@ -1,5 +1,8 @@
 import { createPaginationResponseSchema } from "@/core/schemas/paginationSchema";
-import { transactionSchema } from "@/core/schemas/transactionSchema";
+import {
+  categorySchema,
+  transactionSchema,
+} from "@/core/schemas/transactionSchema";
 import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 import { zTimestamp } from "./_utils";
@@ -16,10 +19,21 @@ export const transactionModelSchema = transactionSchema
     transactionDate: zTimestamp,
   });
 
+export const categoryModelSchema = categorySchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zTimestamp,
+    updatedAt: zTimestamp,
+  });
+
 export const transactionModelPaginationResponseSchema =
   createPaginationResponseSchema(transactionModelSchema);
 
 export type TransactionModel = z.infer<typeof transactionModelSchema>;
+export type CategoryModel = z.infer<typeof categoryModelSchema>;
 
 export type TransactionModelPaginationResponse = z.infer<
   typeof transactionModelPaginationResponseSchema

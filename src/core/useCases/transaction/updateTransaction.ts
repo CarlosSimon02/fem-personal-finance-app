@@ -1,5 +1,5 @@
-import { TransactionEntity } from "@/core/entities/TransactionEntity";
 import {
+  TransactionDto,
   UpdateTransactionInput,
   updateTransactionSchema,
 } from "@/core/schemas/transactionSchema";
@@ -12,7 +12,7 @@ export class UpdateTransactionUseCase {
     userId: string,
     transactionId: string,
     input: UpdateTransactionInput
-  ): Promise<TransactionEntity> {
+  ): Promise<TransactionDto> {
     if (!userId) throw new Error("User ID is required");
     if (!transactionId) throw new Error("Transaction ID is required");
 

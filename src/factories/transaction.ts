@@ -1,6 +1,6 @@
 import { CreateTransactionUseCase } from "@/core/useCases/transaction/createTransaction";
 import { DeleteTransactionUseCase } from "@/core/useCases/transaction/deleteTransaction";
-import { GetPaginatedTransactionsUseCase } from "@/core/useCases/transaction/getMultipleTransactions";
+import { GetPaginatedTransactionsUseCase } from "@/core/useCases/transaction/getPaginatedTransactions";
 import { GetTransactionUseCase } from "@/core/useCases/transaction/getTransaction";
 import { UpdateTransactionUseCase } from "@/core/useCases/transaction/updateTransaction";
 import { BudgetRepository } from "@/data/repositories/budgetRepository";

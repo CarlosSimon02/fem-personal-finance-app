@@ -1,5 +1,5 @@
-import { TransactionEntity } from "@/core/entities/TransactionEntity";
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
+import { TransactionDto } from "@/core/schemas/transactionSchema";
 
 export class GetTransactionUseCase {
   constructor(private transactionRepository: ITransactionRepository) {}
@@ -7,7 +7,7 @@ export class GetTransactionUseCase {
   async execute(
     userId: string,
     transactionId: string
-  ): Promise<TransactionEntity> {
+  ): Promise<TransactionDto | null> {
     if (!userId) throw new Error("User ID is required");
     if (!transactionId) throw new Error("Transaction ID is required");
 
