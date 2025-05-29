@@ -144,7 +144,6 @@ export function SearchFilterBar({
             </SelectContent>
           </Select>
         </div>
-        <div>{`${sortBy}-${order}`}</div>
       </div>
 
       {/* Mobile filters */}
