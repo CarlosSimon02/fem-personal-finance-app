@@ -1,6 +1,15 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { useQuery } from "@tanstack/react-query";
-import { getPaginatedTransactionsAction } from "../actions/transactionActions";
+import {
+  CreateTransactionDto,
+  TransactionDto,
+} from "@/core/schemas/transactionSchema";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
+import {
+  createTransactionAction,
+  getPaginatedTransactionsAction,
+} from "../actions/transactionActions";
+import { StatusCallbacksType } from "./types";
 
 interface UseTransactionsParams {
   search?: string;
@@ -54,4 +63,39 @@ export const useTransactions = ({
     gcTime: 1000 * 60 * 10, // 10 minutes
     refetchOnWindowFocus: false,
   });
+};
+
+export const useCreateTransaction = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<TransactionDto>) => {
+  const createTransactionMutation = useMutation({
+    mutationFn: async (data: CreateTransactionDto) => {
+      try {
+        const response = await createTransactionAction(data);
+        if (response.error) throw new Error(response.error);
+        if (!response.data)
+          throw new Error("No data returned from server action");
+
+        return response.data;
+      } catch (error) {
+        console.error("Create transaction error:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      toast.success("Transaction created successfully!");
+      onSuccess?.(data);
+    },
+    onError: (error: Error) => {
+      toast.error(`Create transaction failed: ${error.message}`);
+      onError?.(error);
+    },
+    onSettled: () => {
+      onSettled?.();
+    },
+  });
+
+  return createTransactionMutation;
 };

@@ -7,6 +7,7 @@ type ColorPickerProps = {
   value: string;
   onChange: (color: string) => void;
   className?: string;
+  disabled?: boolean;
 };
 
 const PRESET_COLORS = [
@@ -25,6 +26,7 @@ export const ColorPicker = ({
   value,
   onChange,
   className,
+  disabled,
 }: ColorPickerProps) => {
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
@@ -40,6 +42,7 @@ export const ColorPicker = ({
           style={{ backgroundColor: color }}
           onClick={() => onChange(color)}
           aria-label={`Select color ${color}`}
+          disabled={disabled}
         />
       ))}
     </div>

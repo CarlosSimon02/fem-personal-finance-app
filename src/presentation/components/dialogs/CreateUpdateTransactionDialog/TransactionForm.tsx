@@ -26,6 +26,7 @@ import { Textarea } from "@/presentation/components/ui/textarea";
 import {
   CreateTransactionDto,
   createTransactionSchema,
+  TransactionDto,
 } from "@/core/schemas/transactionSchema";
 import CategorySelectField from "./CategorySelectField";
 import { EmojiPickerField } from "./EmojiPickerField";
@@ -35,27 +36,28 @@ interface TransactionFormProps {
   onSubmit: (data: CreateTransactionDto) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
-  defaultValues?: Partial<CreateTransactionDto>;
+  operation: "create" | "update";
+  initialData?: TransactionDto;
 }
 
 export const TransactionForm = ({
   onSubmit,
   onCancel,
   isSubmitting,
-  defaultValues,
+  operation,
+  initialData,
 }: TransactionFormProps) => {
   const form = useForm<CreateTransactionDto>({
     resolver: zodResolver(createTransactionSchema),
     defaultValues: {
-      name: "",
-      type: "expense",
-      amount: 0,
-      recipientOrPayer: "",
-      categoryId: "",
-      transactionDate: new Date(),
-      description: "",
-      emoji: "📃",
-      ...defaultValues,
+      name: initialData?.name || "",
+      type: initialData?.type || "expense",
+      amount: initialData?.amount || 0,
+      recipientOrPayer: initialData?.recipientOrPayer || "",
+      categoryId: initialData?.category.id || "",
+      transactionDate: initialData?.transactionDate || new Date(),
+      description: initialData?.description || "",
+      emoji: initialData?.emoji || "📃",
     },
   });
 
@@ -173,6 +175,15 @@ export const TransactionForm = ({
               <FormControl>
                 <CategorySelectField
                   value={field.value}
+                  initialData={
+                    initialData?.category
+                      ? {
+                          value: initialData?.category.id,
+                          label: initialData?.category.name,
+                          colorTag: initialData?.category.colorTag,
+                        }
+                      : undefined
+                  }
                   onChange={(value) => {
                     field.onChange(value);
                   }}
