@@ -12,7 +12,7 @@ import {
 import { Search, SlidersHorizontal } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { categories } from "../../overview/_data";
+import FilterByCategory from "./FilterByCategory";
 
 interface SearchFilterBarProps {
   search: string;
@@ -99,25 +99,22 @@ export function SearchFilterBar({
           <span className="sr-only">Toggle filters</span>
         </Button>
         <div className="hidden gap-2 sm:flex">
-          <Select
-            value={category}
-            onValueChange={(value) => {
-              setCategory(value);
-              updateUrl({ category: value });
+          <FilterByCategory
+            value={
+              category
+                ? { value: category, label: category }
+                : { value: "All Transactions", label: "All Transactions" }
+            }
+            onChange={(value) => {
+              setCategory(value?.value ?? "");
+              updateUrl({
+                category:
+                  value?.value === "All Transactions"
+                    ? ""
+                    : (value?.value ?? ""),
+              });
             }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
           <Select
             value={`${sortBy}-${order}`}
             onValueChange={(value) => {
@@ -149,25 +146,13 @@ export function SearchFilterBar({
       {/* Mobile filters */}
       {isFilterOpen && (
         <div className="space-y-4 sm:hidden">
-          <Select
-            value={category}
-            onValueChange={(value) => {
-              setCategory(value);
-              updateUrl({ category: value });
+          <FilterByCategory
+            value={category ? { value: category, label: category } : null}
+            onChange={(value) => {
+              setCategory(value?.value ?? "");
+              updateUrl({ category: value?.value ?? "" });
             }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Categories" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {cat}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          />
           <Select
             value={`${sortBy}-${order}`}
             onValueChange={(value) => {

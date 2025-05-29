@@ -1,5 +1,6 @@
 import { CreateTransactionUseCase } from "@/core/useCases/transaction/createTransaction";
 import { DeleteTransactionUseCase } from "@/core/useCases/transaction/deleteTransaction";
+import { GetPaginatedCategoriesUseCase } from "@/core/useCases/transaction/getPaginatedCategories";
 import { GetPaginatedTransactionsUseCase } from "@/core/useCases/transaction/getPaginatedTransactions";
 import { GetTransactionUseCase } from "@/core/useCases/transaction/getTransaction";
 import { UpdateTransactionUseCase } from "@/core/useCases/transaction/updateTransaction";
@@ -27,5 +28,9 @@ export const getTransactionUseCase = new GetTransactionUseCase(
 );
 export const getPaginatedTransactionsUseCase =
   new GetPaginatedTransactionsUseCase(transactionRepository);
+
+export const getPaginatedCategoriesUseCase = new GetPaginatedCategoriesUseCase(
+  transactionRepository
+);
 
 export { transactionRepository };
