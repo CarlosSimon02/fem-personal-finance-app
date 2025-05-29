@@ -27,4 +27,5 @@ export interface ITransactionRepository {
     input: UpdateTransactionInput
   ): Promise<TransactionDto>;
   deleteTransaction(userId: string, transactionId: string): Promise<void>;
+  migrateTransactionCategoriesToCollection(): Promise<void>;
 }

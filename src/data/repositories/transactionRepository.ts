@@ -8,21 +8,50 @@ import {
   UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
 import {
-  CreateTransactionModel,
   TransactionModel,
   transactionModelSchema,
 } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
+import { debugLog } from "@/utils/debugLog";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
 import { getFirestorePaginatedData } from "./_utils";
 
 export class TransactionRepository implements ITransactionRepository {
   private getTransactionCollection(userId: string) {
-    return adminFirestore
-      .collection("users")
-      .doc(userId)
-      .collection("transactions");
+    return this.getUserCollection().doc(userId).collection("transactions");
+  }
+
+  private getCategoryCollection(userId: string) {
+    return this.getUserCollection().doc(userId).collection("categories");
+  }
+
+  private getUserCollection() {
+    return adminFirestore.collection("users");
+  }
+
+  private mapTransactionModelToDto(
+    transaction: TransactionModel
+  ): TransactionDto {
+    const category: TransactionCategory = {
+      id: transaction.category.id,
+      name: transaction.category.name,
+      colorTag: transaction.category.colorTag,
+    };
+
+    return {
+      id: transaction.id,
+      type: transaction.type,
+      amount: transaction.amount,
+      name: transaction.name,
+      recipientOrPayer: transaction.recipientOrPayer,
+      category,
+      transactionDate: transaction.transactionDate.toDate(),
+      description: transaction.description,
+      emoji: transaction.emoji,
+      createdAt: transaction.createdAt.toDate(),
+      updatedAt: transaction.updatedAt.toDate(),
+    };
   }
 
   async createTransaction(
@@ -31,10 +60,13 @@ export class TransactionRepository implements ITransactionRepository {
     category: TransactionCategory
   ): Promise<TransactionDto> {
     try {
+      const batch = adminFirestore.batch();
       const transactionDate = Timestamp.fromDate(input.transactionDate);
       const id = nanoid(10);
       const timestamp = FieldValue.serverTimestamp();
-      const data: CreateTransactionModel = {
+
+      const transactionRef = this.getTransactionCollection(userId).doc(id);
+      batch.set(transactionRef, {
         id,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -46,10 +78,23 @@ export class TransactionRepository implements ITransactionRepository {
         description: input.description,
         emoji: input.emoji,
         name: input.name,
-      };
+      });
 
-      const transactionRef = this.getTransactionCollection(userId).doc(data.id);
-      await transactionRef.set(data);
+      const categoryRef = this.getCategoryCollection(userId).doc(category.id);
+      const existingCategory = await categoryRef.get();
+
+      // Only create the category if it doesn't exist
+      if (!existingCategory.exists) {
+        batch.set(categoryRef, {
+          id: category.id,
+          name: category.name,
+          colorTag: category.colorTag,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        });
+      }
+
+      await batch.commit();
 
       const transactionDoc = await transactionRef.get();
       const docData = transactionDoc.data();
@@ -155,27 +200,87 @@ export class TransactionRepository implements ITransactionRepository {
     }
   }
 
-  private mapTransactionModelToDto(
-    transaction: TransactionModel
-  ): TransactionDto {
-    const category: TransactionCategory = {
-      id: transaction.category.id,
-      name: transaction.category.name,
-      colorTag: transaction.category.colorTag,
-    };
+  async migrateTransactionCategoriesToCollection(): Promise<void> {
+    try {
+      // Create batch for this user's categories
+      const batch = adminFirestore.batch();
 
-    return {
-      id: transaction.id,
-      type: transaction.type,
-      amount: transaction.amount,
-      name: transaction.name,
-      recipientOrPayer: transaction.recipientOrPayer,
-      category,
-      transactionDate: transaction.transactionDate.toDate(),
-      description: transaction.description,
-      emoji: transaction.emoji,
-      createdAt: transaction.createdAt.toDate(),
-      updatedAt: transaction.updatedAt.toDate(),
-    };
+      // Get all users
+      const usersSnapshot = await this.getUserCollection().get();
+
+      if (usersSnapshot.empty) {
+        debugLog(
+          "migrateTransactionCategoriesToCollection",
+          "No users found - nothing to migrate"
+        );
+        return;
+      }
+
+      // Process each user
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+        const transactionsRef = this.getTransactionCollection(userId);
+        const categoriesRef = this.getCategoryCollection(userId);
+
+        // Get all transactions for this user
+        const transactionsSnapshot = await transactionsRef.get();
+
+        if (transactionsSnapshot.empty) {
+          debugLog(
+            "migrateTransactionCategoriesToCollection",
+            `No transactions found for user ${userId} - skipping`
+          );
+          continue;
+        }
+
+        // Collect unique categories from transactions
+        const uniqueCategories = new Map();
+        const timestamp = FieldValue.serverTimestamp();
+
+        transactionsSnapshot.forEach((transactionDoc) => {
+          const transaction = transactionDoc.data() as TransactionModel;
+          const category = transaction.category;
+
+          if (category && !uniqueCategories.has(category.id)) {
+            uniqueCategories.set(category.id, {
+              ...category,
+              createdAt: timestamp,
+              updatedAt: timestamp,
+            });
+          }
+        });
+
+        // Skip if no categories found
+        if (uniqueCategories.size === 0) {
+          debugLog(
+            "migrateTransactionCategoriesToCollection",
+            `No categories found in transactions for user ${userId} - skipping`
+          );
+          continue;
+        }
+
+        // Add each category to the batch
+        uniqueCategories.forEach((category, categoryId) => {
+          const categoryRef = categoriesRef.doc(categoryId);
+          batch.set(categoryRef, category);
+        });
+      }
+
+      // Execute batch
+      await batch.commit();
+
+      debugLog(
+        "migrateTransactionCategoriesToCollection",
+        "Category migration completed for all users"
+      );
+    } catch (error) {
+      const err = error as Error;
+      debugLog(
+        "migrateTransactionCategoriesToCollection",
+        "Failed to create categories:",
+        err
+      );
+      throw new Error(`Failed to create categories: ${err.message}`);
+    }
   }
 }
