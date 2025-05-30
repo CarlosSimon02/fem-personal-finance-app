@@ -34,7 +34,7 @@ export const CurrencyInputField = ({
 
   // Input filter function
   const isCurrencyValid = (val: string) => {
-    return /^-?\d*\.?\d{0,2}$/.test(val);
+    return /^\d*\.?\d{0,2}$/.test(val);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
