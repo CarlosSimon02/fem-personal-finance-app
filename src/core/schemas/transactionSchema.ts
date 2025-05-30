@@ -42,19 +42,6 @@ export const createTransactionSchema = baseTransactionSchema.extend({
   categoryId: z.string().min(1, "Category ID is required"),
 });
 
-export const createTransactionSchemaWithAmountValidation =
-  createTransactionSchema.refine(
-    (data) => {
-      if (data.type === "income") return data.amount > 0;
-      if (data.type === "expense") return data.amount < 0;
-      return true;
-    },
-    {
-      message: "Amount must be positive for income and negative for expense",
-      path: ["amount"],
-    }
-  );
-
 export const updateTransactionSchema = createTransactionSchema.partial();
 
 export const transactionSchema = baseTransactionSchema.extend({

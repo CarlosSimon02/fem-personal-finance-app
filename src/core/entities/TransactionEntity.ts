@@ -2,7 +2,7 @@ import { ZodError } from "zod";
 import { ValidationError } from "../../utils/validationError";
 import {
   CreateTransactionDto,
-  createTransactionSchemaWithAmountValidation,
+  createTransactionSchema,
   TransactionCategory,
   TransactionType,
 } from "../schemas/transactionSchema";
@@ -172,7 +172,7 @@ export class TransactionEntity {
 
   validateCreateTransaction() {
     try {
-      return createTransactionSchemaWithAmountValidation.parse(this);
+      return createTransactionSchema.parse(this);
     } catch (err) {
       const error = err as ZodError;
       const errors = error.flatten().fieldErrors;
