@@ -13,6 +13,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import FilterByCategory from "./FilterByCategory";
+import SortSelector, { sortOptions } from "./SortSelector";
 
 interface SearchFilterBarProps {
   search: string;
@@ -115,31 +116,31 @@ export function SearchFilterBar({
               });
             }}
           />
-          <Select
-            value={`${sortBy}-${order}`}
-            onValueChange={(value) => {
-              const [newSortBy, newOrder] = value.split("-");
-              setSortBy(newSortBy);
-              setOrder(newOrder);
-              updateUrl({ sortBy: newSortBy, order: newOrder });
+          <SortSelector
+            value={
+              sortBy && order
+                ? {
+                    value: `${sortBy}-${order}`,
+                    label:
+                      sortOptions.find(
+                        (option) => option.value === `${sortBy}-${order}`
+                      )?.label || "Latest",
+                  }
+                : { value: "transactionDate-desc", label: "Latest" }
+            }
+            onChange={(value) => {
+              if (value) {
+                const [newSortBy, newOrder] = value.value.split("-");
+                setSortBy(newSortBy);
+                setOrder(newOrder);
+                updateUrl({ sortBy: newSortBy, order: newOrder });
+              } else {
+                setSortBy("");
+                setOrder("");
+                updateUrl({ sortBy: "", order: "" });
+              }
             }}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="transactionDate-desc">
-                Date (Newest first)
-              </SelectItem>
-              <SelectItem value="transactionDate-asc">
-                Date (Oldest first)
-              </SelectItem>
-              <SelectItem value="amount-desc">
-                Amount (Highest first)
-              </SelectItem>
-              <SelectItem value="amount-asc">Amount (Lowest first)</SelectItem>
-            </SelectContent>
-          </Select>
+          />
         </div>
       </div>
 

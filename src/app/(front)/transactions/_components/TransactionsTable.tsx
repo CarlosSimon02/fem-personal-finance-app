@@ -84,7 +84,9 @@ export async function TransactionsTable({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <TransactionEmoji emoji={transaction.emoji} />
-                      <span className="font-medium">{transaction.name}</span>
+                      <span className="font-medium">
+                        {transaction.recipientOrPayer}
+                      </span>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -138,7 +140,7 @@ export async function TransactionsTable({
             <div className="flex items-start gap-3">
               <TransactionEmoji emoji={transaction.emoji} />
               <div>
-                <p className="font-medium">{transaction.name}</p>
+                <p className="font-medium">{transaction.recipientOrPayer}</p>
                 <span className="bg-muted mt-1 inline-flex items-center rounded-full px-2 py-1 text-xs">
                   {transaction.category.name}
                 </span>

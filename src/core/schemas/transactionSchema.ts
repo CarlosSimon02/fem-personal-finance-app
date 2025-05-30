@@ -1,15 +1,6 @@
-import emojiRegex from "emoji-regex";
 import { z } from "zod";
-import { validateOptionalHexColor } from "./helpers";
+import { isValidEmoji, validateOptionalHexColor } from "./helpers";
 import { createPaginationResponseSchema } from "./paginationSchema";
-
-const isValidEmoji = (value: string) => {
-  const trimmed = value.trim();
-  return (
-    trimmed.length > 0 &&
-    [...trimmed.matchAll(emojiRegex())].join("") === trimmed
-  );
-};
 
 export const transactionCategorySchema = z.object({
   id: z.string().min(1, "Category ID is required"),
@@ -32,7 +23,11 @@ const baseTransactionSchema = z.object({
   amount: z
     .number()
     .positive("Amount must be greater than 0")
-    .finite("Amount must be a finite number"),
+    .finite("Amount must be a finite number")
+    .refine(
+      (val) => /^\d+(\.\d{1,2})?$/.test(val.toString()),
+      "Amount must have at most 2 decimal places"
+    ),
   recipientOrPayer: z.string().nullable(),
   transactionDate: z.instanceof(Date, {
     message: "Transaction date must be a valid date",
@@ -46,6 +41,19 @@ const baseTransactionSchema = z.object({
 export const createTransactionSchema = baseTransactionSchema.extend({
   categoryId: z.string().min(1, "Category ID is required"),
 });
+
+export const createTransactionSchemaWithAmountValidation =
+  createTransactionSchema.refine(
+    (data) => {
+      if (data.type === "income") return data.amount > 0;
+      if (data.type === "expense") return data.amount < 0;
+      return true;
+    },
+    {
+      message: "Amount must be positive for income and negative for expense",
+      path: ["amount"],
+    }
+  );
 
 export const updateTransactionSchema = createTransactionSchema.partial();
 

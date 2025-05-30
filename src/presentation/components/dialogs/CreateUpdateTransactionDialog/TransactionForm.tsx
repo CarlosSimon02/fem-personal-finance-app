@@ -25,7 +25,7 @@ import { Textarea } from "@/presentation/components/ui/textarea";
 
 import {
   CreateTransactionDto,
-  createTransactionSchema,
+  createTransactionSchemaWithAmountValidation,
   TransactionDto,
 } from "@/core/schemas/transactionSchema";
 import CategorySelectField from "./CategorySelectField";
@@ -48,7 +48,7 @@ export const TransactionForm = ({
   initialData,
 }: TransactionFormProps) => {
   const form = useForm<CreateTransactionDto>({
-    resolver: zodResolver(createTransactionSchema),
+    resolver: zodResolver(createTransactionSchemaWithAmountValidation),
     defaultValues: {
       name: initialData?.name || "",
       type: initialData?.type || "expense",
@@ -150,7 +150,6 @@ export const TransactionForm = ({
               <FormLabel>Amount</FormLabel>
               <FormControl>
                 <Input
-                  type="number"
                   placeholder="0.00"
                   disabled={isSubmitting}
                   {...field}
