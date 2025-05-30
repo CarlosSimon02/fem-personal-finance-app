@@ -29,6 +29,7 @@ import {
   TransactionDto,
 } from "@/core/schemas/transactionSchema";
 import CategorySelectField from "./CategorySelectField";
+import { CurrencyInputField } from "./CurrencySelectField";
 import { EmojiPickerField } from "./EmojiPickerField";
 import { TransactionDatePicker } from "./TransactionDatePicker";
 
@@ -149,14 +150,11 @@ export const TransactionForm = ({
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="0.00"
+                <CurrencyInputField
+                  value={field.value}
+                  onChange={field.onChange}
                   disabled={isSubmitting}
-                  {...field}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    field.onChange(value ? parseFloat(value) : 0);
-                  }}
+                  placeholder="0.00"
                 />
               </FormControl>
               <FormMessage />
