@@ -12,7 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/presentation/components/ui/dialog";
-import { useCreateTransaction } from "@/presentation/hooks/useTransactions";
+import {
+  useCreateTransaction,
+  useUpdateTransaction,
+} from "@/presentation/hooks/useTransactions";
 import { useState } from "react";
 import { TransactionForm } from "./TransactionForm";
 
@@ -73,9 +76,32 @@ const CreateUpdateTransactionDialog = ({
       },
     });
 
+  const { mutateAsync: updateTransaction, isPending: isUpdatingTransaction } =
+    useUpdateTransaction({
+      onSuccess: (data) => {
+        handleOpenChange(false);
+        onSuccess?.(data);
+      },
+      onError: (error: Error) => {
+        onError?.(error);
+      },
+      onSettled: () => {
+        onSettled?.();
+      },
+    });
+
   const handleSubmit = async (data: CreateTransactionDto) => {
-    await createTransaction(data);
+    if (operation === "create") {
+      await createTransaction(data);
+    } else if (operation === "update" && initialData) {
+      await updateTransaction({
+        transactionId: initialData.id,
+        data,
+      });
+    }
   };
+
+  const isSubmitting = isCreatingTransaction || isUpdatingTransaction;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -92,7 +118,7 @@ const CreateUpdateTransactionDialog = ({
           onCancel={() => {
             handleOpenChange(false);
           }}
-          isSubmitting={isCreatingTransaction}
+          isSubmitting={isSubmitting}
         />
       </DialogContent>
     </Dialog>

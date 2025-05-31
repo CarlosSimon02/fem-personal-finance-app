@@ -2,12 +2,15 @@ import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
   TransactionDto,
+  UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   createTransactionAction,
+  deleteTransactionAction,
   getPaginatedTransactionsAction,
+  updateTransactionAction,
 } from "../actions/transactionActions";
 import { StatusCallbacksType } from "./types";
 
@@ -98,4 +101,80 @@ export const useCreateTransaction = ({
   });
 
   return createTransactionMutation;
+};
+
+export const useUpdateTransaction = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<TransactionDto>) => {
+  const updateTransactionMutation = useMutation({
+    mutationFn: async ({
+      transactionId,
+      data,
+    }: {
+      transactionId: string;
+      data: UpdateTransactionInput;
+    }) => {
+      try {
+        const response = await updateTransactionAction({
+          transactionId,
+          data,
+        });
+        if (response.error) throw new Error(response.error);
+        if (!response.data)
+          throw new Error("No data returned from server action");
+
+        return response.data;
+      } catch (error) {
+        console.error("Update transaction error:", error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      toast.success("Transaction updated successfully!");
+      onSuccess?.(data);
+    },
+    onError: (error: Error) => {
+      toast.error(`Update transaction failed: ${error.message}`);
+      onError?.(error);
+    },
+    onSettled: () => {
+      onSettled?.();
+    },
+  });
+
+  return updateTransactionMutation;
+};
+
+export const useDeleteTransaction = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<void>) => {
+  const deleteTransactionMutation = useMutation({
+    mutationFn: async (transactionId: string) => {
+      try {
+        const response = await deleteTransactionAction({ transactionId });
+        if (response.error) throw new Error(response.error);
+        return;
+      } catch (error) {
+        console.error("Delete transaction error:", error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      toast.success("Transaction deleted successfully!");
+      onSuccess?.();
+    },
+    onError: (error: Error) => {
+      toast.error(`Delete transaction failed: ${error.message}`);
+      onError?.(error);
+    },
+    onSettled: () => {
+      onSettled?.();
+    },
+  });
+
+  return deleteTransactionMutation;
 };

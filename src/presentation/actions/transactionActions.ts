@@ -6,11 +6,14 @@ import {
   PaginatedCategoriesResponse,
   PaginatedTransactionsResponse,
   TransactionDto,
+  UpdateTransactionInput,
 } from "@/core/schemas/transactionSchema";
 import {
   createTransactionUseCase,
+  deleteTransactionUseCase,
   getPaginatedCategoriesUseCase,
   getPaginatedTransactionsUseCase,
+  updateTransactionUseCase,
 } from "@/factories/transaction";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
@@ -48,4 +51,32 @@ export const getPaginatedCategoriesAction = actionWithAuth<
 
   const response = await getPaginatedCategoriesUseCase.execute(user.id, data);
   return { data: response, error: null };
+});
+
+export const updateTransactionAction = actionWithAuth<
+  { transactionId: string; data: UpdateTransactionInput },
+  TransactionDto
+>(async ({ user, data }) => {
+  const transaction = await updateTransactionUseCase.execute(
+    user.id,
+    data.transactionId,
+    data.data
+  );
+
+  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
+  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
+
+  return { data: transaction, error: null };
+});
+
+export const deleteTransactionAction = actionWithAuth<
+  { transactionId: string },
+  void
+>(async ({ user, data }) => {
+  await deleteTransactionUseCase.execute(user.id, data.transactionId);
+
+  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
+  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
+
+  return { data: undefined, error: null };
 });
