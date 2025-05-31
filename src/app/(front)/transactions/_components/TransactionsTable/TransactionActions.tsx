@@ -1,16 +1,9 @@
 "use client";
 
 import { TransactionDto } from "@/core/schemas/transactionSchema";
+import ConfirmDeleteDialog from "@/presentation/components/dialogs/ConfirmDeleteDialog";
 import CreateUpdateTransactionDialog from "@/presentation/components/dialogs/CreateUpdateTransactionDialog";
 import TransactionDetailsDialog from "@/presentation/components/dialogs/TransactionDetailsDialog";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/presentation/components/ui/alert-dialog";
 import { Button } from "@/presentation/components/ui/button";
 import {
   DropdownMenu,
@@ -58,75 +51,48 @@ const TransactionActions = ({ transaction }: TransactionActionsProps) => {
   };
 
   return (
-    <>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-8 w-8">
-            <MoreHorizontal className="h-4 w-4" />
-            <span className="sr-only">Open menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuGroup>
-            <TransactionDetailsDialog transaction={transaction}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                View Details
-              </DropdownMenuItem>
-            </TransactionDetailsDialog>
-            <DropdownMenuItem onClick={() => setShowEditDialog(true)}>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className="h-8 w-8">
+          <MoreHorizontal className="h-4 w-4" />
+          <span className="sr-only">Open menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuGroup>
+          <TransactionDetailsDialog transaction={transaction}>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+              View Details
+            </DropdownMenuItem>
+          </TransactionDetailsDialog>
+          <CreateUpdateTransactionDialog
+            title="Edit Transaction"
+            operation="update"
+            initialData={transaction}
+          >
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               Edit
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
+          </CreateUpdateTransactionDialog>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <ConfirmDeleteDialog
+            title="Delete Transaction"
+            description="Are you sure you want to delete this transaction? This action cannot be undone."
+            onDelete={handleDelete}
+            isDeleting={isDeleting}
+          >
             <DropdownMenuItem
               variant="destructive"
-              onClick={() => setShowDeleteAlert(true)}
+              onSelect={(e) => e.preventDefault()}
             >
               Delete
             </DropdownMenuItem>
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
-
-      {/* Edit Dialog */}
-      <CreateUpdateTransactionDialog
-        title="Edit Transaction"
-        operation="update"
-        initialData={transaction}
-        open={showEditDialog}
-        onOpenChange={setShowEditDialog}
-        onSuccess={handleSuccess}
-        onError={handleError}
-      >
-        <div />
-      </CreateUpdateTransactionDialog>
-
-      {/* Delete Confirmation Alert */}
-      <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this transaction? This action
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteAlert(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? "Deleting..." : "Delete"}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+          </ConfirmDeleteDialog>
+        </DropdownMenuGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 

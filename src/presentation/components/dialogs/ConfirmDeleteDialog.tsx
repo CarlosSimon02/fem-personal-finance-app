@@ -1,20 +1,21 @@
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@radix-ui/react-alert-dialog";
 import { useState } from "react";
-import { AlertDialogFooter, AlertDialogHeader } from "../ui/alert-dialog";
 import { Button } from "../ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 
 type ConfirmDeleteDialogProps = {
   title: string;
   description: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  handleDelete: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onDelete: () => void;
   isDeleting: boolean;
   children: React.ReactNode;
 };
@@ -24,7 +25,7 @@ const ConfirmDeleteDialog = ({
   description,
   open: propsOpen,
   onOpenChange: propsOnOpenChange,
-  handleDelete,
+  onDelete,
   isDeleting,
   children,
 }: ConfirmDeleteDialogProps) => {
@@ -41,27 +42,27 @@ const ConfirmDeleteDialog = ({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
           <Button variant="outline" onClick={() => handleOpenChange(false)}>
             Cancel
           </Button>
           <Button
             variant="destructive"
-            onClick={handleDelete}
+            onClick={onDelete}
             disabled={isDeleting}
           >
             {isDeleting ? "Deleting..." : "Delete"}
           </Button>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
