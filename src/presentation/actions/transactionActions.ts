@@ -14,14 +14,14 @@ import {
 } from "@/factories/transaction";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
-import { unstable_cacheTag as cacheTag } from "next/cache";
+import { unstable_cacheTag as cacheTag, revalidateTag } from "next/cache";
 
 export const getPaginatedTransactionsAction = actionWithAuth<
   PaginationParams,
   PaginatedTransactionsResponse
 >(async ({ user, data }) => {
   "use cache";
-  cacheTag(cacheTags.paginatedTransactions);
+  cacheTag(cacheTags.PAGINATED_TRANSACTIONS);
 
   const response = await getPaginatedTransactionsUseCase.execute(user.id, data);
   return { data: response, error: null };
@@ -33,6 +33,9 @@ export const createTransactionAction = actionWithAuth<
 >(async ({ user, data }) => {
   const transaction = await createTransactionUseCase.execute(user.id, data);
 
+  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
+  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
+
   return { data: transaction, error: null };
 });
 
@@ -41,7 +44,7 @@ export const getPaginatedCategoriesAction = actionWithAuth<
   PaginatedCategoriesResponse
 >(async ({ user, data }) => {
   "use cache";
-  cacheTag(cacheTags.paginatedCategories);
+  cacheTag(cacheTags.PAGINATED_CATEGORIES);
 
   const response = await getPaginatedCategoriesUseCase.execute(user.id, data);
   return { data: response, error: null };

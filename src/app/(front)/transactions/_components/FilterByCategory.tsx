@@ -4,6 +4,7 @@ import { getPaginatedCategoriesAction } from "@/presentation/actions/transaction
 import { useCallback } from "react";
 import { GroupBase, OptionsOrGroups } from "react-select";
 import { AsyncPaginate } from "react-select-async-paginate";
+import { useFilterByCategory } from "../_stores/useFilterByCategory";
 
 type OptionType = {
   value: string;
@@ -16,6 +17,7 @@ type FilterByCategoryProps = {
 };
 
 const FilterByCategory = ({ value, onChange }: FilterByCategoryProps) => {
+  const { cacheUniq } = useFilterByCategory();
   const loadOptions = useCallback(
     async (
       search: string,
@@ -69,6 +71,7 @@ const FilterByCategory = ({ value, onChange }: FilterByCategoryProps) => {
       loadOptions={loadOptions}
       onChange={onChange}
       instanceId="add-expense-Subscription-Interval"
+      cacheUniqs={[cacheUniq]}
     />
   );
 };
