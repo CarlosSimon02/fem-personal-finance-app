@@ -15,8 +15,8 @@ export const sortOptions: SortOption[] = [
   { value: "transactionDate-asc", label: "Oldest" },
   { value: "recipientOrPayer-asc", label: "A to Z" },
   { value: "recipientOrPayer-desc", label: "Z to A" },
-  { value: "amount-desc", label: "Highest" },
-  { value: "amount-asc", label: "Lowest" },
+  { value: "signedAmount-desc", label: "Highest" },
+  { value: "signedAmount-asc", label: "Lowest" },
 ];
 
 const SortSelector = ({ value, onChange }: SortSelectorProps) => {

@@ -86,6 +86,7 @@ export class TransactionRepository implements ITransactionRepository {
         updatedAt: timestamp,
         type: input.type,
         amount: input.amount,
+        signedAmount: input.type === "income" ? input.amount : -input.amount,
         recipientOrPayer: input.recipientOrPayer,
         category: category,
         transactionDate: transactionDate,
@@ -318,6 +319,69 @@ export class TransactionRepository implements ITransactionRepository {
         err
       );
       throw new Error(`Failed to create categories: ${err.message}`);
+    }
+  }
+
+  async migrateTransactionAmountsToSignedAmounts(): Promise<void> {
+    try {
+      const batch = adminFirestore.batch();
+
+      // Get all users
+      const usersSnapshot = await this.getUserCollection().get();
+
+      if (usersSnapshot.empty) {
+        debugLog(
+          "migrateTransactionAmountsToSignedAmounts",
+          "No users found - nothing to migrate"
+        );
+        return;
+      }
+
+      // Process each user
+      for (const userDoc of usersSnapshot.docs) {
+        const userId = userDoc.id;
+        const transactionsRef = this.getTransactionCollection(userId);
+
+        // Get all transactions for this user
+        const transactionsSnapshot = await transactionsRef.get();
+
+        if (transactionsSnapshot.empty) {
+          debugLog(
+            "migrateTransactionAmountsToSignedAmounts",
+            `No transactions found for user ${userId} - skipping`
+          );
+          continue;
+        }
+
+        // Process each transaction
+        transactionsSnapshot.forEach((transactionDoc) => {
+          const transaction = transactionDoc.data() as TransactionModel;
+          const signedAmount =
+            transaction.type === "income"
+              ? transaction.amount
+              : -transaction.amount;
+
+          batch.update(transactionDoc.ref, {
+            signedAmount,
+          });
+        });
+      }
+
+      // Execute batch
+      await batch.commit();
+
+      debugLog(
+        "migrateTransactionAmountsToSignedAmounts",
+        "Migration completed"
+      );
+    } catch (error) {
+      const err = error as Error;
+      debugLog(
+        "migrateTransactionAmountsToSignedAmounts",
+        "Failed to migrate amounts:",
+        err
+      );
+      throw new Error(`Failed to migrate amounts: ${err.message}`);
     }
   }
 }
