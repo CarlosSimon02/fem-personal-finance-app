@@ -60,8 +60,8 @@ export const useCategoryOptions = (transactionType: TransactionType) => {
 };
 
 export const useCategorySelection = (
-  value?: string,
-  onChange?: (categoryId: string) => void
+  value: CategoryOptionType | null,
+  onChange?: (category: CategoryOptionType | null) => void
 ) => {
   const [selectedOption, setSelectedOption] =
     useState<SingleValue<CategoryOptionType>>(null);
@@ -73,16 +73,19 @@ export const useCategorySelection = (
       // Cast to SingleValue since this is a single-select component
       const singleValue = newValue as SingleValue<CategoryOptionType>;
       setSelectedOption(singleValue);
-      onChange?.(singleValue?.value ?? "");
+      onChange?.(singleValue);
     },
     [onChange]
   );
 
   useEffect(() => {
-    if (!value || value === "") {
+    if (!value) {
       setSelectedOption(null);
-    } else if (value && (!selectedOption || selectedOption.value !== value)) {
-      setSelectedOption(null);
+    } else if (
+      value &&
+      (!selectedOption || selectedOption.value !== value.value)
+    ) {
+      setSelectedOption(value);
     }
   }, [value, selectedOption]);
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { Button } from "@/presentation/components/ui/button";
@@ -29,6 +29,7 @@ import {
   TransactionDto,
 } from "@/core/schemas/transactionSchema";
 import CategorySelectField from "./CategorySelectField";
+import { CategoryOptionType } from "./CategorySelectField/types";
 import { CurrencyInputField } from "./CurrencySelectField";
 import { EmojiPickerField } from "./EmojiPickerField";
 import { TransactionDatePicker } from "./TransactionDatePicker";
@@ -48,6 +49,16 @@ export const TransactionForm = ({
   operation,
   initialData,
 }: TransactionFormProps) => {
+  const [category, setCategory] = useState<CategoryOptionType | null>(
+    initialData?.category
+      ? {
+          value: initialData?.category.id,
+          label: initialData?.category.name,
+          colorTag: initialData?.category.colorTag,
+        }
+      : null
+  );
+
   const form = useForm<CreateTransactionDto>({
     resolver: zodResolver(createTransactionSchema),
     defaultValues: {
@@ -55,7 +66,7 @@ export const TransactionForm = ({
       type: initialData?.type || "expense",
       amount: initialData?.amount || 0,
       recipientOrPayer: initialData?.recipientOrPayer || "",
-      categoryId: initialData?.category.id || "",
+      categoryId: category?.value || "",
       transactionDate: initialData?.transactionDate || new Date(),
       description: initialData?.description || "",
       emoji: initialData?.emoji || "📃",
@@ -68,6 +79,10 @@ export const TransactionForm = ({
   useEffect(() => {
     form.setValue("categoryId", "");
   }, [transactionType, form]);
+
+  useEffect(() => {
+    form.setValue("categoryId", category?.value || "");
+  }, [category, form]);
 
   return (
     <Form {...form}>
@@ -171,18 +186,9 @@ export const TransactionForm = ({
               <FormLabel>Category</FormLabel>
               <FormControl>
                 <CategorySelectField
-                  value={field.value}
-                  initialData={
-                    initialData?.category
-                      ? {
-                          value: initialData?.category.id,
-                          label: initialData?.category.name,
-                          colorTag: initialData?.category.colorTag,
-                        }
-                      : undefined
-                  }
+                  value={category}
                   onChange={(value) => {
-                    field.onChange(value);
+                    setCategory(value);
                   }}
                   transactionType={transactionType}
                   disabled={isSubmitting}

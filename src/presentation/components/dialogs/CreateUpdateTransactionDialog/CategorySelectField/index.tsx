@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionType } from "@/core/schemas/transactionSchema";
-import { ReactElement, useCallback, useEffect } from "react";
+import { ReactElement, useCallback } from "react";
 import { RefCallBack } from "react-hook-form";
 import { GroupBase } from "react-select";
 import {
@@ -21,12 +21,11 @@ import {
 } from "./useCategorySelectField";
 
 type CategorySelectFieldProps = {
-  value?: string;
-  onChange: (categoryId: string) => void;
+  value: CategoryOptionType | null;
+  onChange: (category: CategoryOptionType | null) => void;
   transactionType: TransactionType;
   disabled?: boolean;
   selectRef: RefCallBack;
-  initialData?: CategoryOptionType;
 };
 
 type Additional = {
@@ -69,7 +68,6 @@ const CategorySelectField = ({
   transactionType,
   disabled,
   selectRef,
-  initialData,
 }: CategorySelectFieldProps) => {
   const { loadOptions } = useCategoryOptions(transactionType);
   const {
@@ -90,17 +88,11 @@ const CategorySelectField = ({
     (inputValue: string) => {
       handleCreateOption(inputValue, (newOption) => {
         setSelectedOption(newOption);
-        onChange(newOption.value);
+        onChange(newOption);
       });
     },
     [handleCreateOption, setSelectedOption, onChange]
   );
-
-  useEffect(() => {
-    if (initialData) {
-      setSelectedOption(initialData);
-    }
-  }, [initialData, setSelectedOption]);
 
   const categoryType = transactionType === "income" ? "income" : "budget";
   const placeholder = `Select or create a ${categoryType} category`;
