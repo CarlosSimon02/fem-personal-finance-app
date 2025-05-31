@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getPaginatedBudgets } from "../../overview/_data";
-import { Pagination } from "../../transactions/_components/Pagination";
+import { Pagination } from "../../transactions/_components/TransactionsTable/Pagination";
 import { BudgetCard } from "./BudgetCard";
 
 interface BudgetCardsGridProps {

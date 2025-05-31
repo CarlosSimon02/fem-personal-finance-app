@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import CreateTransactionDialog from "./_components/CreateTransactionDialog";
 import { SearchFilterBar } from "./_components/SearchFilterBar";
 import { TransactionsSkeleton } from "./_components/TransactionsSkeleton";
-import { TransactionsTable } from "./_components/TransactionsTable";
+import TransactionsTable from "./_components/TransactionsTable";
 
 export default async function TransactionsPage({
   searchParams,

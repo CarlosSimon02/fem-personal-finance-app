@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getPaginatedPots } from "../../overview/_data";
-import { Pagination } from "../../transactions/_components/Pagination";
+import { Pagination } from "../../transactions/_components/TransactionsTable/Pagination";
 import { PotCard } from "./PotCard";
 
 interface PotsGridProps {
