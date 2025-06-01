@@ -1,3 +1,5 @@
+import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
+import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
@@ -7,21 +9,33 @@ import {
   PaginatedTransactionsResponse,
   TransactionCategory,
   TransactionDto,
-  UpdateTransactionInput,
+  TransactionType,
+  UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
 import {
   CategoryModel,
   categoryModelSchema,
   TransactionModel,
   transactionModelSchema,
+  UpdateTransactionModel,
 } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { debugLog } from "@/utils/debugLog";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { nanoid } from "nanoid";
 import { getFirestorePaginatedData } from "./_utils";
+import { BudgetRepository } from "./budgetRepository";
+import { IncomeRepository } from "./incomeRepository";
 
 export class TransactionRepository implements ITransactionRepository {
+  private incomeRepository: IIncomeRepository;
+  private budgetRepository: IBudgetRepository;
+
+  constructor() {
+    this.incomeRepository = new IncomeRepository();
+    this.budgetRepository = new BudgetRepository();
+  }
+
   private getTransactionCollection(userId: string) {
     return this.getUserCollection().doc(userId).collection("transactions");
   }
@@ -68,16 +82,50 @@ export class TransactionRepository implements ITransactionRepository {
     };
   }
 
+  private async getCategory(
+    userId: string,
+    categoryId: string,
+    type: TransactionType
+  ): Promise<TransactionCategory> {
+    if (type === "income") {
+      const income = await this.incomeRepository.getIncome(userId, categoryId);
+      if (!income) {
+        throw new Error("Category ID not found");
+      }
+      return income;
+    } else {
+      const budget = await this.budgetRepository.getBudget(userId, categoryId);
+      if (!budget) {
+        throw new Error("Category ID not found");
+      }
+      return budget;
+    }
+  }
+
+  private async doesCategoryHasTransactions(
+    userId: string,
+    categoryId: string
+  ): Promise<boolean> {
+    const transactions = await this.getTransactionCollection(userId)
+      .where("category.id", "==", categoryId)
+      .get();
+    return !transactions.empty;
+  }
+
   async createTransaction(
     userId: string,
-    input: CreateTransactionDto,
-    category: TransactionCategory
+    input: CreateTransactionDto
   ): Promise<TransactionDto> {
     try {
       const batch = adminFirestore.batch();
       const transactionDate = Timestamp.fromDate(input.transactionDate);
       const id = nanoid(10);
       const timestamp = FieldValue.serverTimestamp();
+      const category = await this.getCategory(
+        userId,
+        input.categoryId,
+        input.type
+      );
 
       const transactionRef = this.getTransactionCollection(userId).doc(id);
       batch.set(transactionRef, {
@@ -128,14 +176,14 @@ export class TransactionRepository implements ITransactionRepository {
   async getTransaction(
     userId: string,
     transactionId: string
-  ): Promise<TransactionDto> {
+  ): Promise<TransactionDto | null> {
     try {
       const transactionDoc = await this.getTransactionCollection(userId)
         .doc(transactionId)
         .get();
 
       if (!transactionDoc.exists) {
-        throw new Error("Transaction not found");
+        return null;
       }
 
       const docData = transactionDoc.data();
@@ -173,32 +221,109 @@ export class TransactionRepository implements ITransactionRepository {
   async updateTransaction(
     userId: string,
     transactionId: string,
-    input: UpdateTransactionInput
+    input: UpdateTransactionDto
   ): Promise<TransactionDto> {
     try {
+      const batch = adminFirestore.batch();
       const transactionRef =
         this.getTransactionCollection(userId).doc(transactionId);
-      const timestamp = FieldValue.serverTimestamp();
+      const currentTransaction = await this.getTransaction(
+        userId,
+        transactionId
+      );
 
-      const updateData = {
-        ...input,
-        updatedAt: timestamp,
-      };
-
-      await transactionRef.update(updateData);
-
-      // Get the updated document
-      const updatedDoc = await transactionRef.get();
-
-      if (!updatedDoc.exists) {
-        throw new Error("Transaction not found after update");
+      if (!currentTransaction) {
+        throw new Error("Transaction not found");
       }
 
-      const docData = updatedDoc.data();
+      const updateData: UpdateTransactionModel = {
+        updatedAt: FieldValue.serverTimestamp(),
+      };
 
-      return this.mapTransactionModelToDto(docData as TransactionModel);
+      // Handle basic field updates
+      if (input.name !== undefined && input.name !== currentTransaction.name)
+        updateData.name = input.name;
+      if (input.type !== undefined && input.type !== currentTransaction.type)
+        updateData.type = input.type;
+
+      if (
+        input.amount !== undefined &&
+        input.amount !== currentTransaction.amount
+      ) {
+        updateData.amount = input.amount;
+        // Recalculate signedAmount if amount or type changes
+        updateData.signedAmount =
+          (input.type ?? currentTransaction.type) === "income"
+            ? input.amount
+            : -input.amount;
+      }
+      if (
+        input.recipientOrPayer !== undefined &&
+        input.recipientOrPayer !== currentTransaction.recipientOrPayer
+      )
+        updateData.recipientOrPayer = input.recipientOrPayer;
+      if (
+        input.transactionDate !== undefined &&
+        input.transactionDate !== currentTransaction.transactionDate
+      )
+        updateData.transactionDate = Timestamp.fromDate(input.transactionDate);
+      if (
+        input.description !== undefined &&
+        input.description !== currentTransaction.description
+      )
+        updateData.description = input.description;
+      if (input.emoji !== undefined && input.emoji !== currentTransaction.emoji)
+        updateData.emoji = input.emoji;
+
+      if (
+        input.categoryId !== undefined &&
+        input.categoryId !== currentTransaction.category.id
+      ) {
+        const category = await this.getCategory(
+          userId,
+          input.categoryId,
+          currentTransaction.type
+        );
+        updateData.category = category;
+
+        const categoryRef = this.getCategoryCollection(userId).doc(category.id);
+        const existingCategory = await categoryRef.get();
+
+        if (!existingCategory.exists) {
+          batch.set(categoryRef, {
+            id: category.id,
+            name: category.name,
+            colorTag: category.colorTag,
+            createdAt: FieldValue.serverTimestamp(),
+            updatedAt: FieldValue.serverTimestamp(),
+          });
+        }
+
+        if (
+          await this.doesCategoryHasTransactions(
+            userId,
+            currentTransaction.category.id
+          )
+        ) {
+          const currentCategoryRef = this.getCategoryCollection(userId).doc(
+            currentTransaction.category.id
+          );
+
+          batch.delete(currentCategoryRef);
+        }
+      }
+
+      batch.update(transactionRef, updateData);
+
+      await batch.commit();
+
+      const updatedTransaction = await transactionRef.get();
+      const updatedData = updatedTransaction.data() as TransactionModel;
+
+      return this.mapTransactionModelToDto(updatedData);
     } catch (error) {
       const err = error as Error;
+      debugLog("updateTransaction", "Failed to update transaction:", err);
       throw new Error(`Failed to update transaction: ${err.message}`);
     }
   }

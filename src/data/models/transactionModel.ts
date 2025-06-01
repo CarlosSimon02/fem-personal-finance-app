@@ -5,7 +5,7 @@ import {
 } from "@/core/schemas/transactionSchema";
 import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
-import { zTimestamp } from "./_utils";
+import { zFieldValue, zTimestamp } from "./_utils";
 
 export const transactionModelSchema = transactionSchema
   .omit({
@@ -17,7 +17,19 @@ export const transactionModelSchema = transactionSchema
     createdAt: zTimestamp,
     updatedAt: zTimestamp,
     transactionDate: zTimestamp,
+    signedAmount: z.number(),
   });
+
+export const updateTransactionModelSchema = transactionModelSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    updatedAt: zFieldValue,
+    createdAt: zFieldValue,
+  })
+  .partial();
 
 export const categoryModelSchema = categorySchema
   .omit({
@@ -48,6 +60,6 @@ export type CreateTransactionModel = Omit<
   updatedAt: FieldValue;
 };
 
-export type UpdateTransactionModel = Partial<
-  Omit<TransactionModel, "id" | "createdAt" | "updatedAt" | "userId">
+export type UpdateTransactionModel = z.infer<
+  typeof updateTransactionModelSchema
 >;
