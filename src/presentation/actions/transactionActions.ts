@@ -6,7 +6,7 @@ import {
   PaginatedCategoriesResponse,
   PaginatedTransactionsResponse,
   TransactionDto,
-  UpdateTransactionInput,
+  UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
 import {
   createTransactionUseCase,
@@ -54,7 +54,7 @@ export const getPaginatedCategoriesAction = actionWithAuth<
 });
 
 export const updateTransactionAction = actionWithAuth<
-  { transactionId: string; data: UpdateTransactionInput },
+  { transactionId: string; data: UpdateTransactionDto },
   TransactionDto
 >(async ({ user, data }) => {
   const transaction = await updateTransactionUseCase.execute(

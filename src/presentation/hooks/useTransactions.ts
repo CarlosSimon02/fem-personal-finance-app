@@ -2,7 +2,7 @@ import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
   TransactionDto,
-  UpdateTransactionInput,
+  UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -114,7 +114,7 @@ export const useUpdateTransaction = ({
       data,
     }: {
       transactionId: string;
-      data: UpdateTransactionInput;
+      data: UpdateTransactionDto;
     }) => {
       try {
         const response = await updateTransactionAction({

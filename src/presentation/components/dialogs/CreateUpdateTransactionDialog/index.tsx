@@ -112,7 +112,6 @@ const CreateUpdateTransactionDialog = ({
           {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
         <TransactionForm
-          operation={operation}
           initialData={initialData}
           onSubmit={handleSubmit}
           onCancel={() => {

@@ -63,7 +63,7 @@ export const paginatedCategoriesResponseSchema =
   createPaginationResponseSchema(categorySchema);
 
 export type CreateTransactionDto = z.infer<typeof createTransactionSchema>;
-export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
+export type UpdateTransactionDto = z.infer<typeof updateTransactionSchema>;
 export type TransactionDto = z.infer<typeof transactionSchema>;
 export type TransactionCategory = z.infer<typeof transactionCategorySchema>;
 export type TransactionType = z.infer<typeof transactionTypeSchema>;

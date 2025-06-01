@@ -5,6 +5,8 @@ import {
   createTransactionSchema,
   TransactionCategory,
   TransactionType,
+  UpdateTransactionDto,
+  updateTransactionSchema,
 } from "../schemas/transactionSchema";
 
 export class TransactionEntity {
@@ -187,6 +189,28 @@ export class TransactionEntity {
           description: errors.description?.[0],
           emoji: errors.emoji?.[0],
         } satisfies AllUnknown<CreateTransactionDto>,
+        "Invalid transaction data"
+      );
+    }
+  }
+
+  validateUpdateTransaction() {
+    try {
+      return updateTransactionSchema.parse(this);
+    } catch (err) {
+      const error = err as ZodError;
+      const errors = error.flatten().fieldErrors;
+      throw new ValidationError(
+        {
+          type: errors.type?.[0],
+          amount: errors.amount?.[0],
+          name: errors.name?.[0],
+          recipientOrPayer: errors.recipientOrPayer?.[0],
+          categoryId: errors.categoryId?.[0],
+          transactionDate: errors.transactionDate?.[0],
+          description: errors.description?.[0],
+          emoji: errors.emoji?.[0],
+        } satisfies AllUnknown<UpdateTransactionDto>,
         "Invalid transaction data"
       );
     }

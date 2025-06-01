@@ -38,7 +38,6 @@ interface TransactionFormProps {
   onSubmit: (data: CreateTransactionDto) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
-  operation: "create" | "update";
   initialData?: TransactionDto;
 }
 
@@ -46,7 +45,6 @@ export const TransactionForm = ({
   onSubmit,
   onCancel,
   isSubmitting,
-  operation,
   initialData,
 }: TransactionFormProps) => {
   const [category, setCategory] = useState<CategoryOptionType | null>(
