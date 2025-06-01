@@ -38,6 +38,7 @@ interface TransactionFormProps {
   onSubmit: (data: CreateTransactionDto) => Promise<void>;
   onCancel: () => void;
   isSubmitting: boolean;
+  operation: "create" | "update";
   initialData?: TransactionDto;
 }
 
@@ -46,6 +47,7 @@ export const TransactionForm = ({
   onCancel,
   isSubmitting,
   initialData,
+  operation,
 }: TransactionFormProps) => {
   const [category, setCategory] = useState<CategoryOptionType | null>(
     initialData?.category
@@ -73,9 +75,12 @@ export const TransactionForm = ({
 
   const transactionType = form.watch("type");
 
-  // Clear categoryId when transaction type changes
   useEffect(() => {
-    form.setValue("categoryId", "");
+    // Only clear if transactionType changes after initial render
+    if (form.formState.isDirty) {
+      setCategory(null);
+      form.setValue("categoryId", "");
+    }
   }, [transactionType, form]);
 
   useEffect(() => {
@@ -275,7 +280,7 @@ export const TransactionForm = ({
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Transaction"}
+            {operation === "create" ? "Create" : "Update"}
           </Button>
         </div>
       </form>

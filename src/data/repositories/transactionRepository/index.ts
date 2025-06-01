@@ -230,7 +230,7 @@ export class TransactionRepository implements ITransactionRepository {
         const newCategory = await this.categoryService.getCategory(
           userId,
           input.categoryId,
-          currentTransaction.type
+          input.type ?? currentTransaction.type
         );
         updateData.category = newCategory;
 

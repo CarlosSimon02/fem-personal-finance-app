@@ -4,7 +4,7 @@ import {
   UpdateTransactionModel,
 } from "@/data/models/transactionModel";
 import { FieldValue } from "firebase-admin/firestore";
-import { BatchOperationService } from "../_utils";
+import { BatchOperationService } from "../batchOperationService";
 
 export class TransactionBatchService extends BatchOperationService {
   addTransactionCreate(
