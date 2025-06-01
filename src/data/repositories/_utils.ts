@@ -21,28 +21,40 @@ export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
         .where("name", "<=", params.search + "\uf8ff")
     : collection;
 
-  // Create the base query
-  let queryRef = searchCollection
-    .orderBy(params.sort.field, params.sort.order)
-    .limit(params.pagination.limitPerPage);
-
-  // Apply filters if provided
+  // Create base query for counting
+  let countQuery = searchCollection.orderBy(
+    params.sort.field,
+    params.sort.order
+  );
   params.filters?.forEach((filter) => {
-    queryRef = queryRef.where(filter.field, filter.operator, filter.value);
+    countQuery = countQuery.where(filter.field, filter.operator, filter.value);
   });
 
-  // Calculate offset for page-based pagination (not recommended for large datasets)
-  const offset = (params.pagination.page - 1) * params.pagination.limitPerPage;
-  if (offset > 0) {
-    queryRef = queryRef.offset(offset);
+  // Get total count
+  const totalItems = (await countQuery.count().get()).data().count;
+  const totalPages = Math.ceil(totalItems / params.pagination.limitPerPage);
+
+  // Create paginated query
+  let queryRef = countQuery.limit(params.pagination.limitPerPage);
+
+  // Proper cursor-based pagination
+  if (params.pagination.page > 1) {
+    // First get the last document of the previous page
+    const prevPageQuery = countQuery.limit(
+      (params.pagination.page - 1) * params.pagination.limitPerPage
+    );
+    const prevPageSnapshot = await prevPageQuery.get();
+    const lastDoc = prevPageSnapshot.docs[prevPageSnapshot.docs.length - 1];
+
+    if (lastDoc) {
+      queryRef = queryRef.startAfter(lastDoc);
+    }
   }
 
   // Execute the query
   const snapshot = await queryRef.get();
-  const totalItems = (await searchCollection.count().get()).data().count;
-  const totalPages = Math.ceil(totalItems / params.pagination.limitPerPage);
 
-  // Parse and validate the data
+  // Parse data
   const items = snapshot.docs.map((doc) => {
     return dataSchema.parse({
       id: doc.id,
