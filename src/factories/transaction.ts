@@ -4,18 +4,12 @@ import { GetPaginatedCategoriesUseCase } from "@/core/useCases/transaction/getPa
 import { GetPaginatedTransactionsUseCase } from "@/core/useCases/transaction/getPaginatedTransactions";
 import { GetTransactionUseCase } from "@/core/useCases/transaction/getTransaction";
 import { UpdateTransactionUseCase } from "@/core/useCases/transaction/updateTransaction";
-import { BudgetRepository } from "@/data/repositories/budgetRepository";
-import { IncomeRepository } from "@/data/repositories/incomeRepository";
 import { TransactionRepository } from "@/data/repositories/transactionRepository";
 
 const transactionRepository = new TransactionRepository();
-const budgetRepository = new BudgetRepository();
-const incomeRepository = new IncomeRepository();
 
 export const createTransactionUseCase = new CreateTransactionUseCase(
-  transactionRepository,
-  budgetRepository,
-  incomeRepository
+  transactionRepository
 );
 export const deleteTransactionUseCase = new DeleteTransactionUseCase(
   transactionRepository
