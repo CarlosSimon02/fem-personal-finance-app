@@ -13,7 +13,7 @@ const MobileTransactionCard = ({ transaction }: MobileTransactionCardProps) => {
       <div className="flex items-start gap-3">
         <TransactionEmoji emoji={transaction.emoji} />
         <div>
-          <p className="font-medium">{transaction.recipientOrPayer}</p>
+          <p className="font-medium">{transaction.name}</p>
           <span className="bg-muted mt-1 inline-flex items-center rounded-full px-2 py-1 text-xs">
             {transaction.category.name}
           </span>

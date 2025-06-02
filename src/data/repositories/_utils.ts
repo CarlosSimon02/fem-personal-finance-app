@@ -5,6 +5,7 @@ import {
 import { z } from "zod";
 
 import { algoliaClient } from "@/services/algolia";
+import { debugLog } from "@/utils/debugLog";
 import { Hit, SearchParams } from "algoliasearch";
 
 export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
@@ -68,7 +69,7 @@ export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
   const previousPage =
     params.pagination.page > 1 ? params.pagination.page - 1 : null;
 
-  return {
+  const response = {
     data: items,
     meta: {
       pagination: {
@@ -83,6 +84,10 @@ export async function getFirestorePaginatedData<T extends z.ZodTypeAny>(
       search: params.search,
     },
   };
+
+  debugLog("getFirestorePaginatedData", "response", response);
+
+  return response;
 }
 
 export async function getPaginatedAlgoliaData<T extends z.ZodTypeAny>(

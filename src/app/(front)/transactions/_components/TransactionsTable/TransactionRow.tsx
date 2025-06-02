@@ -13,7 +13,7 @@ const TransactionRow = ({ transaction }: TransactionRowProps) => {
       <td className="px-4 py-3">
         <div className="flex items-center gap-3">
           <TransactionEmoji emoji={transaction.emoji} />
-          <span className="font-medium">{transaction.recipientOrPayer}</span>
+          <span className="font-medium">{transaction.name}</span>
         </div>
       </td>
       <td className="px-4 py-3">
