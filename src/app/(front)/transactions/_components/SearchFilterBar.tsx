@@ -52,16 +52,21 @@ export function SearchFilterBar({
   const updateUrl = (params: Record<string, string>) => {
     const searchParams = new URLSearchParams();
 
-    // Add current params
+    // Add current params (excluding category if it's "All Transactions")
     if (search && !("search" in params)) searchParams.set("search", search);
-    if (category && !("category" in params))
+    if (
+      category &&
+      category !== "All Transactions" &&
+      !("category" in params)
+    ) {
       searchParams.set("category", category);
+    }
     if (sortBy && !("sortBy" in params)) searchParams.set("sortBy", sortBy);
     if (order && !("order" in params)) searchParams.set("order", order);
 
     // Add new params
     Object.entries(params).forEach(([key, value]) => {
-      if (value) {
+      if (value && !(key === "category" && value === "All Transactions")) {
         searchParams.set(key, value);
       } else {
         searchParams.delete(key);
@@ -107,13 +112,10 @@ export function SearchFilterBar({
                 : { value: "All Transactions", label: "All Transactions" }
             }
             onChange={(value) => {
-              setCategory(value?.value ?? "");
-              updateUrl({
-                category:
-                  value?.value === "All Transactions"
-                    ? ""
-                    : (value?.value ?? ""),
-              });
+              const newCategory =
+                value?.value === "All Transactions" ? "" : (value?.value ?? "");
+              setCategory(newCategory);
+              updateUrl({ category: newCategory });
             }}
           />
           <SortSelector
