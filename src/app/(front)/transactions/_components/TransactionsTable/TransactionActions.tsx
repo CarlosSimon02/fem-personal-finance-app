@@ -18,7 +18,7 @@ import {
 } from "@radix-ui/react-dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useFilterByCategory } from "../../_stores/useFilterByCategory";
 
 type TransactionActionsProps = {
   transaction: TransactionDto;
@@ -26,11 +26,11 @@ type TransactionActionsProps = {
 
 const TransactionActions = ({ transaction }: TransactionActionsProps) => {
   const router = useRouter();
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const { setCacheUniq: setCacheUniqFilterByCategory } = useFilterByCategory();
 
   const handleSuccess = () => {
     router.refresh();
+    setCacheUniqFilterByCategory();
   };
 
   const handleError = (error: Error) => {
@@ -40,7 +40,6 @@ const TransactionActions = ({ transaction }: TransactionActionsProps) => {
   const { mutateAsync: deleteTransaction, isPending: isDeleting } =
     useDeleteTransaction({
       onSuccess: () => {
-        setShowDeleteAlert(false);
         handleSuccess();
       },
       onError: handleError,
@@ -69,6 +68,8 @@ const TransactionActions = ({ transaction }: TransactionActionsProps) => {
             title="Edit Transaction"
             operation="update"
             initialData={transaction}
+            onSuccess={handleSuccess}
+            onError={handleError}
           >
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               Edit

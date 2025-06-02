@@ -81,14 +81,15 @@ export class TransactionRepository implements ITransactionRepository {
     };
   }
 
-  private async doesCategoryHaveTransactions(
+  private async countOfTransactionsInTheCategory(
     userId: string,
     categoryId: string
-  ): Promise<boolean> {
+  ): Promise<number> {
     const transactions = await this.getTransactionCollection(userId)
       .where("category.id", "==", categoryId)
+      .count()
       .get();
-    return !transactions.empty;
+    return transactions.data().count;
   }
 
   private async ensureCategoryExists(
@@ -99,21 +100,6 @@ export class TransactionRepository implements ITransactionRepository {
   ): Promise<void> {
     const categoryRef = this.getCategoryCollection(userId).doc(category.id);
     await batchService.addCategoryIfNotExists(categoryRef, category, timestamp);
-  }
-
-  private async handleCategoryCleanup(
-    batchService: TransactionBatchService,
-    userId: string,
-    oldCategoryId: string
-  ): Promise<void> {
-    const hasTransactions = await this.doesCategoryHaveTransactions(
-      userId,
-      oldCategoryId
-    );
-    if (!hasTransactions) {
-      const categoryRef = this.getCategoryCollection(userId).doc(oldCategoryId);
-      batchService.addCategoryDelete(categoryRef, true);
-    }
   }
 
   private async executeWithErrorHandling<T>(
@@ -241,14 +227,14 @@ export class TransactionRepository implements ITransactionRepository {
           FieldValue.serverTimestamp()
         );
 
-        const hasTransactions = await this.doesCategoryHaveTransactions(
+        const transactionCount = await this.countOfTransactionsInTheCategory(
           userId,
           currentTransaction.category.id
         );
         const categoryRef = this.getCategoryCollection(userId).doc(
           currentTransaction.category.id
         );
-        batchService.addCategoryDelete(categoryRef, !hasTransactions);
+        batchService.addCategoryDelete(categoryRef, transactionCount <= 1);
       }
 
       batchService.addTransactionUpdate(transactionRef, updateData);
