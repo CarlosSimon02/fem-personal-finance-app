@@ -1,4 +1,8 @@
-import { getPaginatedTransactionsAction } from "@/presentation/actions/transactionActions";
+"use client";
+
+import { useTransactionsRealtime } from "@/presentation/hooks/useTransactions";
+import { AlertCircle } from "lucide-react";
+import { TransactionsSkeleton } from "../TransactionsSkeleton";
 import MobileTransactionCard from "./MobileTransactionCard";
 import { Pagination } from "./Pagination";
 import TransactionRow from "./TransactionRow";
@@ -12,46 +16,54 @@ type TransactionsTableProps = {
   page: number;
 };
 
-const TransactionsTable = async ({
+const TransactionsTable = ({
   search,
   category,
   sortBy,
   order,
   page,
 }: TransactionsTableProps) => {
-  // Fetch and process data on the server
-  const { data, error } = await getPaginatedTransactionsAction({
-    filters:
-      category && category !== "all"
-        ? [
-            {
-              field: "category.name",
-              operator: "==",
-              value: category,
-            },
-          ]
-        : [],
-    pagination: {
-      page,
-      limitPerPage: 10,
-    },
-    sort: {
-      order: order === "asc" ? "asc" : "desc",
-      field: sortBy,
-    },
+  const { data, isLoading, error, isError } = useTransactionsRealtime({
     search,
+    category,
+    sortBy,
+    order,
+    page,
+    pageSize: 10,
   });
 
-  if (error) {
-    return <div>Error: {error}</div>;
+  if (isLoading) {
+    return <TransactionsSkeleton />;
   }
 
-  const transactions = data?.data || [];
-  const totalPages =
-    Math.ceil(
-      (data?.meta.pagination.totalItems || 0) /
-        (data?.meta.pagination.limitPerPage || 10)
-    ) || 1;
+  if (isError) {
+    return (
+      <div className="border-destructive bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border p-4">
+        <AlertCircle className="h-4 w-4" />
+        <p>
+          {error instanceof Error
+            ? error.message
+            : "Failed to load transactions. Please try again."}
+        </p>
+      </div>
+    );
+  }
+
+  if (!data || !data.data.length) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <p className="text-muted-foreground text-lg">No transactions found</p>
+        <p className="text-muted-foreground text-sm">
+          Try adjusting your search or filter criteria
+        </p>
+      </div>
+    );
+  }
+
+  const transactions = data.data;
+  const totalPages = Math.ceil(
+    data.meta.pagination.totalItems / data.meta.pagination.limitPerPage
+  );
 
   return (
     <div className="space-y-4">

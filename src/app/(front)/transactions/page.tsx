@@ -1,12 +1,14 @@
-import { Suspense } from "react";
+import { PaginationParams } from "@/core/schemas/paginationSchema";
+import { getPaginatedTransactionsAction } from "@/presentation/actions/transactionActions";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
 import CreateTransactionDialog from "./_components/CreateTransactionDialog";
-import { SearchFilterBar } from "./_components/SearchFilterBar";
-import { TransactionsSkeleton } from "./_components/TransactionsSkeleton";
-import TransactionsTable from "./_components/TransactionsTable";
+import { TransactionsContainer } from "./_components/TransactionsContainer";
 
-export default async function TransactionsPage({
-  searchParams,
-}: {
+type TransactionsPageProps = {
   searchParams: Promise<{
     search?: string;
     category?: string;
@@ -14,7 +16,11 @@ export default async function TransactionsPage({
     order?: string;
     page?: string;
   }>;
-}) {
+};
+
+const TransactionsPage = async ({ searchParams }: TransactionsPageProps) => {
+  const queryClient = new QueryClient();
+
   const paramsResult = await searchParams;
   const search = paramsResult.search || "";
   const category = paramsResult.category || "";
@@ -22,29 +28,51 @@ export default async function TransactionsPage({
   const order = paramsResult.order || "desc";
   const page = Number.parseInt(paramsResult.page || "1", 10);
 
+  const params: PaginationParams = {
+    search,
+    filters:
+      category && category !== "all"
+        ? [
+            {
+              field: "category.name",
+              operator: "==",
+              value: category,
+            },
+          ]
+        : [],
+    sort: {
+      field: sortBy,
+      order: order as "asc" | "desc",
+    },
+    pagination: {
+      page,
+      limitPerPage: 10,
+    },
+  };
+
+  await queryClient.prefetchQuery({
+    queryKey: ["transactions", params],
+    queryFn: async () => {
+      const result = await getPaginatedTransactionsAction(params);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      return result.data;
+    },
+  });
+
   return (
-    <div className="container space-y-6 py-6">
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="text-3xl font-bold">Transactions</h1>
-        <CreateTransactionDialog />
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="container space-y-6 py-6">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <h1 className="text-3xl font-bold">Transactions</h1>
+          <CreateTransactionDialog />
+        </div>
+
+        <TransactionsContainer />
       </div>
-
-      <SearchFilterBar
-        search={search}
-        category={category}
-        sortBy={sortBy}
-        order={order}
-      />
-
-      <Suspense fallback={<TransactionsSkeleton />}>
-        <TransactionsTable
-          search={search}
-          category={category}
-          sortBy={sortBy}
-          order={order}
-          page={page}
-        />
-      </Suspense>
-    </div>
+    </HydrationBoundary>
   );
-}
+};
+
+export default TransactionsPage;

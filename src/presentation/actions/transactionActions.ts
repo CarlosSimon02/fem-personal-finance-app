@@ -80,3 +80,8 @@ export const deleteTransactionAction = actionWithAuth<
 
   return { data: undefined, error: null };
 });
+
+export const revalidateTransactionTags = async () => {
+  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
+  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
+};
