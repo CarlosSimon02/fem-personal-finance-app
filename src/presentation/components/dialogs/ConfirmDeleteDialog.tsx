@@ -15,7 +15,7 @@ type ConfirmDeleteDialogProps = {
   description: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  onDelete: () => void;
+  onDelete: () => Promise<void>;
   isDeleting: boolean;
   children: React.ReactNode;
 };
@@ -41,6 +41,11 @@ const ConfirmDeleteDialog = ({
     propsOnOpenChange?.(newOpen);
   };
 
+  const handleDelete = async () => {
+    await onDelete();
+    handleOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -55,7 +60,7 @@ const ConfirmDeleteDialog = ({
           </Button>
           <Button
             variant="destructive"
-            onClick={onDelete}
+            onClick={handleDelete}
             disabled={isDeleting}
           >
             {isDeleting ? "Deleting..." : "Delete"}

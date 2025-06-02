@@ -231,10 +231,13 @@ export class TransactionRepository implements ITransactionRepository {
           userId,
           currentTransaction.category.id
         );
-        const categoryRef = this.getCategoryCollection(userId).doc(
-          currentTransaction.category.id
-        );
-        batchService.addCategoryDelete(categoryRef, transactionCount <= 1);
+
+        if (transactionCount <= 1) {
+          const categoryRef = this.getCategoryCollection(userId).doc(
+            currentTransaction.category.id
+          );
+          batchService.addCategoryDelete(categoryRef, true);
+        }
       }
 
       batchService.addTransactionUpdate(transactionRef, updateData);
@@ -289,8 +292,34 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     transactionId: string
   ): Promise<void> {
-    return this.executeWithErrorHandling(async () => {
+    this.executeWithErrorHandling(async () => {
+      const currentTransaction = await this.getTransaction(
+        userId,
+        transactionId
+      );
+
+      if (!currentTransaction) {
+        throw new Error("Transaction not found");
+      }
+
+      const batchService = new TransactionBatchService();
+
+      const transactionCount = await this.countOfTransactionsInTheCategory(
+        userId,
+        currentTransaction.category.id
+      );
+
+      if (transactionCount <= 1) {
+        const categoryRef = this.getCategoryCollection(userId).doc(
+          currentTransaction.category.id
+        );
+        batchService.addCategoryDelete(categoryRef, true);
+      }
+
       await this.getTransactionCollection(userId).doc(transactionId).delete();
+      await batchService.commit();
+
+      return;
     }, "Failed to delete transaction");
   }
 

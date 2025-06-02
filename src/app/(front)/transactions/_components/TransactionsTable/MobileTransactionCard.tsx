@@ -9,8 +9,8 @@ type MobileTransactionCardProps = {
 
 const MobileTransactionCard = ({ transaction }: MobileTransactionCardProps) => {
   return (
-    <div className="flex items-center justify-between rounded-lg border p-4">
-      <div className="flex items-start gap-3">
+    <div className="flex items-center gap-5 rounded-lg border p-4">
+      <div className="flex shrink-0 items-start gap-3">
         <TransactionEmoji emoji={transaction.emoji} />
         <div>
           <p className="font-medium">{transaction.name}</p>
@@ -19,7 +19,7 @@ const MobileTransactionCard = ({ transaction }: MobileTransactionCardProps) => {
           </span>
         </div>
       </div>
-      <div className="flex flex-col items-end">
+      <div className="flex w-full flex-col items-end">
         <AmountDisplay
           type={transaction.type}
           amount={transaction.amount}
