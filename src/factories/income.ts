@@ -3,7 +3,7 @@ import { DeleteIncomeUseCase } from "@/core/useCases/income/deleteIncome";
 import { GetIncomeUseCase } from "@/core/useCases/income/getIncome";
 import { GetPaginatedIncomesUseCase } from "@/core/useCases/income/getPaginatedIncomes";
 import { UpdateIncomeUseCase } from "@/core/useCases/income/updateIncome";
-import { IncomeRepository } from "@/data/repositories/incomeRepository";
+import { IncomeRepository } from "@/data/repositories/IncomeRepository";
 
 const incomeRepository = new IncomeRepository();
 

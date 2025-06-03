@@ -4,79 +4,103 @@ import {
   CreateBudgetDto,
   PaginatedBudgetsResponse,
   UpdateBudgetDto,
+  createBudgetSchema,
+  updateBudgetSchema,
 } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { adminFirestore } from "@/services/firebase/firebaseAdmin";
-import { FieldValue } from "firebase-admin/firestore";
-import { nanoid } from "nanoid";
-import { BudgetModel, budgetModelSchema } from "../models/budgetModel";
-import { getFirestorePaginatedData } from "./_utils";
+import { budgetModelSchema } from "../models/budgetModel";
+import { BudgetMapper } from "./_mappers/BudgetMapper";
+import { FirestoreService, ValidationService } from "./_services";
 
 export class BudgetRepository implements IBudgetRepository {
-  private getBudgetCollection(userId: string) {
-    return adminFirestore.collection("users").doc(userId).collection("budgets");
+  private readonly firestoreService: FirestoreService;
+  private readonly validationService: ValidationService;
+  private readonly contextName = "BudgetRepository";
+  private readonly collectionName = "budgets";
+
+  constructor() {
+    this.firestoreService = new FirestoreService();
+    this.validationService = new ValidationService();
+  }
+
+  private getConfig() {
+    return {
+      contextName: this.contextName,
+      collectionName: this.collectionName,
+    };
   }
 
   async createBudget(
     userId: string,
     input: CreateBudgetDto
   ): Promise<BudgetDto> {
-    try {
-      const id = nanoid(10);
-      const budgetRef = this.getBudgetCollection(userId).doc(id);
-      const timestamp = FieldValue.serverTimestamp();
+    // ✅ Use injected validation service
+    const validatedInput = this.validationService.validateInput(
+      createBudgetSchema,
+      input,
+      { contextName: this.contextName, operationType: "create" }
+    );
 
-      const data = {
-        ...input,
-        id,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
+    // ✅ Use injected Firestore service
+    const doc = await this.firestoreService.create(
+      userId,
+      validatedInput,
+      this.getConfig()
+    );
 
-      await budgetRef.set(data);
-      const budgetDoc = await budgetRef.get();
-      return this.mapBudgetModelToDto(budgetDoc.data() as BudgetModel);
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to create budget: ${err.message}`);
-    }
+    // ✅ Validate output and map to DTO
+    const validatedData = this.validationService.validateDocumentData(
+      budgetModelSchema,
+      doc.data(),
+      {
+        contextName: this.contextName,
+        operationType: "read",
+        documentId: doc.id,
+      }
+    );
+
+    return BudgetMapper.toDto(validatedData);
   }
 
   async getBudget(userId: string, budgetId: string): Promise<BudgetDto | null> {
-    try {
-      const budgetDoc = await this.getBudgetCollection(userId)
-        .doc(budgetId)
-        .get();
+    const doc = await this.firestoreService.getById(
+      userId,
+      budgetId,
+      this.getConfig()
+    );
 
-      if (!budgetDoc.exists) {
-        return null;
-      }
-
-      return this.mapBudgetModelToDto(budgetDoc.data() as BudgetModel);
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to get budget: ${err.message}`);
+    if (!doc) {
+      return null;
     }
+
+    const validatedData = this.validationService.validateDocumentData(
+      budgetModelSchema,
+      doc.data(),
+      {
+        contextName: this.contextName,
+        operationType: "read",
+        documentId: budgetId,
+      }
+    );
+
+    return BudgetMapper.toDto(validatedData);
   }
 
   async getPaginatedBudgets(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedBudgetsResponse> {
-    try {
-      const response = await getFirestorePaginatedData(
-        this.getBudgetCollection(userId),
-        params,
-        budgetModelSchema
-      );
-      return {
-        data: response.data.map((budget) => this.mapBudgetModelToDto(budget)),
-        meta: response.meta,
-      };
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to get budgets: ${err.message}`);
-    }
+    const response = await this.firestoreService.getPaginated(
+      userId,
+      params,
+      budgetModelSchema,
+      this.getConfig()
+    );
+
+    return {
+      data: response.data.map((budget) => BudgetMapper.toDto(budget)),
+      meta: response.meta,
+    };
   }
 
   async updateBudget(
@@ -84,55 +108,41 @@ export class BudgetRepository implements IBudgetRepository {
     budgetId: string,
     input: UpdateBudgetDto
   ): Promise<BudgetDto> {
-    try {
-      const budgetRef = this.getBudgetCollection(userId).doc(budgetId);
-      const timestamp = FieldValue.serverTimestamp();
+    const validatedInput = this.validationService.validateInput(
+      updateBudgetSchema,
+      input,
+      { contextName: this.contextName, operationType: "update" }
+    );
 
-      const data = {
-        ...input,
-        updatedAt: timestamp,
-      };
+    const doc = await this.firestoreService.update(
+      userId,
+      budgetId,
+      validatedInput,
+      this.getConfig()
+    );
 
-      await budgetRef.update(data);
-      const budgetDoc = await budgetRef.get();
-      return this.mapBudgetModelToDto(budgetDoc.data() as BudgetModel);
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to update budget: ${err.message}`);
-    }
+    const validatedData = this.validationService.validateDocumentData(
+      budgetModelSchema,
+      doc.data(),
+      {
+        contextName: this.contextName,
+        operationType: "read",
+        documentId: budgetId,
+      }
+    );
+
+    return BudgetMapper.toDto(validatedData);
   }
 
   async budgetExists(userId: string, budgetName: string): Promise<boolean> {
-    try {
-      const querySnapshot = await this.getBudgetCollection(userId)
-        .where("name", "==", budgetName)
-        .limit(1)
-        .get();
-
-      return !querySnapshot.empty;
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to check if budget exists: ${err.message}`);
-    }
+    return this.firestoreService.existsByName(
+      userId,
+      budgetName,
+      this.getConfig()
+    );
   }
 
   async deleteBudget(userId: string, budgetId: string): Promise<void> {
-    try {
-      await this.getBudgetCollection(userId).doc(budgetId).delete();
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to delete budget: ${err.message}`);
-    }
-  }
-
-  private mapBudgetModelToDto(budget: BudgetModel): BudgetDto {
-    return {
-      id: budget.id,
-      name: budget.name,
-      maximumSpending: budget.maximumSpending,
-      colorTag: budget.colorTag,
-      createdAt: budget.createdAt.toDate(),
-      updatedAt: budget.updatedAt.toDate(),
-    };
+    return this.firestoreService.delete(userId, budgetId, this.getConfig());
   }
 }

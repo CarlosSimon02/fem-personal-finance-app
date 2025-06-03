@@ -1,15 +1,54 @@
 import "dotenv/config";
 
 import { CreateBudgetDto } from "@/core/schemas/budgetSchema";
-import { createBudgetUseCase } from "@/factories/budget";
+import {
+  createBudgetUseCase,
+  getPaginatedBudgetsUseCase,
+} from "@/factories/budget";
 
-async function run() {
+/**
+ * Consolidated budget scripts for various budget operations
+ * Can be run independently with different commands
+ */
+
+const validateUserId = (): string => {
+  const userId = process.env.TEST_USER_ID;
+  if (!userId) {
+    throw new Error("TEST_USER_ID environment variable is required");
+  }
+  return userId;
+};
+
+/**
+ * Create a single budget
+ */
+export const createSingleBudget = async (): Promise<void> => {
   try {
-    const userId = process.env.TEST_USER_ID;
+    const userId = validateUserId();
 
-    if (!userId) {
-      throw new Error("TEST_USER_ID environment variable is required");
-    }
+    const budgetData: CreateBudgetDto = {
+      name: "Monthly Groceries",
+      maximumSpending: 500,
+      colorTag: "#4CAF50",
+    };
+
+    console.log(`Creating budget for user: ${userId}`);
+    const result = await createBudgetUseCase.execute(userId, budgetData);
+
+    console.log("Budget created successfully:");
+    console.log(JSON.stringify(result, null, 2));
+  } catch (error) {
+    console.error("Error creating budget:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create multiple budgets in bulk
+ */
+export const createBulkBudgets = async (): Promise<void> => {
+  try {
+    const userId = validateUserId();
 
     const budgetsData: CreateBudgetDto[] = [
       { name: "Rent", maximumSpending: 1500, colorTag: "#FF5722" },
@@ -69,10 +108,76 @@ async function run() {
     );
 
     console.log("Budgets created successfully:");
+    console.log(`Created ${result.length} budgets`);
+  } catch (error) {
+    console.error("Error creating bulk budgets:", error);
+    throw error;
+  }
+};
+
+/**
+ * Get paginated budgets with search
+ */
+export const getPaginatedBudgets = async (): Promise<void> => {
+  try {
+    const userId = validateUserId();
+
+    console.log(`Getting paginated budgets for user: ${userId}`);
+    const result = await getPaginatedBudgetsUseCase.execute(userId, {
+      filters: [],
+      pagination: { page: 1, limitPerPage: 10 },
+      sort: { field: "createdAt", order: "desc" },
+      search: "Gro",
+    });
+
+    console.log("Budgets fetched successfully:");
     console.log(JSON.stringify(result, null, 2));
   } catch (error) {
-    console.error("Error creating budgets:", error);
+    console.error("Error fetching budgets:", error);
+    throw error;
+  }
+};
+
+/**
+ * Run all budget operations
+ */
+export const runAllBudgetOperations = async (): Promise<void> => {
+  try {
+    console.log("Starting all budget operations...");
+
+    await createSingleBudget();
+    await createBulkBudgets();
+    await getPaginatedBudgets();
+
+    console.log("All budget operations completed successfully");
+  } catch (error) {
+    console.error("Budget operations failed:", error);
+    throw error;
+  }
+};
+
+// Allow direct execution of this script
+if (require.main === module) {
+  const operation = process.argv[2];
+
+  switch (operation) {
+    case "create":
+      createSingleBudget();
+      break;
+    case "bulk":
+      createBulkBudgets();
+      break;
+    case "list":
+      getPaginatedBudgets();
+      break;
+    case "all":
+      runAllBudgetOperations();
+      break;
+    default:
+      console.log("Usage: tsx budgetScripts.ts [create|bulk|list|all]");
+      console.log("  create - Create a single budget");
+      console.log("  bulk   - Create multiple budgets");
+      console.log("  list   - Get paginated budgets");
+      console.log("  all    - Run all budget operations");
   }
 }
-
-run();

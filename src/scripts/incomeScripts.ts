@@ -3,13 +3,48 @@ import "dotenv/config";
 import { CreateIncomeDto } from "@/core/schemas/incomeSchema";
 import { createIncomeUseCase } from "@/factories/income";
 
-async function run() {
-  try {
-    const userId = process.env.TEST_USER_ID;
+/**
+ * Consolidated income scripts for various income operations
+ * Can be run independently with different commands
+ */
 
-    if (!userId) {
-      throw new Error("TEST_USER_ID environment variable is required");
-    }
+const validateUserId = (): string => {
+  const userId = process.env.TEST_USER_ID;
+  if (!userId) {
+    throw new Error("TEST_USER_ID environment variable is required");
+  }
+  return userId;
+};
+
+/**
+ * Create a single income
+ */
+export const createSingleIncome = async (): Promise<void> => {
+  try {
+    const userId = validateUserId();
+
+    const incomeData: CreateIncomeDto = {
+      name: "Monthly Salary",
+      colorTag: "#4CAF50",
+    };
+
+    console.log(`Creating income for user: ${userId}`);
+    const result = await createIncomeUseCase.execute(userId, incomeData);
+
+    console.log("Income created successfully:");
+    console.log(JSON.stringify(result, null, 2));
+  } catch (error) {
+    console.error("Error creating income:", error);
+    throw error;
+  }
+};
+
+/**
+ * Create multiple incomes in bulk
+ */
+export const createBulkIncomes = async (): Promise<void> => {
+  try {
+    const userId = validateUserId();
 
     const incomesData: CreateIncomeDto[] = [
       { name: "Monthly Salary", colorTag: "#4CAF50" },
@@ -70,10 +105,48 @@ async function run() {
     );
 
     console.log("Incomes created successfully:");
-    console.log(JSON.stringify(result, null, 2));
+    console.log(`Created ${result.length} incomes`);
   } catch (error) {
-    console.error("Error creating incomes:", error);
+    console.error("Error creating bulk incomes:", error);
+    throw error;
+  }
+};
+
+/**
+ * Run all income operations
+ */
+export const runAllIncomeOperations = async (): Promise<void> => {
+  try {
+    console.log("Starting all income operations...");
+
+    await createSingleIncome();
+    await createBulkIncomes();
+
+    console.log("All income operations completed successfully");
+  } catch (error) {
+    console.error("Income operations failed:", error);
+    throw error;
+  }
+};
+
+// Allow direct execution of this script
+if (require.main === module) {
+  const operation = process.argv[2];
+
+  switch (operation) {
+    case "create":
+      createSingleIncome();
+      break;
+    case "bulk":
+      createBulkIncomes();
+      break;
+    case "all":
+      runAllIncomeOperations();
+      break;
+    default:
+      console.log("Usage: tsx incomeScripts.ts [create|bulk|all]");
+      console.log("  create - Create a single income");
+      console.log("  bulk   - Create multiple incomes");
+      console.log("  all    - Run all income operations");
   }
 }
-
-run();

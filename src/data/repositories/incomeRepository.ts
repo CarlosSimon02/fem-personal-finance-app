@@ -4,79 +4,100 @@ import {
   IncomeDto,
   PaginatedIncomesResponse,
   UpdateIncomeDto,
+  createIncomeSchema,
+  updateIncomeSchema,
 } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { adminFirestore } from "@/services/firebase/firebaseAdmin";
-import { FieldValue } from "firebase-admin/firestore";
-import { nanoid } from "nanoid";
-import { IncomeModel, incomeModelSchema } from "../models/incomeModel";
-import { getFirestorePaginatedData } from "./_utils";
+import { incomeModelSchema } from "../models/incomeModel";
+import { IncomeMapper } from "./_mappers/IncomeMapper";
+import { FirestoreService, ValidationService } from "./_services";
 
 export class IncomeRepository implements IIncomeRepository {
-  private getIncomeCollection(userId: string) {
-    return adminFirestore.collection("users").doc(userId).collection("incomes");
+  private readonly firestoreService: FirestoreService;
+  private readonly validationService: ValidationService;
+  private readonly contextName = "IncomeRepository";
+  private readonly collectionName = "incomes";
+
+  constructor() {
+    this.firestoreService = new FirestoreService();
+    this.validationService = new ValidationService();
+  }
+
+  private getConfig() {
+    return {
+      contextName: this.contextName,
+      collectionName: this.collectionName,
+    };
   }
 
   async createIncome(
     userId: string,
     input: CreateIncomeDto
   ): Promise<IncomeDto> {
-    try {
-      const id = nanoid(10);
-      const incomeRef = this.getIncomeCollection(userId).doc(id);
-      const timestamp = FieldValue.serverTimestamp();
+    const validatedInput = this.validationService.validateInput(
+      createIncomeSchema,
+      input,
+      { contextName: this.contextName, operationType: "create" }
+    );
 
-      const data = {
-        ...input,
-        id,
-        createdAt: timestamp,
-        updatedAt: timestamp,
-      };
+    const doc = await this.firestoreService.create(
+      userId,
+      validatedInput,
+      this.getConfig()
+    );
 
-      await incomeRef.set(data);
-      const incomeDoc = await incomeRef.get();
-      return this.mapIncomeModelToDto(incomeDoc.data() as IncomeModel);
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to create budget: ${err.message}`);
-    }
+    const validatedData = this.validationService.validateDocumentData(
+      incomeModelSchema,
+      doc.data(),
+      {
+        contextName: this.contextName,
+        operationType: "read",
+        documentId: doc.id,
+      }
+    );
+
+    return IncomeMapper.toDto(validatedData);
   }
 
   async getIncome(userId: string, incomeId: string): Promise<IncomeDto | null> {
-    try {
-      const incomeDoc = await this.getIncomeCollection(userId)
-        .doc(incomeId)
-        .get();
+    const doc = await this.firestoreService.getById(
+      userId,
+      incomeId,
+      this.getConfig()
+    );
 
-      if (!incomeDoc.exists) {
-        return null;
-      }
-
-      return this.mapIncomeModelToDto(incomeDoc.data() as IncomeModel);
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to get income: ${err.message}`);
+    if (!doc) {
+      return null;
     }
+
+    const validatedData = this.validationService.validateDocumentData(
+      incomeModelSchema,
+      doc.data(),
+      {
+        contextName: this.contextName,
+        operationType: "read",
+        documentId: incomeId,
+      }
+    );
+
+    return IncomeMapper.toDto(validatedData);
   }
 
   async getPaginatedIncomes(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedIncomesResponse> {
-    try {
-      const response = await getFirestorePaginatedData(
-        this.getIncomeCollection(userId),
-        params,
-        incomeModelSchema
-      );
-      return {
-        data: response.data.map((income) => this.mapIncomeModelToDto(income)),
-        meta: response.meta,
-      };
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to get incomes: ${err.message}`);
-    }
+    const response = await this.firestoreService.getPaginated(
+      userId,
+      params,
+      incomeModelSchema,
+      this.getConfig()
+    );
+
+    return {
+      data: response.data.map((income) => IncomeMapper.toDto(income)),
+      meta: response.meta,
+    };
   }
 
   async updateIncome(
@@ -84,54 +105,41 @@ export class IncomeRepository implements IIncomeRepository {
     incomeId: string,
     input: UpdateIncomeDto
   ): Promise<IncomeDto> {
-    try {
-      const incomeRef = this.getIncomeCollection(userId).doc(incomeId);
-      const timestamp = FieldValue.serverTimestamp();
+    const validatedInput = this.validationService.validateInput(
+      updateIncomeSchema,
+      input,
+      { contextName: this.contextName, operationType: "update" }
+    );
 
-      const data = {
-        ...input,
-        updatedAt: timestamp,
-      };
+    const doc = await this.firestoreService.update(
+      userId,
+      incomeId,
+      validatedInput,
+      this.getConfig()
+    );
 
-      await incomeRef.update(data);
-      const incomeDoc = await incomeRef.get();
-      return this.mapIncomeModelToDto(incomeDoc.data() as IncomeModel);
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to update income: ${err.message}`);
-    }
+    const validatedData = this.validationService.validateDocumentData(
+      incomeModelSchema,
+      doc.data(),
+      {
+        contextName: this.contextName,
+        operationType: "read",
+        documentId: incomeId,
+      }
+    );
+
+    return IncomeMapper.toDto(validatedData);
   }
 
   async incomeExists(userId: string, incomeName: string): Promise<boolean> {
-    try {
-      const querySnapshot = await this.getIncomeCollection(userId)
-        .where("name", "==", incomeName)
-        .limit(1)
-        .get();
-
-      return !querySnapshot.empty;
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to check if budget exists: ${err.message}`);
-    }
+    return this.firestoreService.existsByName(
+      userId,
+      incomeName,
+      this.getConfig()
+    );
   }
 
   async deleteIncome(userId: string, incomeId: string): Promise<void> {
-    try {
-      await this.getIncomeCollection(userId).doc(incomeId).delete();
-    } catch (error) {
-      const err = error as Error;
-      throw new Error(`Failed to delete income: ${err.message}`);
-    }
-  }
-
-  private mapIncomeModelToDto(income: IncomeModel): IncomeDto {
-    return {
-      id: income.id,
-      name: income.name,
-      colorTag: income.colorTag,
-      createdAt: income.createdAt.toDate(),
-      updatedAt: income.updatedAt.toDate(),
-    };
+    return this.firestoreService.delete(userId, incomeId, this.getConfig());
   }
 }

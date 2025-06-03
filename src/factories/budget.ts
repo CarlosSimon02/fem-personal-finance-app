@@ -3,7 +3,7 @@ import { DeleteBudgetUseCase } from "@/core/useCases/budget/deleteBudget";
 import { GetBudgetUseCase } from "@/core/useCases/budget/getBudget";
 import { GetPaginatedBudgetsUseCase } from "@/core/useCases/budget/getPaginatedBudgets";
 import { UpdateBudgetUseCase } from "@/core/useCases/budget/updateBudget";
-import { BudgetRepository } from "@/data/repositories/budgetRepository";
+import { BudgetRepository } from "@/data/repositories/BudgetRepository";
 
 const budgetRepository = new BudgetRepository();
 

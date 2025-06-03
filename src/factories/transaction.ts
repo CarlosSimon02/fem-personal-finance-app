@@ -4,7 +4,7 @@ import { GetPaginatedCategoriesUseCase } from "@/core/useCases/transaction/getPa
 import { GetPaginatedTransactionsUseCase } from "@/core/useCases/transaction/getPaginatedTransactions";
 import { GetTransactionUseCase } from "@/core/useCases/transaction/getTransaction";
 import { UpdateTransactionUseCase } from "@/core/useCases/transaction/updateTransaction";
-import { TransactionRepository } from "@/data/repositories/transactionRepository";
+import { TransactionRepository } from "@/data/repositories/TransactionRepository";
 
 const transactionRepository = new TransactionRepository();
 

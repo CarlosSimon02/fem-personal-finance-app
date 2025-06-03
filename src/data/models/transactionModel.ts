@@ -3,7 +3,6 @@ import {
   categorySchema,
   transactionSchema,
 } from "@/core/schemas/transactionSchema";
-import { FieldValue } from "firebase-admin/firestore";
 import { z } from "zod";
 import { zFieldValue, zTimestamp } from "./_utils";
 
@@ -18,6 +17,18 @@ export const transactionModelSchema = transactionSchema
     updatedAt: zTimestamp,
     transactionDate: zTimestamp,
     signedAmount: z.number(),
+  });
+
+export const createTransactionModelSchema = transactionModelSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+    transactionDate: true,
+  })
+  .extend({
+    createdAt: zFieldValue,
+    updatedAt: zFieldValue,
+    transactionDate: zFieldValue,
   });
 
 export const updateTransactionModelSchema = transactionModelSchema
@@ -51,14 +62,9 @@ export type TransactionModelPaginationResponse = z.infer<
   typeof transactionModelPaginationResponseSchema
 >;
 
-export type CreateTransactionModel = Omit<
-  TransactionModel,
-  "createdAt" | "updatedAt" | "transactionDate"
-> & {
-  transactionDate: FieldValue;
-  createdAt: FieldValue;
-  updatedAt: FieldValue;
-};
+export type CreateTransactionModel = z.infer<
+  typeof createTransactionModelSchema
+>;
 
 export type UpdateTransactionModel = z.infer<
   typeof updateTransactionModelSchema
