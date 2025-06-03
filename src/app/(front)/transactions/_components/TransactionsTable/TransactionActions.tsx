@@ -17,7 +17,6 @@ import {
   DropdownMenuSeparator,
 } from "@radix-ui/react-dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useFilterByCategory } from "../../_stores/useFilterByCategory";
 
 type TransactionActionsProps = {
@@ -25,11 +24,9 @@ type TransactionActionsProps = {
 };
 
 const TransactionActions = ({ transaction }: TransactionActionsProps) => {
-  const router = useRouter();
   const { setCacheUniq: setCacheUniqFilterByCategory } = useFilterByCategory();
 
   const handleSuccess = () => {
-    router.refresh();
     setCacheUniqFilterByCategory();
   };
 

@@ -23,7 +23,7 @@ const TransactionsTable = ({
   order,
   page,
 }: TransactionsTableProps) => {
-  const { data, isLoading, error, isError } = useTransactionsRealtime({
+  const { data, isPending, error, isError } = useTransactionsRealtime({
     search,
     category,
     sortBy,
@@ -32,7 +32,7 @@ const TransactionsTable = ({
     pageSize: 10,
   });
 
-  if (isLoading) {
+  if (isPending) {
     return <TransactionsSkeleton />;
   }
 

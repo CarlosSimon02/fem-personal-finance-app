@@ -86,6 +86,7 @@ export const useTransactionsRealtime = ({
       user.id,
       params,
       async (_) => {
+        await revalidateTransactionTags();
         const response = await getPaginatedTransactionsAction(params);
 
         if (response.error) {
@@ -94,7 +95,6 @@ export const useTransactionsRealtime = ({
 
         debugLog("useTransactionsRealtime", "Transaction updated");
         queryClient.setQueryData(queryKey, response.data);
-        await revalidateTransactionTags();
       },
       (error) => {
         console.error("Real-time transactions error:", error);
@@ -210,6 +210,7 @@ export const useDeleteTransaction = ({
       try {
         const response = await deleteTransactionAction({ transactionId });
         if (response.error) throw new Error(response.error);
+        debugLog("useDeleteTransaction", "Transaction deleted");
         return;
       } catch (error) {
         console.error("Delete transaction error:", error);
