@@ -12,10 +12,10 @@ import {
   updateUserModelSchema,
   userModelSchema,
 } from "../models/userModel";
-import { CollectionService } from "./_services/CollectionService";
-import { FirestoreService } from "./_services/FirestoreService";
-import { UtilityService } from "./_services/UtilityService";
-import { ValidationService } from "./_services/ValidationService";
+import { CollectionService } from "../services/CollectionService";
+import { FirestoreService } from "../services/FirestoreService";
+import { UtilityService } from "../services/UtilityService";
+import { ValidationService } from "../services/ValidationService";
 
 export class UserRepository implements IUserRepository {
   private readonly collectionService: CollectionService;

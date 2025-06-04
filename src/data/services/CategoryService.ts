@@ -5,8 +5,8 @@ import {
   TransactionType,
 } from "@/core/schemas/transactionSchema";
 import { FieldValue } from "firebase-admin/firestore";
-import { BudgetRepository } from "../BudgetRepository";
-import { IncomeRepository } from "../IncomeRepository";
+import { BudgetRepository } from "../repositories/BudgetRepository";
+import { IncomeRepository } from "../repositories/IncomeRepository";
 import { CollectionService } from "./CollectionService";
 
 export class CategoryService {
@@ -61,15 +61,29 @@ export class CategoryService {
     }
   }
 
+  async countOfTransactionsInTheCategory(
+    userId: string,
+    categoryId: string
+  ): Promise<number> {
+    const transactions = await this.collectionService
+      .getTransactionCollection(userId)
+      .where("category.id", "==", categoryId)
+      .count()
+      .get();
+
+    return transactions.data().count;
+  }
+
   async doesCategoryHaveTransactions(
     userId: string,
     categoryId: string
   ): Promise<boolean> {
-    const transactions = await this.collectionService
-      .getTransactionCollection(userId)
-      .where("category.id", "==", categoryId)
-      .get();
-    return !transactions.empty;
+    const count = await this.countOfTransactionsInTheCategory(
+      userId,
+      categoryId
+    );
+
+    return count > 0;
   }
 
   async deleteCategoryIfEmpty(
@@ -77,12 +91,12 @@ export class CategoryService {
     categoryId: string,
     batch: FirebaseFirestore.WriteBatch
   ): Promise<void> {
-    const hasTransactions = await this.doesCategoryHaveTransactions(
+    const count = await this.countOfTransactionsInTheCategory(
       userId,
       categoryId
     );
 
-    if (!hasTransactions) {
+    if (count <= 1) {
       const categoryRef = this.collectionService
         .getCategoryCollection(userId)
         .doc(categoryId);

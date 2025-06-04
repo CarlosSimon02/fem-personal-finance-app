@@ -18,12 +18,12 @@ import {
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { Timestamp } from "firebase-admin/firestore";
 import { TransactionMapper } from "../mappers/TransactionMapper";
-import { CategoryService } from "./_services/CategoryService";
-import { CollectionService } from "./_services/CollectionService";
-import { FirestoreService } from "./_services/FirestoreService";
-import { TransactionMigrationService } from "./_services/TransactionMigrationService";
-import { UtilityService } from "./_services/UtilityService";
-import { ValidationService } from "./_services/ValidationService";
+import { CategoryService } from "../services/CategoryService";
+import { CollectionService } from "../services/CollectionService";
+import { FirestoreService } from "../services/FirestoreService";
+import { TransactionMigrationService } from "../services/TransactionMigrationService";
+import { UtilityService } from "../services/UtilityService";
+import { ValidationService } from "../services/ValidationService";
 
 export class TransactionRepository implements ITransactionRepository {
   private readonly firestoreService: FirestoreService;
@@ -350,10 +350,37 @@ export class TransactionRepository implements ITransactionRepository {
   ): Promise<void> {
     return this.utilityService.executeOperation(
       async () => {
-        await this.collectionService
+        const batch = adminFirestore.batch();
+        const transactionRef = this.collectionService
           .getTransactionCollection(userId)
-          .doc(transactionId)
-          .delete();
+          .doc(transactionId);
+        const transactionDoc = await transactionRef.get();
+
+        if (!transactionDoc.exists) {
+          throw new Error("Transaction not found");
+        }
+
+        const transactionData = transactionDoc.data();
+        const validatedData = this.validationService.validateDocumentData(
+          transactionModelSchema,
+          transactionData,
+          {
+            contextName: this.contextName,
+            operationType: "read",
+            documentId: transactionId,
+          }
+        );
+
+        await this.categoryService.deleteCategoryIfEmpty(
+          userId,
+          validatedData.category.id,
+          batch
+        );
+
+        batch.delete(transactionRef);
+        await batch.commit();
+
+        return;
       },
       this.contextName,
       "Failed to delete transaction"

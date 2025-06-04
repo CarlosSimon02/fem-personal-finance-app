@@ -3,7 +3,7 @@ import { UserDto } from "@/core/schemas/userSchema";
 import { adminAuth } from "@/services/firebase/firebaseAdmin";
 import { DecodedIdToken } from "firebase-admin/auth";
 import { UserMapper } from "../mappers/UserMapper";
-import { UtilityService } from "./_services/UtilityService";
+import { UtilityService } from "../services/UtilityService";
 
 export class AuthAdminRepository implements IAuthAdminRepository {
   private readonly utilityService: UtilityService;

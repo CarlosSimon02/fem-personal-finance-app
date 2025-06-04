@@ -12,7 +12,7 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { UtilityService } from "./_services/UtilityService";
+import { UtilityService } from "../services/UtilityService";
 
 export class AuthClientRepository implements IAuthClientRepository {
   private readonly utilityService: UtilityService;
