@@ -2,7 +2,7 @@
 
 import { ChevronsUpDown, LogOut } from "lucide-react";
 
-import { UserEntity } from "@/core/entities/UserEntity";
+import { User } from "@/core/schemas/userSchema";
 import { logoutAction } from "@/presentation/actions/authActions";
 import {
   Avatar,
@@ -23,7 +23,7 @@ import {
 } from "@/presentation/components/ui/sidebar";
 
 type NavUserProps = {
-  user: UserEntity;
+  user: User;
 };
 
 export function NavUser({ user }: NavUserProps) {

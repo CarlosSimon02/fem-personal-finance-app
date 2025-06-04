@@ -1,12 +1,12 @@
-import { UserEntity } from "@/core/entities/UserEntity";
+import { User } from "@/core/schemas/userSchema";
 import { createContext, useContext } from "react";
 
 export interface AuthContextValue {
-  user: UserEntity | null;
+  user: User | null;
 }
 
 type AuthProviderProps = {
-  user: UserEntity | null;
+  user: User | null;
   children: React.ReactNode;
 };
 

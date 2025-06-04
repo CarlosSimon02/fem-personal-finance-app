@@ -1,6 +1,9 @@
 "use client";
 
-import { LoginFormData, loginSchema } from "@/core/schemas/loginSchema";
+import {
+  LoginWithEmailCredentialsDto,
+  loginWithEmailCredentialsSchema,
+} from "@/core/schemas/authSchema";
 import PasswordInput from "@/presentation/components/PasswordInput";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -23,15 +26,15 @@ const LoginForm = () => {
   const loginMutation = useLogin();
   const googleSignInMutation = useGoogleSignIn();
 
-  const form = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<LoginWithEmailCredentialsDto>({
+    resolver: zodResolver(loginWithEmailCredentialsSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
+  const onSubmit = async (data: LoginWithEmailCredentialsDto) => {
     await loginMutation.mutateAsync(data);
   };
 

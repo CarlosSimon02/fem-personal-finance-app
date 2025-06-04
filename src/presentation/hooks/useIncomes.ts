@@ -76,7 +76,7 @@ export const useIncomesRealtime = ({
     },
   };
 
-  const queryKey = ["incomes", params];
+  const queryKey = ["incomes", params, user];
 
   // Initialize React Query with initial fetch
   const query = useQuery({

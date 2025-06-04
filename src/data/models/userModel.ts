@@ -1,17 +1,38 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { userSchema } from "@/core/schemas/userSchema";
+import { z } from "zod";
+import { zFieldValue, zTimestamp } from "./helpers";
 
-export interface UserModel {
-  id: string;
-  email: string;
-  displayName: string | null;
-  photoURL: string | null;
-  phoneNumber: string | null;
-  createdAt: Timestamp | null;
-  updatedAt: Timestamp | null;
-  customClaims: Record<string, unknown> | null;
-}
+export const userModelSchema = userSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zTimestamp,
+    updatedAt: zTimestamp,
+  });
 
-export type UserUpdateModel = Omit<
-  UserModel,
-  "id" | "email" | "createdAt" | "updatedAt"
->;
+export const createUserModelSchema = userModelSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zFieldValue,
+    updatedAt: zFieldValue,
+  });
+
+export const updateUserModelSchema = userModelSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    updatedAt: zFieldValue,
+    createdAt: zFieldValue,
+  })
+  .partial();
+
+export type UserModel = z.infer<typeof userModelSchema>;
+export type CreateUserModel = z.infer<typeof createUserModelSchema>;
+export type UpdateUserModel = z.infer<typeof updateUserModelSchema>;

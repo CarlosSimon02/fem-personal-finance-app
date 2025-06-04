@@ -1,6 +1,7 @@
 import { UserEntity } from "@/core/entities/UserEntity";
 import { IAuthAdminRepository } from "@/core/interfaces/IAuthAdminRepository";
 import { IUserRepository } from "@/core/interfaces/IUserRepository";
+import { CreateUserDto } from "@/core/schemas/userSchema";
 
 export class OnboardUser {
   constructor(
@@ -8,11 +9,18 @@ export class OnboardUser {
     private authRepository: IAuthAdminRepository
   ) {}
 
-  async execute(user: UserEntity) {
+  async execute(user: CreateUserDto) {
     const existingUser = await this.userRepository.getUserById(user.id);
     if (!!existingUser) return existingUser;
-    const createdUser = await this.userRepository.createUser(user);
-    await this.authRepository.updateUserDisplayName(user.id, user.displayName);
+
+    const validatedUser = new UserEntity(user).validateCreateUser();
+
+    const createdUser = await this.userRepository.createUser(validatedUser);
+    await this.authRepository.updateUserDisplayName(
+      user.id,
+      validatedUser.displayName
+    );
+
     return createdUser;
   }
 }

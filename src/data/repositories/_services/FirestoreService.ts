@@ -3,10 +3,9 @@ import {
   PaginationParams,
 } from "@/core/schemas/paginationSchema";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
-import { debugLog } from "@/utils/debugLog";
 import { FieldValue } from "firebase-admin/firestore";
-import { nanoid } from "nanoid";
 import { z } from "zod";
+import { UtilityService } from "./UtilityService";
 
 export interface EntityData {
   id: string;
@@ -21,6 +20,12 @@ export interface FirestoreConfig {
 }
 
 export class FirestoreService {
+  private utilityService: UtilityService;
+
+  constructor() {
+    this.utilityService = new UtilityService();
+  }
+
   private getUserCollection() {
     return adminFirestore.collection("users");
   }
@@ -29,26 +34,8 @@ export class FirestoreService {
     return this.getUserCollection().doc(userId).collection(collectionName);
   }
 
-  generateId(): string {
-    return nanoid(10);
-  }
-
   getCurrentTimestamp() {
     return FieldValue.serverTimestamp();
-  }
-
-  async executeOperation<T>(
-    operation: () => Promise<T>,
-    contextName: string,
-    errorMessage: string
-  ): Promise<T> {
-    try {
-      return await operation();
-    } catch (error) {
-      const err = error as Error;
-      debugLog(contextName, errorMessage, err);
-      throw new Error(`${errorMessage}: ${err.message}`);
-    }
   }
 
   /**
@@ -63,9 +50,9 @@ export class FirestoreService {
     data: Omit<EntityData, "id" | "createdAt" | "updatedAt">,
     config: FirestoreConfig
   ): Promise<FirebaseFirestore.DocumentSnapshot> {
-    return this.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
-        const id = this.generateId();
+        const id = this.utilityService.generateId();
         const entityRef = this.getEntityCollection(
           userId,
           config.collectionName
@@ -107,7 +94,7 @@ export class FirestoreService {
     entityId: string,
     config: FirestoreConfig
   ): Promise<FirebaseFirestore.DocumentSnapshot | null> {
-    return this.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const entityDoc = await this.getEntityCollection(
           userId,
@@ -137,7 +124,7 @@ export class FirestoreService {
     schema: z.ZodType<T>,
     config: FirestoreConfig
   ): Promise<{ data: T[]; meta: any }> {
-    return this.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const response = await this.getPaginatedData(
           this.getEntityCollection(userId, config.collectionName),
@@ -166,7 +153,7 @@ export class FirestoreService {
     updateData: Partial<EntityData>,
     config: FirestoreConfig
   ): Promise<FirebaseFirestore.DocumentSnapshot> {
-    return this.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const entityRef = this.getEntityCollection(
           userId,
@@ -206,7 +193,7 @@ export class FirestoreService {
     entityId: string,
     config: FirestoreConfig
   ): Promise<void> {
-    return this.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         await this.getEntityCollection(userId, config.collectionName)
           .doc(entityId)
@@ -229,7 +216,7 @@ export class FirestoreService {
     name: string,
     config: FirestoreConfig
   ): Promise<boolean> {
-    return this.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const querySnapshot = await this.getEntityCollection(
           userId,

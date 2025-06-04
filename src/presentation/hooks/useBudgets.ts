@@ -76,7 +76,7 @@ export const useBudgetsRealtime = ({
     },
   };
 
-  const queryKey = ["budgets", params];
+  const queryKey = ["budgets", params, user];
 
   // Initialize React Query with initial fetch
   const query = useQuery({

@@ -1,7 +1,7 @@
-import { UserEntity } from "@/core/entities/UserEntity";
+import { User } from "@/core/schemas/userSchema";
 import { DecodedIdToken } from "firebase-admin/auth";
 
-export function tokensToUserEntity(decodedToken: DecodedIdToken): UserEntity {
+export function tokensToUser(decodedToken: DecodedIdToken): User {
   const { uid, email, picture, name } = decodedToken;
 
   return {

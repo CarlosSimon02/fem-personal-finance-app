@@ -1,14 +1,14 @@
 "use server";
 
 import { authConfig } from "@/config/nextFirebaseAuthEdge";
-import { UserEntity } from "@/core/entities/UserEntity";
+import { User } from "@/core/schemas/userSchema";
 import {
   onboardUserUseCase,
   verifyIdTokenUseCase,
 } from "@/factories/authAdmin";
 import { signOutUseCase } from "@/factories/authClient";
 import getServerActionError from "@/utils/getServerActionError";
-import { tokensToUserEntity } from "@/utils/tokensToUserEntity";
+import { tokensToUser } from "@/utils/tokensToUser";
 import { refreshCookiesWithIdToken } from "next-firebase-auth-edge/lib/next/cookies";
 import { removeServerCookies } from "next-firebase-auth-edge/next/cookies";
 import { cookies, headers } from "next/headers";
@@ -17,16 +17,16 @@ import { redirect } from "next/navigation";
 export const postSignInAction = async (
   idToken: string,
   additionalInfo?: { name?: string }
-): Promise<ServerActionResponse<{ userEntity: UserEntity }>> => {
+): Promise<ServerActionResponse<{ user: User }>> => {
   try {
     const decodedIdToken = await verifyIdTokenUseCase.execute(idToken);
-    const userEntityFromToken = tokensToUserEntity(decodedIdToken);
-    const userEntity: UserEntity = {
+    const userEntityFromToken = tokensToUser(decodedIdToken);
+    const user: User = {
       ...userEntityFromToken,
       displayName: additionalInfo?.name ?? userEntityFromToken.displayName,
     };
 
-    const databaseUserEntity = await onboardUserUseCase.execute(userEntity);
+    const databaseUser = await onboardUserUseCase.execute(user);
 
     await refreshCookiesWithIdToken(
       idToken,
@@ -35,7 +35,7 @@ export const postSignInAction = async (
       authConfig
     );
 
-    return { data: { userEntity: databaseUserEntity }, error: null };
+    return { data: { user: databaseUser }, error: null };
   } catch (error) {
     return getServerActionError(error);
   }

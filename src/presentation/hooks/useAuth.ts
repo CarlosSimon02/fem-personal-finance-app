@@ -1,6 +1,9 @@
 "use client";
 
-import { AuthCredentials } from "@/data/models/authModel";
+import {
+  LoginWithEmailCredentialsDto,
+  SignUpCredentialsDto,
+} from "@/core/schemas/authSchema";
 import {
   loginWithEmailUseCase,
   resetPasswordUseCase,
@@ -13,7 +16,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-type SignUpData = AuthCredentials & {
+type SignUpData = SignUpCredentialsDto & {
   name: string;
 };
 
@@ -50,7 +53,7 @@ export const useLogin = () => {
   const router = useRouter();
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: AuthCredentials) => {
+    mutationFn: async (credentials: LoginWithEmailCredentialsDto) => {
       try {
         const authEntity = await loginWithEmailUseCase.execute(credentials);
         const response = await postSignInAction(authEntity.idToken);
@@ -105,6 +108,7 @@ export const useSignUp = () => {
         const authEntity = await signUpWithEmailUseCase.execute({
           email,
           password,
+          name,
         });
         const response = await postSignInAction(authEntity.idToken, { name });
         if (response.error) throw new Error(response.error);

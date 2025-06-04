@@ -1,10 +1,8 @@
-import { UserUpdateModel } from "@/data/models/userModel";
-import { UserEntity } from "../entities/UserEntity";
+import { CreateUserDto, UpdateUserDto, UserDto } from "../schemas/userSchema";
 
 export interface IUserRepository {
-  createUser(user: UserEntity): Promise<UserEntity>;
-  getUserById(uid: string): Promise<UserEntity | null>;
-  updateUser(uid: string, updates: UserUpdateModel): Promise<void>;
+  createUser(user: CreateUserDto): Promise<UserDto>;
+  getUserById(uid: string): Promise<UserDto | null>;
+  updateUser(uid: string, updates: UpdateUserDto): Promise<UserDto>;
   deleteUser(uid: string): Promise<void>;
-  getAllUsers(): Promise<UserEntity[]>;
 }

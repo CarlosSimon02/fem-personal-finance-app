@@ -1,36 +1,120 @@
-import { AuthEntity } from "@/core/entities/AuthEntity";
 import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
-import { AuthCredentials } from "@/data/models/authModel";
-import { AuthClientDatasource } from "../datasources/authClientDatasource";
+import {
+  AuthResponseDto,
+  LoginWithEmailCredentialsDto,
+  SignUpCredentialsDto,
+} from "@/core/schemas/authSchema";
+import { clientAuth } from "@/services/firebase/firebaseClient";
+import {
+  createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  sendPasswordResetEmail,
+  signInWithPopup,
+  signOut,
+} from "firebase/auth";
+import { UtilityService } from "./_services/UtilityService";
 
 export class AuthClientRepository implements IAuthClientRepository {
-  private authClient: AuthClientDatasource;
+  private readonly utilityService: UtilityService;
+  private readonly contextName = "AuthClientRepository";
 
-  constructor(authClient: AuthClientDatasource) {
-    this.authClient = authClient;
+  constructor() {
+    this.utilityService = new UtilityService();
   }
 
-  async signUpWithEmail(credentials: AuthCredentials): Promise<AuthEntity> {
-    return this.authClient.signUpWithEmail(credentials);
+  async signUpWithEmail(
+    credentials: SignUpCredentialsDto
+  ): Promise<AuthResponseDto> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const userCredential = await createUserWithEmailAndPassword(
+          clientAuth,
+          credentials.email,
+          credentials.password
+        );
+        const idToken = await userCredential.user.getIdToken();
+        return {
+          id: userCredential.user.uid,
+          email: userCredential.user.email!,
+          idToken,
+          refreshToken: userCredential.user.refreshToken,
+        };
+      },
+      this.contextName,
+      "Failed to sign up with email"
+    );
   }
 
-  async logInWithEmail(credentials: AuthCredentials): Promise<AuthEntity> {
-    return this.authClient.logInWithEmail(credentials);
+  async logInWithEmail(
+    credentials: LoginWithEmailCredentialsDto
+  ): Promise<AuthResponseDto> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const userCredential = await createUserWithEmailAndPassword(
+          clientAuth,
+          credentials.email,
+          credentials.password
+        );
+        const idToken = await userCredential.user.getIdToken();
+        return {
+          id: userCredential.user.uid,
+          email: userCredential.user.email!,
+          idToken,
+          refreshToken: userCredential.user.refreshToken,
+        };
+      },
+      this.contextName,
+      "Failed to log in with email"
+    );
   }
 
-  async signInWithGoogle(): Promise<AuthEntity> {
-    return this.authClient.signInWithGoogle();
+  async signInWithGoogle(): Promise<AuthResponseDto> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const provider = new GoogleAuthProvider();
+        const userCredential = await signInWithPopup(clientAuth, provider);
+        const idToken = await userCredential.user.getIdToken();
+        return {
+          id: userCredential.user.uid,
+          email: userCredential.user.email!,
+          idToken,
+          refreshToken: userCredential.user.refreshToken,
+        };
+      },
+      this.contextName,
+      "Failed to sign in with Google"
+    );
   }
 
   async resetPassword(email: string): Promise<void> {
-    return this.authClient.resetPassword(email);
+    return this.utilityService.executeOperation(
+      async () => {
+        await sendPasswordResetEmail(clientAuth, email);
+      },
+      this.contextName,
+      "Failed to reset password"
+    );
   }
 
   async signOut(): Promise<void> {
-    return this.authClient.signOut();
+    return this.utilityService.executeOperation(
+      async () => {
+        await signOut(clientAuth);
+      },
+      this.contextName,
+      "Failed to sign out"
+    );
   }
 
   async getIdToken(): Promise<string> {
-    return this.authClient.getIdToken();
+    return this.utilityService.executeOperation(
+      async () => {
+        const user = clientAuth.currentUser;
+        if (!user) throw new Error("No user is signed in.");
+        return await user.getIdToken();
+      },
+      this.contextName,
+      "Failed to get ID token"
+    );
   }
 }

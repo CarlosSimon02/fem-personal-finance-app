@@ -1,10 +1,10 @@
 import { IUserRepository } from "@/core/interfaces/IUserRepository";
-import { UserUpdateModel } from "@/data/models/userModel";
+import { UpdateUserDto } from "@/core/schemas/userSchema";
 
 export class UpdateUserProfile {
   constructor(private userRepository: IUserRepository) {}
 
-  async execute(uid: string, updates: UserUpdateModel) {
-    return this.userRepository.updateUser(uid, updates);
+  async execute(id: string, updates: UpdateUserDto) {
+    return this.userRepository.updateUser(id, updates);
   }
 }

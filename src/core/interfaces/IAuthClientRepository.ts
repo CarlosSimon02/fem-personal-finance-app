@@ -1,10 +1,15 @@
-import { AuthCredentials } from "@/data/models/authModel";
-import { AuthEntity } from "../entities/AuthEntity";
+import {
+  AuthResponseDto,
+  LoginWithEmailCredentialsDto,
+  SignUpCredentialsDto,
+} from "../schemas/authSchema";
 
 export interface IAuthClientRepository {
-  signUpWithEmail(credentials: AuthCredentials): Promise<AuthEntity>;
-  logInWithEmail(credentials: AuthCredentials): Promise<AuthEntity>;
-  signInWithGoogle(): Promise<AuthEntity>;
+  signUpWithEmail(credentials: SignUpCredentialsDto): Promise<AuthResponseDto>;
+  logInWithEmail(
+    credentials: LoginWithEmailCredentialsDto
+  ): Promise<AuthResponseDto>;
+  signInWithGoogle(): Promise<AuthResponseDto>;
   resetPassword(email: string): Promise<void>;
   signOut(): Promise<void>;
   getIdToken(): Promise<string>;

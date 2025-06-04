@@ -1,68 +1,198 @@
-import { UserEntity } from "@/core/entities/UserEntity";
 import { IUserRepository } from "@/core/interfaces/IUserRepository";
-import { Timestamp } from "firebase-admin/firestore";
-import { UserDatasource } from "../datasources/userDatasource";
-import { UserModel, UserUpdateModel } from "../models/userModel";
+import {
+  CreateUserDto,
+  UpdateUserDto,
+  UserDto,
+} from "@/core/schemas/userSchema";
+import { UserMapper } from "../mappers/UserMapper";
+import {
+  CreateUserModel,
+  createUserModelSchema,
+  UpdateUserModel,
+  updateUserModelSchema,
+  userModelSchema,
+} from "../models/userModel";
+import { ValidationService } from "./_services";
+import { CollectionService } from "./_services/CollectionService";
+import { FirestoreService } from "./_services/FirestoreService";
+import { UtilityService } from "./_services/UtilityService";
 
 export class UserRepository implements IUserRepository {
-  private datasource: UserDatasource;
+  private readonly collectionService: CollectionService;
+  private readonly utilityService: UtilityService;
+  private readonly firestoreService: FirestoreService;
+  private readonly validationService: ValidationService;
+  private readonly contextName = "UserRepository";
+  private readonly collectionName = "users";
 
-  constructor(datasource: UserDatasource) {
-    this.datasource = datasource;
+  constructor() {
+    this.collectionService = new CollectionService();
+    this.utilityService = new UtilityService();
+    this.firestoreService = new FirestoreService();
+    this.validationService = new ValidationService();
   }
 
-  async createUser(user: UserEntity): Promise<UserEntity> {
-    const userModel = this.mapUserEntityToModel(user);
-    const createdUserModel = await this.datasource.createUser(userModel);
-    return this.mapUserModelToEntity(createdUserModel);
+  private getConfig() {
+    return {
+      contextName: this.contextName,
+      collectionName: this.collectionName,
+    };
   }
+  async createUser(user: CreateUserDto): Promise<UserDto> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const userData: CreateUserModel = {
+          id: user.id,
+          createdAt: this.firestoreService.getCurrentTimestamp(),
+          updatedAt: this.firestoreService.getCurrentTimestamp(),
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          phoneNumber: user.phoneNumber,
+          customClaims: user.customClaims,
+        };
 
-  async getUserById(uid: string): Promise<UserEntity | null> {
-    const userModel = await this.datasource.getUserById(uid);
-    if (!userModel) return null;
-    const userEntity = this.mapUserModelToEntity(userModel);
-    return userEntity;
-  }
+        const validatedInput = this.validationService.validateInput(
+          createUserModelSchema,
+          userData,
+          {
+            contextName: this.contextName,
+            operationType: "create",
+          }
+        );
 
-  async updateUser(uid: string, updates: UserUpdateModel): Promise<void> {
-    return this.datasource.updateUser(uid, updates);
-  }
+        const createdUser = await this.firestoreService.create(
+          user.id,
+          validatedInput,
+          this.getConfig()
+        );
 
-  async deleteUser(uid: string): Promise<void> {
-    return this.datasource.deleteUser(uid);
-  }
+        const validatedData = this.validationService.validateDocumentData(
+          userModelSchema,
+          createdUser,
+          {
+            contextName: this.contextName,
+            operationType: "create",
+          }
+        );
 
-  async getAllUsers(): Promise<UserEntity[]> {
-    const userModels = await this.datasource.getAllUsers();
-    const userEntity = userModels.map((user) =>
-      this.mapUserModelToEntity(user)
+        return UserMapper.toDto(validatedData);
+      },
+      this.contextName,
+      "Failed to create user"
     );
-    return userEntity;
   }
 
-  private mapUserEntityToModel(user: UserEntity): UserModel {
-    return {
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName ?? null,
-      photoURL: user.photoURL ?? null,
-      phoneNumber: user.phoneNumber ?? null,
-      createdAt: user.createdAt ? Timestamp.fromDate(user.createdAt) : null,
-      updatedAt: user.updatedAt ? Timestamp.fromDate(user.updatedAt) : null,
-      customClaims: user.customClaims ?? null,
-    };
+  async getUserById(id: string): Promise<UserDto | null> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const userModel = await this.collectionService
+          .getUserCollection()
+          .doc(id)
+          .get();
+        if (!userModel) return null;
+
+        const validatedData = this.validationService.validateDocumentData(
+          userModelSchema,
+          userModel,
+          {
+            contextName: this.contextName,
+            operationType: "read",
+          }
+        );
+
+        return UserMapper.toDto(validatedData);
+      },
+      this.contextName,
+      "Failed to get user"
+    );
   }
 
-  private mapUserModelToEntity(user: UserModel): UserEntity {
-    return {
-      id: user.id,
-      email: user.email,
-      displayName: user.displayName ?? undefined,
-      photoURL: user.photoURL ?? undefined,
-      phoneNumber: user.phoneNumber ?? undefined,
-      createdAt: user.createdAt ? user.createdAt.toDate() : undefined,
-      updatedAt: user.updatedAt ? user.updatedAt.toDate() : undefined,
-      customClaims: user.customClaims ?? undefined,
+  private async buildUpdateData(
+    currentUser: UserDto,
+    input: UpdateUserDto
+  ): Promise<UpdateUserModel> {
+    const updateData: UpdateUserModel = {
+      updatedAt: this.firestoreService.getCurrentTimestamp(),
     };
+
+    if (
+      input.displayName !== undefined &&
+      input.displayName !== currentUser.displayName
+    ) {
+      updateData.displayName = input.displayName;
+    }
+
+    if (
+      input.photoURL !== undefined &&
+      input.photoURL !== currentUser.photoURL
+    ) {
+      updateData.photoURL = input.photoURL;
+    }
+
+    if (
+      input.phoneNumber !== undefined &&
+      input.phoneNumber !== currentUser.phoneNumber
+    ) {
+      updateData.phoneNumber = input.phoneNumber;
+    }
+
+    if (
+      input.customClaims !== undefined &&
+      input.customClaims !== currentUser.customClaims
+    ) {
+      updateData.customClaims = input.customClaims;
+    }
+
+    return updateData;
+  }
+
+  async updateUser(id: string, input: UpdateUserDto): Promise<UserDto> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const currentUser = await this.getUserById(id);
+
+        if (!currentUser) throw new Error("User not found");
+
+        const updateData = await this.buildUpdateData(currentUser, input);
+
+        const validatedInput = this.validationService.validateInput(
+          updateUserModelSchema,
+          updateData,
+          {
+            contextName: this.contextName,
+            operationType: "update",
+          }
+        );
+
+        const updatedUser = await this.collectionService
+          .getUserCollection()
+          .doc(id)
+          .update(validatedInput);
+
+        const validatedData = this.validationService.validateDocumentData(
+          userModelSchema,
+          updatedUser,
+          {
+            contextName: this.contextName,
+            operationType: "update",
+          }
+        );
+
+        return UserMapper.toDto(validatedData);
+      },
+      this.contextName,
+      "Failed to update user"
+    );
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    return this.utilityService.executeOperation(
+      async () => {
+        await this.collectionService.getUserCollection().doc(id).delete();
+      },
+      this.contextName,
+      "Failed to delete user"
+    );
   }
 }

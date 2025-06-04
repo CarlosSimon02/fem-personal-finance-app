@@ -3,11 +3,9 @@ import { ResetPassword } from "@/core/useCases/auth/resetPassword";
 import { SignInWithGoogle } from "@/core/useCases/auth/signInWithGoogle";
 import { SignOut } from "@/core/useCases/auth/signOut";
 import { SignUpWithEmail } from "@/core/useCases/auth/signUpWithEmail";
-import { AuthClientDatasource } from "@/data/datasources/authClientDatasource";
-import { AuthClientRepository } from "@/data/repositories/authClientRepository";
+import { AuthClientRepository } from "@/data/repositories/AuthClientRepository";
 
-const authClientDatasource = new AuthClientDatasource();
-const authClientRepository = new AuthClientRepository(authClientDatasource);
+const authClientRepository = new AuthClientRepository();
 
 export const loginWithEmailUseCase = new LogInWithEmail(authClientRepository);
 
@@ -18,4 +16,4 @@ export const signInWithGoogleUseCase = new SignInWithGoogle(
 export const signOutUseCase = new SignOut(authClientRepository);
 export const signUpWithEmailUseCase = new SignUpWithEmail(authClientRepository);
 
-export { authClientDatasource, authClientRepository };
+export { authClientRepository };

@@ -8,8 +8,8 @@ import {
   updateBudgetSchema,
 } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
+import { BudgetMapper } from "../mappers/BudgetMapper";
 import { budgetModelSchema } from "../models/budgetModel";
-import { BudgetMapper } from "./_mappers/BudgetMapper";
 import { FirestoreService, ValidationService } from "./_services";
 
 export class BudgetRepository implements IBudgetRepository {

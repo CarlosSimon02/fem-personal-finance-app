@@ -1,7 +1,7 @@
 import { incomeSchema } from "@/core/schemas/incomeSchema";
 import { createPaginationResponseSchema } from "@/core/schemas/paginationSchema";
 import { z } from "zod";
-import { zTimestamp } from "./_utils";
+import { zTimestamp } from "./helpers";
 
 export const incomeModelSchema = incomeSchema
   .omit({

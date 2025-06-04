@@ -1,6 +1,6 @@
 import { Toaster } from "@/presentation/components/ui/sonner";
 import { getAuthTokens } from "@/utils/getAuthTokens";
-import { tokensToUserEntity } from "@/utils/tokensToUserEntity";
+import { tokensToUser } from "@/utils/tokensToUser";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../presentation/styles/globals.css";
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 const RootLayout = async ({ children }: RootLayoutProps) => {
   const tokens = await getAuthTokens();
-  const user = tokens ? tokensToUserEntity(tokens.decodedToken) : null;
+  const user = tokens ? tokensToUser(tokens.decodedToken) : null;
   return (
     <html lang="en">
       <body

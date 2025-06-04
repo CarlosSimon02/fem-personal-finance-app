@@ -1,10 +1,10 @@
-import { UserEntity } from "@/core/entities/UserEntity";
+import { User } from "@/core/schemas/userSchema";
 import { getAuthTokens } from "@/utils/getAuthTokens";
 import { redirect } from "next/navigation";
-import { tokensToUserEntity } from "./tokensToUserEntity";
+import { tokensToUser } from "./tokensToUser";
 
 export type ServerCompWithAuthProps = {
-  user: UserEntity;
+  user: User;
 };
 
 export function serverCompWithAuth<P extends ServerCompWithAuthProps>(
@@ -19,7 +19,7 @@ export function serverCompWithAuth<P extends ServerCompWithAuthProps>(
       redirect("login");
     }
 
-    const user = tokensToUserEntity(tokens.decodedToken);
+    const user = tokensToUser(tokens.decodedToken);
 
     return <WrappedComponent {...(props as P)} user={user} />;
   };

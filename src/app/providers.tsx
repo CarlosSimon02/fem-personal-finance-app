@@ -1,12 +1,12 @@
 "use client";
 
-import { UserEntity } from "@/core/entities/UserEntity";
+import { User } from "@/core/schemas/userSchema";
 import { AuthProvider } from "@/presentation/contexts/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 type ProvidersProps = {
   children: React.ReactNode;
-  user: UserEntity | null;
+  user: User | null;
 };
 
 const queryClient = new QueryClient({

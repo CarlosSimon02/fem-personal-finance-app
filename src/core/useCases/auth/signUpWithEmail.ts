@@ -1,10 +1,10 @@
 import { IAuthClientRepository } from "@/core/interfaces/IAuthClientRepository";
-import { AuthCredentials } from "@/data/models/authModel";
+import { SignUpCredentialsDto } from "@/core/schemas/authSchema";
 
 export class SignUpWithEmail {
   constructor(private authRepository: IAuthClientRepository) {}
 
-  async execute(credentials: AuthCredentials) {
+  async execute(credentials: SignUpCredentialsDto) {
     return this.authRepository.signUpWithEmail(credentials);
   }
 }

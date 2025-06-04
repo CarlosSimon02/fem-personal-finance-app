@@ -17,7 +17,7 @@ import {
 } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { Timestamp } from "firebase-admin/firestore";
-import { TransactionMapper } from "./_mappers/TransactionMapper";
+import { TransactionMapper } from "../mappers/TransactionMapper";
 import {
   CollectionService,
   FirestoreService,
@@ -25,11 +25,13 @@ import {
   ValidationService,
 } from "./_services";
 import { CategoryService } from "./_services/CategoryService";
+import { UtilityService } from "./_services/UtilityService";
 
 export class TransactionRepository implements ITransactionRepository {
   private readonly firestoreService: FirestoreService;
   private readonly validationService: ValidationService;
   private readonly collectionService: CollectionService;
+  private readonly utilityService: UtilityService;
   private readonly migrationService: TransactionMigrationService;
   private readonly contextName = "TransactionRepository";
 
@@ -39,6 +41,7 @@ export class TransactionRepository implements ITransactionRepository {
     this.firestoreService = new FirestoreService();
     this.validationService = new ValidationService();
     this.collectionService = new CollectionService();
+    this.utilityService = new UtilityService();
     this.migrationService = new TransactionMigrationService();
 
     this.categoryService = new CategoryService();
@@ -52,11 +55,11 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     input: CreateTransactionDto
   ): Promise<TransactionDto> {
-    return this.firestoreService.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const batch = adminFirestore.batch();
         const transactionDate = Timestamp.fromDate(input.transactionDate);
-        const id = this.firestoreService.generateId();
+        const id = this.utilityService.generateId();
         const timestamp = this.firestoreService.getCurrentTimestamp();
         const category = await this.categoryService.getCategory(
           userId,
@@ -127,7 +130,7 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     transactionId: string
   ): Promise<TransactionDto | null> {
-    return this.firestoreService.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const transactionDoc = await this.collectionService
           .getTransactionCollection(userId)
@@ -160,7 +163,7 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedTransactionsResponse> {
-    return this.firestoreService.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const response = await this.firestoreService.getPaginatedData(
           this.collectionService.getTransactionCollection(userId),
@@ -270,14 +273,8 @@ export class TransactionRepository implements ITransactionRepository {
     transactionId: string,
     input: UpdateTransactionDto
   ): Promise<TransactionDto> {
-    return this.firestoreService.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
-        const validatedInput = this.validationService.validateInput(
-          updateTransactionSchema,
-          input,
-          { contextName: this.contextName, operationType: "update" }
-        );
-
         const batch = adminFirestore.batch();
         const transactionRef = this.collectionService
           .getTransactionCollection(userId)
@@ -294,16 +291,16 @@ export class TransactionRepository implements ITransactionRepository {
 
         const updateData = await this.buildUpdateData(
           currentTransaction,
-          validatedInput
+          input
         );
 
         if (
-          validatedInput.categoryId !== undefined &&
-          validatedInput.categoryId !== currentTransaction.category.id
+          input.categoryId !== undefined &&
+          input.categoryId !== currentTransaction.category.id
         ) {
           const category = await this.categoryService.getCategory(
             userId,
-            validatedInput.categoryId,
+            input.categoryId,
             currentTransaction.type
           );
           updateData.category = category;
@@ -312,10 +309,17 @@ export class TransactionRepository implements ITransactionRepository {
         await this.handleCategoryUpdate(
           userId,
           currentTransaction,
-          validatedInput,
+          input,
           batch
         );
-        batch.update(transactionRef, updateData);
+
+        const validatedInput = this.validationService.validateInput(
+          updateTransactionSchema,
+          updateData,
+          { contextName: this.contextName, operationType: "update" }
+        );
+
+        batch.update(transactionRef, validatedInput);
         await batch.commit();
 
         const updatedTransaction = await transactionRef.get();
@@ -346,7 +350,7 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     transactionId: string
   ): Promise<void> {
-    return this.firestoreService.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         await this.collectionService
           .getTransactionCollection(userId)
@@ -362,7 +366,7 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedCategoriesResponse> {
-    return this.firestoreService.executeOperation(
+    return this.utilityService.executeOperation(
       async () => {
         const response = await this.firestoreService.getPaginatedData(
           this.collectionService.getCategoryCollection(userId),

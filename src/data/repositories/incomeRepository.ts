@@ -8,8 +8,8 @@ import {
   updateIncomeSchema,
 } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
+import { IncomeMapper } from "../mappers/IncomeMapper";
 import { incomeModelSchema } from "../models/incomeModel";
-import { IncomeMapper } from "./_mappers/IncomeMapper";
 import { FirestoreService, ValidationService } from "./_services";
 
 export class IncomeRepository implements IIncomeRepository {
