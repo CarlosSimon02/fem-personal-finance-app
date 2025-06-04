@@ -3,12 +3,12 @@ import { z } from "zod";
 export const userSchema = z.object({
   id: z.string(),
   email: z.string(),
-  displayName: z.string().optional(),
-  photoURL: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  displayName: z.string().optional().nullable(),
+  photoURL: z.string().optional().nullable(),
+  phoneNumber: z.string().optional().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  customClaims: z.record(z.any()).optional(),
+  customClaims: z.record(z.any()).optional().nullable(),
 });
 
 export const createUserSchema = userSchema.omit({

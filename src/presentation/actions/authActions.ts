@@ -12,7 +12,6 @@ import { tokensToUser } from "@/utils/tokensToUser";
 import { refreshCookiesWithIdToken } from "next-firebase-auth-edge/lib/next/cookies";
 import { removeServerCookies } from "next-firebase-auth-edge/next/cookies";
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
 
 export const postSignInAction = async (
   idToken: string,
@@ -45,5 +44,4 @@ export const logoutAction = async () => {
   await signOutUseCase.execute();
 
   removeServerCookies(await cookies(), { cookieName: authConfig.cookieName });
-  redirect("/login");
 };

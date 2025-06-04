@@ -86,15 +86,16 @@ export class UserRepository implements IUserRepository {
   async getUserById(id: string): Promise<UserDto | null> {
     return this.utilityService.executeOperation(
       async () => {
-        const userModel = await this.collectionService
+        const userDoc = await this.collectionService
           .getUserCollection()
           .doc(id)
           .get();
-        if (!userModel) return null;
+        const userdata = userDoc.data();
+        if (!userdata) return null;
 
         const validatedData = this.validationService.validateDocumentData(
           userModelSchema,
-          userModel,
+          userdata,
           {
             contextName: this.contextName,
             operationType: "read",
