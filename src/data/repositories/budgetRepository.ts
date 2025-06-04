@@ -10,7 +10,8 @@ import {
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { BudgetMapper } from "../mappers/BudgetMapper";
 import { budgetModelSchema } from "../models/budgetModel";
-import { FirestoreService, ValidationService } from "./_services";
+import { FirestoreService } from "./_services/FirestoreService";
+import { ValidationService } from "./_services/ValidationService";
 
 export class BudgetRepository implements IBudgetRepository {
   private readonly firestoreService: FirestoreService;

@@ -18,7 +18,7 @@ export class OnboardUser {
     const createdUser = await this.userRepository.createUser(validatedUser);
     await this.authRepository.updateUserDisplayName(
       user.id,
-      validatedUser.displayName
+      validatedUser.displayName ?? ""
     );
 
     return createdUser;

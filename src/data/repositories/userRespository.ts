@@ -12,10 +12,10 @@ import {
   updateUserModelSchema,
   userModelSchema,
 } from "../models/userModel";
-import { ValidationService } from "./_services";
 import { CollectionService } from "./_services/CollectionService";
 import { FirestoreService } from "./_services/FirestoreService";
 import { UtilityService } from "./_services/UtilityService";
+import { ValidationService } from "./_services/ValidationService";
 
 export class UserRepository implements IUserRepository {
   private readonly collectionService: CollectionService;
@@ -46,10 +46,10 @@ export class UserRepository implements IUserRepository {
           createdAt: this.firestoreService.getCurrentTimestamp(),
           updatedAt: this.firestoreService.getCurrentTimestamp(),
           email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          phoneNumber: user.phoneNumber,
-          customClaims: user.customClaims,
+          displayName: user.displayName ?? null,
+          photoURL: user.photoURL ?? null,
+          phoneNumber: user.phoneNumber ?? null,
+          customClaims: user.customClaims ?? null,
         };
 
         const validatedInput = this.validationService.validateInput(

@@ -18,14 +18,12 @@ import {
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { Timestamp } from "firebase-admin/firestore";
 import { TransactionMapper } from "../mappers/TransactionMapper";
-import {
-  CollectionService,
-  FirestoreService,
-  TransactionMigrationService,
-  ValidationService,
-} from "./_services";
 import { CategoryService } from "./_services/CategoryService";
+import { CollectionService } from "./_services/CollectionService";
+import { FirestoreService } from "./_services/FirestoreService";
+import { TransactionMigrationService } from "./_services/TransactionMigrationService";
 import { UtilityService } from "./_services/UtilityService";
+import { ValidationService } from "./_services/ValidationService";
 
 export class TransactionRepository implements ITransactionRepository {
   private readonly firestoreService: FirestoreService;

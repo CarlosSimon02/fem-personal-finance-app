@@ -5,12 +5,12 @@ import { createUserSchema } from "../schemas/userSchema";
 export class UserEntity {
   private id?: string;
   private email?: string;
-  private displayName?: string;
-  private photoURL?: string;
-  private phoneNumber?: string;
+  private displayName?: string | null;
+  private photoURL?: string | null;
+  private phoneNumber?: string | null;
   private createdAt?: Date;
   private updatedAt?: Date;
-  private customClaims?: Record<string, unknown>;
+  private customClaims?: Record<string, unknown> | null;
 
   constructor({
     id,
@@ -24,12 +24,12 @@ export class UserEntity {
   }: {
     id?: string;
     email?: string;
-    displayName?: string;
-    photoURL?: string;
-    phoneNumber?: string;
+    displayName?: string | null;
+    photoURL?: string | null;
+    phoneNumber?: string | null;
     createdAt?: Date;
     updatedAt?: Date;
-    customClaims?: Record<string, unknown>;
+    customClaims?: Record<string, unknown> | null;
   }) {
     this.id = id;
     this.email = email;

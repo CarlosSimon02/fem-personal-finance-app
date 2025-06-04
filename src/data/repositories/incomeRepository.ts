@@ -10,7 +10,8 @@ import {
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { IncomeMapper } from "../mappers/IncomeMapper";
 import { incomeModelSchema } from "../models/incomeModel";
-import { FirestoreService, ValidationService } from "./_services";
+import { FirestoreService } from "./_services/FirestoreService";
+import { ValidationService } from "./_services/ValidationService";
 
 export class IncomeRepository implements IIncomeRepository {
   private readonly firestoreService: FirestoreService;

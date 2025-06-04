@@ -1,7 +1,8 @@
 import { TransactionModel } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { debugLog } from "@/utils/debugLog";
-import { CollectionService, FirestoreService } from "./";
+import { CollectionService } from "./CollectionService";
+import { FirestoreService } from "./FirestoreService";
 import { UtilityService } from "./UtilityService";
 
 export class TransactionMigrationService {
