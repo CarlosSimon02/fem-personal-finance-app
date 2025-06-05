@@ -6,7 +6,6 @@ import {
   PaginatedTransactionsResponse,
   TransactionDto,
   UpdateTransactionDto,
-  updateTransactionSchema,
 } from "@/core/schemas/transactionSchema";
 import {
   categoryModelSchema,
@@ -14,8 +13,10 @@ import {
   createTransactionModelSchema,
   transactionModelSchema,
   UpdateTransactionModel,
+  updateTransactionModelSchema,
 } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
+import { debugLog } from "@/utils/debugLog";
 import { Timestamp } from "firebase-admin/firestore";
 import { TransactionMapper } from "../mappers/TransactionMapper";
 import { CategoryService } from "../services/CategoryService";
@@ -194,6 +195,11 @@ export class TransactionRepository implements ITransactionRepository {
     }
 
     if (input.type !== undefined && input.type !== currentTransaction.type) {
+      if (input.categoryId === undefined) {
+        throw new Error(
+          "Category ID is required when updating transaction type"
+        );
+      }
       updateData.type = input.type;
     }
 
@@ -240,7 +246,8 @@ export class TransactionRepository implements ITransactionRepository {
     userId: string,
     currentTransaction: TransactionDto,
     input: UpdateTransactionDto,
-    batch: FirebaseFirestore.WriteBatch
+    batch: FirebaseFirestore.WriteBatch,
+    updateData: UpdateTransactionModel
   ): Promise<void> {
     if (
       input.categoryId !== undefined &&
@@ -249,7 +256,7 @@ export class TransactionRepository implements ITransactionRepository {
       const newCategory = await this.categoryService.getCategory(
         userId,
         input.categoryId,
-        currentTransaction.type
+        input.type ?? currentTransaction.type
       );
 
       await this.categoryService.createCategoryIfNotExists(
@@ -263,6 +270,8 @@ export class TransactionRepository implements ITransactionRepository {
         currentTransaction.category.id,
         batch
       );
+
+      updateData.category = { ...newCategory };
     }
   }
 
@@ -292,52 +301,51 @@ export class TransactionRepository implements ITransactionRepository {
           input
         );
 
-        if (
-          input.categoryId !== undefined &&
-          input.categoryId !== currentTransaction.category.id
-        ) {
-          const category = await this.categoryService.getCategory(
-            userId,
-            input.categoryId,
-            currentTransaction.type
-          );
-          updateData.category = category;
-        }
-
         await this.handleCategoryUpdate(
           userId,
           currentTransaction,
           input,
-          batch
+          batch,
+          updateData
         );
 
-        const validatedInput = this.validationService.validateInput(
-          updateTransactionSchema,
-          updateData,
-          { contextName: this.contextName, operationType: "update" }
+        debugLog(
+          this.contextName,
+          "Updated category for transaction",
+          updateData
         );
 
-        batch.update(transactionRef, validatedInput);
-        await batch.commit();
+        if (Object.keys(updateData).length > 0) {
+          const validatedInput = this.validationService.validateInput(
+            updateTransactionModelSchema,
+            updateData,
+            { contextName: this.contextName, operationType: "update" }
+          );
 
-        const updatedTransaction = await transactionRef.get();
+          batch.update(transactionRef, validatedInput);
+          await batch.commit();
 
-        if (!updatedTransaction.exists) {
-          throw new Error("Transaction not found after update");
+          const updatedTransaction = await transactionRef.get();
+
+          if (!updatedTransaction.exists) {
+            throw new Error("Transaction not found after update");
+          }
+
+          const updatedData = updatedTransaction.data();
+          const validatedData = this.validationService.validateDocumentData(
+            transactionModelSchema,
+            updatedData,
+            {
+              contextName: this.contextName,
+              operationType: "read",
+              documentId: transactionId,
+            }
+          );
+
+          return TransactionMapper.toDto(validatedData);
         }
 
-        const updatedData = updatedTransaction.data();
-        const validatedData = this.validationService.validateDocumentData(
-          transactionModelSchema,
-          updatedData,
-          {
-            contextName: this.contextName,
-            operationType: "read",
-            documentId: transactionId,
-          }
-        );
-
-        return TransactionMapper.toDto(validatedData);
+        return currentTransaction;
       },
       this.contextName,
       "Failed to update transaction"

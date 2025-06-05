@@ -28,15 +28,24 @@ export class CategoryService {
     if (type === "income") {
       const income = await this.incomeRepository.getIncome(userId, categoryId);
       if (!income) {
-        throw new Error("Category ID not found");
+        throw new Error("Category ID not found for income");
       }
-      return income;
+      return {
+        colorTag: income.colorTag,
+        id: income.id,
+        name: income.name,
+      };
     } else {
       const budget = await this.budgetRepository.getBudget(userId, categoryId);
       if (!budget) {
-        throw new Error("Category ID not found");
+        throw new Error("Category ID not found for budget");
       }
-      return budget;
+
+      return {
+        colorTag: budget.colorTag,
+        id: budget.id,
+        name: budget.name,
+      };
     }
   }
 

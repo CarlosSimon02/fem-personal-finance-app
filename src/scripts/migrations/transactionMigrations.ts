@@ -1,4 +1,6 @@
-import { TransactionMigrationService } from "@/data/repositories/_services/TransactionMigrationService";
+import "dotenv/config";
+
+import { TransactionMigrationService } from "@/data/services/TransactionMigrationService";
 import { debugLog } from "@/utils/debugLog";
 
 /**
@@ -17,6 +19,7 @@ export const runAllTransactionMigrations = async (): Promise<void> => {
 
     await migrationService.migrateTransactionCategoriesToCollection();
     await migrationService.migrateTransactionAmountsToSignedAmounts();
+    await migrationService.synchronizeCategoriesWithTransactions();
 
     debugLog(
       "TransactionMigrations",
@@ -73,6 +76,28 @@ export const runSignedAmountMigration = async (): Promise<void> => {
   }
 };
 
+/**
+ * Run specific migration: Synchronize Categories with Transactions
+ */
+export const runCategorySynchronization = async (): Promise<void> => {
+  try {
+    debugLog("TransactionMigrations", "Starting category synchronization...");
+    await migrationService.synchronizeCategoriesWithTransactions();
+    debugLog(
+      "TransactionMigrations",
+      "Category synchronization completed successfully"
+    );
+  } catch (error) {
+    const err = error as Error;
+    debugLog(
+      "TransactionMigrations",
+      `Category synchronization failed: ${err.message}`,
+      err
+    );
+    throw error;
+  }
+};
+
 // Allow direct execution of this script
 if (require.main === module) {
   const migrationName = process.argv[2];
@@ -87,12 +112,18 @@ if (require.main === module) {
     case "signed-amounts":
       runSignedAmountMigration();
       break;
+    case "sync-categories":
+      runCategorySynchronization();
+      break;
     default:
       console.log(
-        "Usage: tsx transactionMigrations.ts [all|categories|signed-amounts]"
+        "Usage: tsx transactionMigrations.ts [all|categories|signed-amounts|sync-categories]"
       );
       console.log("  all            - Run all transaction migrations");
       console.log("  categories     - Run category extraction migration");
       console.log("  signed-amounts - Run signed amount migration");
+      console.log(
+        "  sync-categories - Run category synchronization (remove orphaned categories)"
+      );
   }
 }

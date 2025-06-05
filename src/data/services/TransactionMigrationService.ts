@@ -93,6 +93,48 @@ export class TransactionMigrationService {
     );
   }
 
+  /**
+   * Synchronize categories collection with transactions
+   * This migration removes categories that have no corresponding transactions
+   * by comparing category document IDs with category.id field in transactions
+   */
+  async synchronizeCategoriesWithTransactions(): Promise<void> {
+    return this.utilityService.executeOperation(
+      async () => {
+        const batch = adminFirestore.batch();
+        const usersSnapshot = await this.collectionService
+          .getUserCollection()
+          .get();
+
+        if (usersSnapshot.empty) {
+          debugLog(
+            this.contextName,
+            "synchronizeCategoriesWithTransactions: No users found - nothing to synchronize"
+          );
+          return;
+        }
+
+        let totalDeletedCategories = 0;
+
+        for (const userDoc of usersSnapshot.docs) {
+          const deletedCount = await this.synchronizeUserCategories(
+            userDoc.id,
+            batch
+          );
+          totalDeletedCategories += deletedCount;
+        }
+
+        await batch.commit();
+        debugLog(
+          this.contextName,
+          `synchronizeCategoriesWithTransactions: Synchronization completed. Deleted ${totalDeletedCategories} orphaned categories across all users`
+        );
+      },
+      this.contextName,
+      "Failed to synchronize categories with transactions"
+    );
+  }
+
   private async migrateUserCategories(
     userId: string,
     batch: FirebaseFirestore.WriteBatch
@@ -180,5 +222,53 @@ export class TransactionMigrationService {
       this.contextName,
       `migrateUserAmounts: Migrated ${migratedCount} transactions for user ${userId}`
     );
+  }
+
+  private async synchronizeUserCategories(
+    userId: string,
+    batch: FirebaseFirestore.WriteBatch
+  ): Promise<number> {
+    const categoriesRef = this.collectionService.getCategoryCollection(userId);
+    const transactionsRef =
+      this.collectionService.getTransactionCollection(userId);
+
+    const [categoriesSnapshot, transactionsSnapshot] = await Promise.all([
+      categoriesRef.get(),
+      transactionsRef.get(),
+    ]);
+
+    if (categoriesSnapshot.empty) {
+      debugLog(
+        this.contextName,
+        `synchronizeUserCategories: No categories found for user ${userId} - skipping`
+      );
+      return 0;
+    }
+
+    // Get all category IDs referenced in transactions
+    const referencedCategoryIds = new Set<string>();
+    transactionsSnapshot.forEach((transactionDoc) => {
+      const transaction = transactionDoc.data() as TransactionModel;
+      if (transaction.category?.id) {
+        referencedCategoryIds.add(transaction.category.id);
+      }
+    });
+
+    // Find orphaned categories and mark them for deletion
+    let deletedCount = 0;
+    categoriesSnapshot.forEach((categoryDoc) => {
+      const categoryId = categoryDoc.id;
+      if (!referencedCategoryIds.has(categoryId)) {
+        batch.delete(categoryDoc.ref);
+        deletedCount++;
+      }
+    });
+
+    debugLog(
+      this.contextName,
+      `synchronizeUserCategories: Found ${deletedCount} orphaned categories for user ${userId}`
+    );
+
+    return deletedCount;
   }
 }
