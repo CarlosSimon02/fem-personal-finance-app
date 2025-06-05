@@ -72,6 +72,7 @@ const FilterByCategory = ({ value, onChange }: FilterByCategoryProps) => {
       onChange={onChange}
       instanceId="add-expense-Subscription-Interval"
       cacheUniqs={[cacheUniq]}
+      isSearchable={false}
     />
   );
 };
