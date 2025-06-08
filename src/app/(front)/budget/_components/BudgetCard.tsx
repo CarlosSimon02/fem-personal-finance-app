@@ -1,3 +1,4 @@
+import { BudgetWithTransactionsDto } from "@/core/schemas/budgetSchema";
 import TransactionEmoji from "@/presentation/components/TransactionEmoji";
 import { Button } from "@/presentation/components/ui/button";
 import {
@@ -14,16 +15,15 @@ import {
 import { Separator } from "@/presentation/components/ui/separator";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import { Budget, getBudgetTransactions } from "../../overview/_data";
 
 interface BudgetCardProps {
-  budget: Budget;
+  budget: BudgetWithTransactionsDto;
 }
 
-export async function BudgetCard({ budget }: BudgetCardProps) {
-  const { transactions } = await getBudgetTransactions(budget.id);
-  const remaining = budget.limit - budget.spent;
-  const percentSpent = (budget.spent / budget.limit) * 100;
+export function BudgetCard({ budget }: BudgetCardProps) {
+  const remaining = budget.maximumSpending - budget.spent;
+  const percentSpent = (budget.spent / budget.maximumSpending) * 100;
+  const transactions = budget.transactions;
 
   return (
     <Card>
@@ -31,7 +31,7 @@ export async function BudgetCard({ budget }: BudgetCardProps) {
         <div className="flex items-center gap-2">
           <div
             className="h-4 w-4 rounded-full"
-            style={{ backgroundColor: budget.color }}
+            style={{ backgroundColor: budget.colorTag }}
           />
           <h3 className="font-medium">{budget.name}</h3>
         </div>
@@ -51,14 +51,14 @@ export async function BudgetCard({ budget }: BudgetCardProps) {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <p className="text-muted-foreground text-sm">
-            Maximum of ₱{budget.limit.toLocaleString()}
+            Maximum of ₱{budget.maximumSpending.toLocaleString()}
           </p>
           <div className="bg-muted h-2 w-full rounded-full">
             <div
               className="h-2 rounded-full"
               style={{
                 width: `${Math.min(100, percentSpent)}%`,
-                backgroundColor: budget.color,
+                backgroundColor: budget.colorTag,
               }}
             />
           </div>
@@ -70,7 +70,7 @@ export async function BudgetCard({ budget }: BudgetCardProps) {
             <div className="flex items-center gap-2">
               <div
                 className="h-8 w-1 rounded-full"
-                style={{ backgroundColor: budget.color }}
+                style={{ backgroundColor: budget.colorTag }}
               />
               <p className="font-medium">₱{budget.spent.toLocaleString()}</p>
             </div>
@@ -107,7 +107,7 @@ export async function BudgetCard({ budget }: BudgetCardProps) {
                         -₱{Math.abs(transaction.amount).toLocaleString()}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {transaction.date}
+                        {transaction.transactionDate.toLocaleDateString()}
                       </p>
                     </div>
                   </div>

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { validateOptionalHexColor } from "./helpers";
 import { createPaginationResponseSchema } from "./paginationSchema";
+import { transactionSchema } from "./transactionSchema";
 
 export const createIncomeSchema = z.object({
   name: z
@@ -20,12 +21,22 @@ export const incomeSchema = createIncomeSchema.extend({
   updatedAt: z.date(),
 });
 
+export const incomeWithTransactionsSchema = incomeSchema.extend({
+  transactions: z.array(transactionSchema),
+});
+
 export const paginatedIncomesResponseSchema =
   createPaginationResponseSchema(incomeSchema);
+
+export const paginatedIncomesWithTransactionsResponseSchema =
+  createPaginationResponseSchema(incomeWithTransactionsSchema);
 
 export type CreateIncomeDto = z.infer<typeof createIncomeSchema>;
 export type UpdateIncomeDto = z.infer<typeof updateIncomeSchema>;
 export type IncomeDto = z.infer<typeof incomeSchema>;
 export type PaginatedIncomesResponse = z.infer<
   typeof paginatedIncomesResponseSchema
+>;
+export type PaginatedIncomesWithTransactionsResponse = z.infer<
+  typeof paginatedIncomesWithTransactionsResponseSchema
 >;

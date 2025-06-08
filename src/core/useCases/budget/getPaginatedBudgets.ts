@@ -1,5 +1,5 @@
 import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
-import { PaginatedBudgetsResponse } from "@/core/schemas/budgetSchema";
+import { PaginatedBudgetsResponseDto } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 
 export class GetPaginatedBudgetsUseCase {
@@ -8,7 +8,7 @@ export class GetPaginatedBudgetsUseCase {
   async execute(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedBudgetsResponse> {
+  ): Promise<PaginatedBudgetsResponseDto> {
     if (!userId) throw new Error("User ID is required");
 
     return this.budgetRepository.getPaginatedBudgets(userId, params);

@@ -1,4 +1,3 @@
-import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { TransactionDto } from "@/core/schemas/transactionSchema";
 import {
   EntityType,
@@ -15,7 +14,6 @@ export class SubscribeToTransactionsUseCase {
 
   execute(
     userId: string,
-    params: PaginationParams,
     onData: (data: TransactionDto[]) => void,
     onError: (error: Error) => void
   ): () => void {
@@ -26,7 +24,6 @@ export class SubscribeToTransactionsUseCase {
     return this.realtimeService.subscribe<TransactionDto>({
       userId,
       entityType: "transactions" as EntityType,
-      params,
       onData,
       onError,
     });

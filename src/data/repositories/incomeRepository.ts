@@ -3,13 +3,16 @@ import {
   CreateIncomeDto,
   IncomeDto,
   PaginatedIncomesResponse,
+  PaginatedIncomesWithTransactionsResponse,
   UpdateIncomeDto,
   createIncomeSchema,
   updateIncomeSchema,
 } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { IncomeMapper } from "../mappers/IncomeMapper";
+import { TransactionMapper } from "../mappers/TransactionMapper";
 import { incomeModelSchema } from "../models/incomeModel";
+import { transactionModelSchema } from "../models/transactionModel";
 import { FirestoreService } from "../services/FirestoreService";
 import { ValidationService } from "../services/ValidationService";
 
@@ -142,5 +145,55 @@ export class IncomeRepository implements IIncomeRepository {
 
   async deleteIncome(userId: string, incomeId: string): Promise<void> {
     return this.firestoreService.delete(userId, incomeId, this.getConfig());
+  }
+
+  async getPaginatedIncomesWithTransactions(
+    userId: string,
+    params: PaginationParams,
+    transactionCount: number = 3
+  ): Promise<PaginatedIncomesWithTransactionsResponse> {
+    const collection = this.firestoreService.getCollection(
+      userId,
+      this.collectionName
+    );
+    const response = await this.firestoreService.getPaginatedData(
+      collection,
+      params,
+      incomeModelSchema
+    );
+
+    const incomesWithTransactions = await Promise.all(
+      response.data.map(async (income) => {
+        const transactions = await this.firestoreService.getPaginatedData(
+          this.firestoreService.getCollection(userId, "transactions"),
+          {
+            pagination: {
+              page: 1,
+              limitPerPage: transactionCount,
+            },
+            sort: {
+              field: "transactionDate",
+              order: "desc",
+            },
+            filters: [
+              { field: "category.id", operator: "==", value: income.id },
+            ],
+            search: "",
+          },
+          transactionModelSchema
+        );
+        return {
+          ...IncomeMapper.toDto(income),
+          transactions: transactions.data.map((transaction) =>
+            TransactionMapper.toDto(transaction)
+          ),
+        };
+      })
+    );
+
+    return {
+      data: incomesWithTransactions,
+      meta: response.meta,
+    };
   }
 }

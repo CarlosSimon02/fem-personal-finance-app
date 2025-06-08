@@ -1,3 +1,4 @@
+import { useFilterByCategory } from "@/app/(front)/transactions/_stores/useFilterByCategory";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
@@ -38,6 +39,7 @@ export const useTransactionsRealtime = ({
 }: UseTransactionsParams) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { setCacheUniq } = useFilterByCategory();
 
   const params: PaginationParams = {
     search,
@@ -84,7 +86,6 @@ export const useTransactionsRealtime = ({
 
     const unsubscribe = subscribeToTransactionsUseCase.execute(
       user.id,
-      params,
       async (_) => {
         await revalidateTransactionTags();
         const response = await getPaginatedTransactionsAction(params);
@@ -95,6 +96,7 @@ export const useTransactionsRealtime = ({
 
         debugLog("useTransactionsRealtime", "Transaction updated");
         queryClient.setQueryData(queryKey, response.data);
+        setCacheUniq();
       },
       (error) => {
         console.error("Real-time transactions error:", error);

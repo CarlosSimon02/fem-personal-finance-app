@@ -19,7 +19,6 @@ export type EntityType = "transactions" | "budgets" | "incomes";
 export interface RealtimeListenerConfig<T = unknown> {
   userId: string;
   entityType: EntityType;
-  params: PaginationParams;
   onData: (data: T[]) => void;
   onError: (error: Error) => void;
 }
@@ -67,7 +66,7 @@ export class RealtimeListenerService {
   }
 
   private generateListenerKey<T>(config: RealtimeListenerConfig<T>): string {
-    return `${config.entityType}_${config.userId}_${JSON.stringify(config.params)}`;
+    return `${config.entityType}_${config.userId}`;
   }
 
   private processSnapshot<T extends Record<string, unknown>>(
@@ -111,8 +110,7 @@ export class RealtimeListenerService {
         config.entityType
       );
       const collectionRef = collection(clientFirestore, collectionPath);
-      const constraints = this.buildQueryConstraints(config.params);
-      const firestoreQuery = query(collectionRef, ...constraints);
+      const firestoreQuery = query(collectionRef);
 
       const unsubscribe = onSnapshot(
         firestoreQuery,

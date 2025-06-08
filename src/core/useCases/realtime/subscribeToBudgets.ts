@@ -1,5 +1,4 @@
 import { BudgetDto } from "@/core/schemas/budgetSchema";
-import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   EntityType,
   RealtimeListenerService,
@@ -15,7 +14,6 @@ export class SubscribeToBudgetsUseCase {
 
   execute(
     userId: string,
-    params: PaginationParams,
     onData: (data: BudgetDto[]) => void,
     onError: (error: Error) => void
   ): () => void {
@@ -26,7 +24,6 @@ export class SubscribeToBudgetsUseCase {
     return this.realtimeService.subscribe<BudgetDto>({
       userId,
       entityType: "budgets" as EntityType,
-      params,
       onData,
       onError,
     });

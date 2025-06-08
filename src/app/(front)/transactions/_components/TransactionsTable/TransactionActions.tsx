@@ -17,28 +17,18 @@ import {
   DropdownMenuSeparator,
 } from "@radix-ui/react-dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { useFilterByCategory } from "../../_stores/useFilterByCategory";
 
 type TransactionActionsProps = {
   transaction: TransactionDto;
 };
 
 const TransactionActions = ({ transaction }: TransactionActionsProps) => {
-  const { setCacheUniq: setCacheUniqFilterByCategory } = useFilterByCategory();
-
-  const handleSuccess = () => {
-    setCacheUniqFilterByCategory();
-  };
-
   const handleError = (error: Error) => {
     console.error("Transaction action error:", error);
   };
 
   const { mutateAsync: deleteTransaction, isPending: isDeleting } =
     useDeleteTransaction({
-      onSuccess: () => {
-        handleSuccess();
-      },
       onError: handleError,
     });
 
@@ -65,7 +55,6 @@ const TransactionActions = ({ transaction }: TransactionActionsProps) => {
             title="Edit Transaction"
             operation="update"
             initialData={transaction}
-            onSuccess={handleSuccess}
             onError={handleError}
           >
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

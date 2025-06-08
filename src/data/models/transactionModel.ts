@@ -28,7 +28,7 @@ export const createTransactionModelSchema = transactionModelSchema
   .extend({
     createdAt: zFieldValue,
     updatedAt: zFieldValue,
-    transactionDate: zFieldValue,
+    transactionDate: zTimestamp,
   });
 
 export const updateTransactionModelSchema = transactionModelSchema
