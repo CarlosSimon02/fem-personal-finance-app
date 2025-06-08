@@ -1,0 +1,22 @@
+{
+  "root": true,
+  "extends": ["../.eslintrc.json"],
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "parserOptions": {
+    "project": ["./tsconfig.json", "./tsconfig.dev.json"],
+    "sourceType": "module"
+  },
+  "ignorePatterns": [
+    "/lib/**/*", // Ignore built files.
+    "/generated/**/*" // Ignore generated files.
+  ],
+  // Override specific rules for Cloud Functions if needed
+  "rules": {
+    // Cloud Functions specific overrides
+    "no-console": "off", // Allow console logs in Cloud Functions
+    "quotes": ["error", "double"] // Keep double quotes for Cloud Functions
+  }
+}

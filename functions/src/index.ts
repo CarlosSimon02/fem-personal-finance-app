@@ -1,16 +1,27 @@
+import { logger } from "firebase-functions";
+import { onRequest } from "firebase-functions/v2/https";
+
+// Import from your main src folder using the @ alias
+import { debugLog } from "@/utils/debugLog";
+// You can also import other utilities like:
+// import { authError } from "@/utils/authError";
+
 /**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ * Example cloud function that uses code from the main src folder
  */
+export const exampleFunction = onRequest((request, response) => {
+  // Using the debugLog utility from your main src folder
+  debugLog(
+    "This is a test from cloud functions",
+    "This is a test from cloud functions"
+  );
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+  logger.info("Hello logs!", { structuredData: true });
+  response.send("Hello from Firebase! Using shared code from src folder.");
+});
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// You can import and use any of your shared code:
+// - Schemas from @/core/schemas
+// - Entities from @/core/entities
+// - Utilities from @/utils
+// - Interfaces from @/core/interfaces
