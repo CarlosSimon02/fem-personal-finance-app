@@ -23,7 +23,8 @@ interface BudgetCardProps {
 export function BudgetCard({ budget }: BudgetCardProps) {
   const remaining =
     Math.abs(budget.maximumSpending) - Math.abs(budget.totalSpending);
-  const percentSpent = (budget.totalSpending / budget.maximumSpending) * 100;
+  const percentSpent =
+    (Math.abs(budget.totalSpending) / Math.abs(budget.maximumSpending)) * 100;
   const transactions = budget.transactions;
 
   return (
