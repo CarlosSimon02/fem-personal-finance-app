@@ -26,7 +26,7 @@ export const budgetSchema = createBudgetSchema.extend({
 });
 
 export const budgetSchemaWithTotalSpending = budgetSchema.extend({
-  totalSpending: z.number().min(0, "Spent cannot be negative"),
+  totalSpending: z.number().max(0, "Spent cannot be negative"),
 });
 
 export const budgetWithTransactionsSchema =

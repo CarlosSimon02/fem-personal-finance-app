@@ -20,7 +20,7 @@ export class BudgetMapper {
     model: BudgetModel
   ): BudgetWithTotalSpendingDto {
     return {
-      ...this.toDto(model),
+      ...BudgetMapper.toDto(model),
       totalSpending: model.totalSpending,
     };
   }

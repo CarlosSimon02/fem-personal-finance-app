@@ -357,7 +357,22 @@ export class BudgetRepository implements IBudgetRepository {
       filters: [],
     });
 
-    return response.data.map(BudgetMapper.toDtoWithTotalSpending);
+    const budgetsWithTransactions = await Promise.all(
+      response.data.map(async (budget) => {
+        const totalSpending =
+          await this.transactionDatasource.calculateTotalByCategory(
+            userId,
+            budget.id
+          );
+
+        return {
+          ...BudgetMapper.toDto(budget),
+          totalSpending,
+        };
+      })
+    );
+
+    return budgetsWithTransactions;
   }
 
   async getSummary(

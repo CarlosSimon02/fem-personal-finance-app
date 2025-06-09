@@ -21,7 +21,8 @@ interface BudgetCardProps {
 }
 
 export function BudgetCard({ budget }: BudgetCardProps) {
-  const remaining = budget.maximumSpending - budget.totalSpending;
+  const remaining =
+    Math.abs(budget.maximumSpending) - Math.abs(budget.totalSpending);
   const percentSpent = (budget.totalSpending / budget.maximumSpending) * 100;
   const transactions = budget.transactions;
 
@@ -73,7 +74,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
                 style={{ backgroundColor: budget.colorTag }}
               />
               <p className="font-medium">
-                ₱{budget.totalSpending.toLocaleString()}
+                ₱{Math.abs(budget.totalSpending).toLocaleString()}
               </p>
             </div>
           </div>

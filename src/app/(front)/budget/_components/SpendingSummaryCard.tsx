@@ -30,12 +30,12 @@ export function SpendingSummaryCard() {
           <BudgetChart
             budgetData={budgetsSummary.budgets.map((budget) => ({
               name: budget.name,
-              spent: budget.maximumSpending,
-              limit: budget.maximumSpending,
+              spent: Math.abs(budget.totalSpending),
+              limit: Math.abs(budget.maximumSpending),
               color: budget.colorTag,
             }))}
-            totalLimit={budgetsSummary.totalMaxSpending}
-            totalSpent={budgetsSummary.totalSpending}
+            totalLimit={Math.abs(budgetsSummary.totalMaxSpending)}
+            totalSpent={Math.abs(budgetsSummary.totalSpending)}
           />
         </div>
 
@@ -52,7 +52,9 @@ export function SpendingSummaryCard() {
                   <span className="font-medium">{budget.name}</span>
                 </div>
                 <div className="text-right text-sm">
-                  <span>₱{budget.maximumSpending.toLocaleString()}</span>
+                  <span>
+                    ₱{Math.abs(budget.totalSpending).toLocaleString()}
+                  </span>
                   <span className="text-muted-foreground">
                     {" "}
                     of ₱{budget.maximumSpending.toLocaleString()}
