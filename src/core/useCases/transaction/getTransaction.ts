@@ -11,6 +11,6 @@ export class GetTransactionUseCase {
     if (!userId) throw new Error("User ID is required");
     if (!transactionId) throw new Error("Transaction ID is required");
 
-    return this.transactionRepository.getTransaction(userId, transactionId);
+    return this.transactionRepository.getOneById(userId, transactionId);
   }
 }

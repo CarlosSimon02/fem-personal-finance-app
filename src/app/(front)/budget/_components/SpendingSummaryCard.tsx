@@ -34,8 +34,8 @@ export function SpendingSummaryCard() {
               limit: budget.maximumSpending,
               color: budget.colorTag,
             }))}
-            totalLimit={budgetsSummary.totalAmountOfBudgets}
-            totalSpent={budgetsSummary.totalAmountSpent}
+            totalLimit={budgetsSummary.totalMaxSpending}
+            totalSpent={budgetsSummary.totalSpending}
           />
         </div>
 

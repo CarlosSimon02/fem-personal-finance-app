@@ -10,7 +10,7 @@ export class GetPaginatedBudgetsWithTransactionsUseCase {
     params: PaginationParams,
     transactionCount?: number
   ): Promise<PaginatedBudgetsWithTransactionsResponseDto> {
-    return this.budgetRepository.getPaginatedBudgetsWithTransactions(
+    return this.budgetRepository.getPaginatedWithTransactions(
       userId,
       params,
       transactionCount

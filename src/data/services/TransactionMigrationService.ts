@@ -2,19 +2,19 @@ import { TransactionModel } from "@/data/models/transactionModel";
 import { adminFirestore } from "@/services/firebase/firebaseAdmin";
 import { debugLog } from "@/utils/debugLog";
 import { CollectionService } from "./CollectionService";
+import { ErrorHandlingService } from "./ErrorHandlingService";
 import { FirestoreService } from "./FirestoreService";
-import { UtilityService } from "./UtilityService";
 
 export class TransactionMigrationService {
   private readonly firestoreService: FirestoreService;
   private readonly collectionService: CollectionService;
-  private readonly utilityService: UtilityService;
+  private readonly errorHandlingService: ErrorHandlingService;
   private readonly contextName = "TransactionMigrationService";
 
   constructor() {
     this.firestoreService = new FirestoreService();
     this.collectionService = new CollectionService();
-    this.utilityService = new UtilityService();
+    this.errorHandlingService = new ErrorHandlingService();
   }
 
   private calculateSignedAmount(amount: number, type: string): number {
@@ -27,7 +27,7 @@ export class TransactionMigrationService {
    * and creates them as separate documents in a categories collection
    */
   async migrateTransactionCategoriesToCollection(): Promise<void> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const batch = adminFirestore.batch();
         const usersSnapshot = await this.collectionService
@@ -52,7 +52,10 @@ export class TransactionMigrationService {
           "migrateCategoriesToCollection: Category migration completed for all users"
         );
       },
-      this.contextName,
+      {
+        contextName: "TransactionMigrationService",
+        operationType: "read",
+      },
       "Failed to migrate transaction categories to collection"
     );
   }
@@ -63,7 +66,7 @@ export class TransactionMigrationService {
    * where income is positive and expense is negative
    */
   async migrateTransactionAmountsToSignedAmounts(): Promise<void> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const batch = adminFirestore.batch();
         const usersSnapshot = await this.collectionService
@@ -88,7 +91,10 @@ export class TransactionMigrationService {
           "migrateAmountsToSignedAmounts: Migration completed for all users"
         );
       },
-      this.contextName,
+      {
+        contextName: "TransactionMigrationService",
+        operationType: "read",
+      },
       "Failed to migrate transaction amounts to signed amounts"
     );
   }
@@ -99,7 +105,7 @@ export class TransactionMigrationService {
    * by comparing category document IDs with category.id field in transactions
    */
   async synchronizeCategoriesWithTransactions(): Promise<void> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const batch = adminFirestore.batch();
         const usersSnapshot = await this.collectionService
@@ -130,7 +136,10 @@ export class TransactionMigrationService {
           `synchronizeCategoriesWithTransactions: Synchronization completed. Deleted ${totalDeletedCategories} orphaned categories across all users`
         );
       },
-      this.contextName,
+      {
+        contextName: "TransactionMigrationService",
+        operationType: "read",
+      },
       "Failed to synchronize categories with transactions"
     );
   }

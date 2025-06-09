@@ -1,5 +1,5 @@
 import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
-import { PaginatedIncomesWithTransactionsResponse } from "@/core/schemas/incomeSchema";
+import { PaginatedIncomesWithTransactionsResponseDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 
 export class GetPaginatedIncomesWithTransactionsUseCase {
@@ -9,8 +9,8 @@ export class GetPaginatedIncomesWithTransactionsUseCase {
     userId: string,
     params: PaginationParams,
     transactionCount?: number
-  ): Promise<PaginatedIncomesWithTransactionsResponse> {
-    return this.incomeRepository.getPaginatedIncomesWithTransactions(
+  ): Promise<PaginatedIncomesWithTransactionsResponseDto> {
+    return this.incomeRepository.getPaginatedWithTransactions(
       userId,
       params,
       transactionCount

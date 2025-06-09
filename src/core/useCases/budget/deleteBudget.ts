@@ -7,6 +7,6 @@ export class DeleteBudgetUseCase {
     if (!userId) throw new Error("User ID is required");
     if (!budgetId) throw new Error("Budget ID is required");
 
-    await this.budgetRepository.deleteBudget(userId, budgetId);
+    await this.budgetRepository.deleteOne(userId, budgetId);
   }
 }

@@ -18,7 +18,7 @@ export class CreateBudgetUseCase {
 
     const validatedData = budgetEntity.validateCreateBudget();
 
-    const budgetExists = await this.budgetRepository.budgetExists(
+    const budgetExists = await this.budgetRepository.getOneByName(
       userId,
       validatedData.name
     );
@@ -27,6 +27,6 @@ export class CreateBudgetUseCase {
       throw new Error("Budget already exists");
     }
 
-    return this.budgetRepository.createBudget(userId, validatedData);
+    return this.budgetRepository.createOne(userId, validatedData);
   }
 }

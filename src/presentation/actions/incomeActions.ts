@@ -2,14 +2,16 @@
 
 import {
   IncomeDto,
-  PaginatedIncomesResponse,
-  PaginatedIncomesWithTransactionsResponse,
+  IncomesSummaryDto,
+  PaginatedIncomesResponseDto,
+  PaginatedIncomesWithTransactionsResponseDto,
 } from "@/core/schemas/incomeSchema";
 
 import { CreateIncomeDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   createIncomeUseCase,
+  getIncomesSummaryUseCase,
   getPaginatedIncomesUseCase,
   getPaginatedIncomesWithTransactionsUseCase,
 } from "@/factories/income";
@@ -28,7 +30,7 @@ export const createIncomeAction = actionWithAuth<CreateIncomeDto, IncomeDto>(
 
 export const getPaginatedIncomesAction = actionWithAuth<
   PaginationParams,
-  PaginatedIncomesResponse
+  PaginatedIncomesResponseDto
 >(async ({ user, data }) => {
   "use cache";
   cacheTag(cacheTags.PAGINATED_INCOMES);
@@ -39,7 +41,7 @@ export const getPaginatedIncomesAction = actionWithAuth<
 
 export const getPaginatedIncomesWithTransactionsAction = actionWithAuth<
   PaginationParams,
-  PaginatedIncomesWithTransactionsResponse
+  PaginatedIncomesWithTransactionsResponseDto
 >(async ({ user, data }) => {
   "use cache";
   cacheTag(cacheTags.PAGINATED_INCOMES_WITH_TRANSACTIONS);
@@ -50,3 +52,20 @@ export const getPaginatedIncomesWithTransactionsAction = actionWithAuth<
   );
   return { data: response, error: null };
 });
+
+export const getIncomesSummaryAction = actionWithAuth<
+  number | undefined,
+  IncomesSummaryDto
+>(async ({ user, data }) => {
+  "use cache";
+  cacheTag(cacheTags.INCOMES_SUMMARY);
+
+  const response = await getIncomesSummaryUseCase.execute(user.id, data);
+  return { data: response, error: null };
+});
+
+export const revalidateIncomeTags = async () => {
+  revalidateTag(cacheTags.PAGINATED_INCOMES);
+  revalidateTag(cacheTags.PAGINATED_INCOMES_WITH_TRANSACTIONS);
+  revalidateTag(cacheTags.INCOMES_SUMMARY);
+};

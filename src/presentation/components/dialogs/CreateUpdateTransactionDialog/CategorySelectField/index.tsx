@@ -1,6 +1,6 @@
 "use client";
 
-import { TransactionType } from "@/core/schemas/transactionSchema";
+import { TransactionTypeDto } from "@/core/schemas/transactionSchema";
 import { ReactElement, useCallback } from "react";
 import { RefCallBack } from "react-hook-form";
 import { GroupBase } from "react-select";
@@ -23,7 +23,7 @@ import {
 type CategorySelectFieldProps = {
   value: CategoryOptionType | null;
   onChange: (category: CategoryOptionType | null) => void;
-  transactionType: TransactionType;
+  transactionType: TransactionTypeDto;
   disabled?: boolean;
   selectRef: RefCallBack;
 };

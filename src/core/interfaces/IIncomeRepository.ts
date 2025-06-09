@@ -1,29 +1,34 @@
 import {
   CreateIncomeDto,
   IncomeDto,
-  PaginatedIncomesResponse,
-  PaginatedIncomesWithTransactionsResponse,
+  IncomesSummaryDto,
+  PaginatedIncomesResponseDto,
+  PaginatedIncomesWithTransactionsResponseDto,
   UpdateIncomeDto,
 } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "../schemas/paginationSchema";
 
 export interface IIncomeRepository {
-  createIncome(userId: string, input: CreateIncomeDto): Promise<IncomeDto>;
-  getIncome(userId: string, incomeId: string): Promise<IncomeDto | null>;
-  getPaginatedIncomes(
+  createOne(userId: string, input: CreateIncomeDto): Promise<IncomeDto>;
+  getOneById(userId: string, incomeId: string): Promise<IncomeDto | null>;
+  getOneByName(userId: string, name: string): Promise<IncomeDto | null>;
+  getPaginated(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedIncomesResponse>;
-  updateIncome(
+  ): Promise<PaginatedIncomesResponseDto>;
+  updateOne(
     userId: string,
     incomeId: string,
     input: UpdateIncomeDto
   ): Promise<IncomeDto>;
-  incomeExists(userId: string, incomeName: string): Promise<boolean>;
-  deleteIncome(userId: string, incomeId: string): Promise<void>;
-  getPaginatedIncomesWithTransactions(
+  deleteOne(userId: string, incomeId: string): Promise<void>;
+  getPaginatedWithTransactions(
     userId: string,
     params: PaginationParams,
-    transactionCount?: number
-  ): Promise<PaginatedIncomesWithTransactionsResponse>;
+    maxTransactionsToShow?: number
+  ): Promise<PaginatedIncomesWithTransactionsResponseDto>;
+  getSummary(
+    userId: string,
+    maxIncomesToShow?: number
+  ): Promise<IncomesSummaryDto>;
 }

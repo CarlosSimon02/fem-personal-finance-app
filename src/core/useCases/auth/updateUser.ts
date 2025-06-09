@@ -5,6 +5,6 @@ export class UpdateUserProfile {
   constructor(private userRepository: IUserRepository) {}
 
   async execute(id: string, updates: UpdateUserDto) {
-    return this.userRepository.updateUser(id, updates);
+    return this.userRepository.updateOne(id, updates);
   }
 }

@@ -21,7 +21,11 @@ export const incomeSchema = createIncomeSchema.extend({
   updatedAt: z.date(),
 });
 
-export const incomeWithTransactionsSchema = incomeSchema.extend({
+export const incomeSchemaWithTotalEarned = incomeSchema.extend({
+  totalEarned: z.number().int().positive(),
+});
+
+export const incomeWithTransactionsSchema = incomeSchemaWithTotalEarned.extend({
   transactions: z.array(transactionSchema),
 });
 
@@ -31,12 +35,25 @@ export const paginatedIncomesResponseSchema =
 export const paginatedIncomesWithTransactionsResponseSchema =
   createPaginationResponseSchema(incomeWithTransactionsSchema);
 
+export const incomesSummarySchema = z.object({
+  totalEarned: z.number().int().positive(),
+  count: z.number().int().positive(),
+  incomes: z.array(incomeSchemaWithTotalEarned),
+});
+
 export type CreateIncomeDto = z.infer<typeof createIncomeSchema>;
 export type UpdateIncomeDto = z.infer<typeof updateIncomeSchema>;
 export type IncomeDto = z.infer<typeof incomeSchema>;
-export type PaginatedIncomesResponse = z.infer<
+export type IncomeDtoWithTotalEarned = z.infer<
+  typeof incomeSchemaWithTotalEarned
+>;
+export type IncomeWithTransactionsDto = z.infer<
+  typeof incomeWithTransactionsSchema
+>;
+export type PaginatedIncomesResponseDto = z.infer<
   typeof paginatedIncomesResponseSchema
 >;
-export type PaginatedIncomesWithTransactionsResponse = z.infer<
+export type PaginatedIncomesWithTransactionsResponseDto = z.infer<
   typeof paginatedIncomesWithTransactionsResponseSchema
 >;
+export type IncomesSummaryDto = z.infer<typeof incomesSummarySchema>;

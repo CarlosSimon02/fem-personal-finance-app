@@ -9,26 +9,26 @@ import {
 import { PaginationParams } from "../schemas/paginationSchema";
 
 export interface IBudgetRepository {
-  createBudget(userId: string, input: CreateBudgetDto): Promise<BudgetDto>;
-  getBudget(userId: string, budgetId: string): Promise<BudgetDto | null>;
-  getPaginatedBudgets(
+  createOne(userId: string, input: CreateBudgetDto): Promise<BudgetDto>;
+  getOneById(userId: string, budgetId: string): Promise<BudgetDto | null>;
+  getOneByName(userId: string, name: string): Promise<BudgetDto | null>;
+  getPaginated(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedBudgetsResponseDto>;
-  updateBudget(
+  updateOne(
     userId: string,
     budgetId: string,
     input: UpdateBudgetDto
   ): Promise<BudgetDto>;
-  budgetExists(userId: string, budgetName: string): Promise<boolean>;
-  deleteBudget(userId: string, budgetId: string): Promise<void>;
-  getPaginatedBudgetsWithTransactions(
+  deleteOne(userId: string, budgetId: string): Promise<void>;
+  getPaginatedWithTransactions(
     userId: string,
     params: PaginationParams,
-    transactionCount?: number
+    maxTransactionsToShow?: number
   ): Promise<PaginatedBudgetsWithTransactionsResponseDto>;
-  getBudgetsSummary(
+  getSummary(
     userId: string,
-    budgetCount?: number
+    maxBudgetsToShow?: number
   ): Promise<BudgetsSummaryDto>;
 }

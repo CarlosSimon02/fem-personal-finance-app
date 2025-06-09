@@ -1,4 +1,7 @@
-import { IncomeDto } from "@/core/schemas/incomeSchema";
+import {
+  IncomeDto,
+  IncomeDtoWithTotalEarned,
+} from "@/core/schemas/incomeSchema";
 import { IncomeModel } from "@/data/models/incomeModel";
 
 export class IncomeMapper {
@@ -9,6 +12,13 @@ export class IncomeMapper {
       colorTag: model.colorTag,
       createdAt: model.createdAt.toDate(),
       updatedAt: model.updatedAt.toDate(),
+    };
+  }
+
+  static toDtoWithTotalEarned(model: IncomeModel): IncomeDtoWithTotalEarned {
+    return {
+      ...this.toDto(model),
+      totalEarned: model.totalEarned,
     };
   }
 }

@@ -6,4 +6,5 @@ export const cacheTags = {
   PAGINATED_BUDGETS_WITH_TRANSACTIONS: "paginatedBudgetsWithTransactions",
   PAGINATED_INCOMES_WITH_TRANSACTIONS: "paginatedIncomesWithTransactions",
   BUDGETS_SUMMARY: "budgetsSummary",
+  INCOMES_SUMMARY: "incomesSummary",
 };

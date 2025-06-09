@@ -2,198 +2,383 @@ import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
 import {
   CreateIncomeDto,
   IncomeDto,
-  PaginatedIncomesResponse,
-  PaginatedIncomesWithTransactionsResponse,
+  IncomesSummaryDto,
+  PaginatedIncomesResponseDto,
+  PaginatedIncomesWithTransactionsResponseDto,
   UpdateIncomeDto,
-  createIncomeSchema,
-  updateIncomeSchema,
 } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
+import { generateId } from "@/utils/generateId";
+import { IncomeDatasource } from "../datasource/IncomeDatasource";
+import { TransactionDatasource } from "../datasource/TransactionDatasource";
 import { IncomeMapper } from "../mappers/IncomeMapper";
 import { TransactionMapper } from "../mappers/TransactionMapper";
-import { incomeModelSchema } from "../models/incomeModel";
-import { transactionModelSchema } from "../models/transactionModel";
+import { CreateIncomeModel, UpdateIncomeModel } from "../models/incomeModel";
+import { ErrorHandlingService } from "../services/ErrorHandlingService";
 import { FirestoreService } from "../services/FirestoreService";
-import { ValidationService } from "../services/ValidationService";
 
 export class IncomeRepository implements IIncomeRepository {
+  private readonly incomeDatasource: IncomeDatasource;
+  private readonly transactionDatasource: TransactionDatasource;
+  private readonly errorHandlingService: ErrorHandlingService;
   private readonly firestoreService: FirestoreService;
-  private readonly validationService: ValidationService;
-  private readonly contextName = "IncomeRepository";
-  private readonly collectionName = "incomes";
 
   constructor() {
+    this.incomeDatasource = new IncomeDatasource();
+    this.transactionDatasource = new TransactionDatasource();
+    this.errorHandlingService = new ErrorHandlingService();
     this.firestoreService = new FirestoreService();
-    this.validationService = new ValidationService();
   }
 
-  private getConfig() {
+  // #########################################################
+  // # 🛠️ Helper Methods
+  // #########################################################
+
+  private async getAndMapIncome(
+    userId: string,
+    incomeId: string
+  ): Promise<IncomeDto> {
+    const income = await this.incomeDatasource.getById(userId, incomeId);
+    if (!income)
+      throw new Error(`Income ${incomeId} not found for user ${userId}`);
+    return IncomeMapper.toDto(income);
+  }
+
+  // #########################################################
+  // # 📝 Create One
+  // #########################################################
+
+  private async buildIncomeData(
+    input: CreateIncomeDto
+  ): Promise<CreateIncomeModel> {
     return {
-      contextName: this.contextName,
-      collectionName: this.collectionName,
+      id: generateId(),
+      createdAt: this.firestoreService.getCurrentTimestamp(),
+      updatedAt: this.firestoreService.getCurrentTimestamp(),
+      name: input.name,
+      colorTag: input.colorTag,
+      totalEarned: 0,
     };
   }
 
-  async createIncome(
+  async createOne(userId: string, input: CreateIncomeDto): Promise<IncomeDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const incomeData = await this.buildIncomeData(input);
+
+        // Save data
+        await this.incomeDatasource.createOne(userId, incomeData);
+
+        // Return data
+        return await this.getAndMapIncome(userId, incomeData.id);
+      },
+      {
+        contextName: "IncomeRepository",
+        operationType: "create",
+        userId: userId,
+        additionalInfo: {
+          input: input,
+        },
+      },
+      "Failed to create income"
+    );
+  }
+
+  // #########################################################
+  // # 📃 Get One
+  // #########################################################
+
+  async getOneById(
     userId: string,
-    input: CreateIncomeDto
-  ): Promise<IncomeDto> {
-    const validatedInput = this.validationService.validateInput(
-      createIncomeSchema,
-      input,
-      { contextName: this.contextName, operationType: "create" }
-    );
+    incomeId: string
+  ): Promise<IncomeDto | null> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const income = await this.incomeDatasource.getById(userId, incomeId);
 
-    const doc = await this.firestoreService.create(
-      userId,
-      validatedInput,
-      this.getConfig()
-    );
-
-    const validatedData = this.validationService.validateDocumentData(
-      incomeModelSchema,
-      doc.data(),
+        // Return data
+        return income ? IncomeMapper.toDto(income) : null;
+      },
       {
-        contextName: this.contextName,
+        contextName: "IncomeRepository",
         operationType: "read",
-        documentId: doc.id,
-      }
+        userId: userId,
+        additionalInfo: {
+          incomeId: incomeId,
+        },
+      },
+      "Failed to get income"
     );
-
-    return IncomeMapper.toDto(validatedData);
   }
 
-  async getIncome(userId: string, incomeId: string): Promise<IncomeDto | null> {
-    const doc = await this.firestoreService.getById(
-      userId,
-      incomeId,
-      this.getConfig()
-    );
-
-    if (!doc) {
-      return null;
-    }
-
-    const validatedData = this.validationService.validateDocumentData(
-      incomeModelSchema,
-      doc.data(),
+  async getOneByName(userId: string, name: string): Promise<IncomeDto | null> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        const income = await this.incomeDatasource.getByName(userId, name);
+        return income ? IncomeMapper.toDto(income) : null;
+      },
       {
-        contextName: this.contextName,
+        contextName: "IncomeRepository",
         operationType: "read",
-        documentId: incomeId,
-      }
+        userId: userId,
+        additionalInfo: {
+          name: name,
+        },
+      },
+      "Failed to get income by name"
     );
-
-    return IncomeMapper.toDto(validatedData);
   }
 
-  async getPaginatedIncomes(
+  // #########################################################
+  // # 📗 Get Paginated
+  // #########################################################
+
+  async getPaginated(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedIncomesResponse> {
-    const response = await this.firestoreService.getPaginated(
-      userId,
-      params,
-      incomeModelSchema,
-      this.getConfig()
-    );
+  ): Promise<PaginatedIncomesResponseDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const response = await this.incomeDatasource.getPaginated(
+          userId,
+          params
+        );
 
-    return {
-      data: response.data.map((income) => IncomeMapper.toDto(income)),
-      meta: response.meta,
-    };
+        // Return data
+        return {
+          data: response.data.map(IncomeMapper.toDto),
+          meta: response.meta,
+        };
+      },
+      {
+        contextName: "IncomeRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          params: params,
+        },
+      },
+      "Failed to get paginated incomes"
+    );
   }
 
-  async updateIncome(
+  // #########################################################
+  // # 📗 Get Paginated With Transactions
+  // #########################################################
+
+  async getLatestTransactionsForIncome(
+    userId: string,
+    incomeId: string,
+    maxTransactionsToShow: number = 12
+  ) {
+    const response = await this.transactionDatasource.getPaginated(userId, {
+      sort: {
+        field: "transactionDate",
+        order: "desc",
+      },
+      pagination: {
+        page: 1,
+        limitPerPage: maxTransactionsToShow,
+      },
+      filters: [
+        {
+          field: "category.id",
+          operator: "==",
+          value: incomeId,
+        },
+      ],
+    });
+
+    return response.data.map((transaction) =>
+      TransactionMapper.toDto(transaction)
+    );
+  }
+
+  async getPaginatedWithTransactions(
+    userId: string,
+    params: PaginationParams,
+    maxTransactionsToShow: number = 3
+  ): Promise<PaginatedIncomesWithTransactionsResponseDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        const response = await this.incomeDatasource.getPaginated(
+          userId,
+          params
+        );
+
+        const incomesWithTransactions = await Promise.all(
+          response.data.map(async (income) => {
+            const [totalEarned, transactions] = await Promise.all([
+              this.transactionDatasource.calculateTotalByCategory(
+                userId,
+                income.id
+              ),
+              this.getLatestTransactionsForIncome(
+                userId,
+                income.id,
+                maxTransactionsToShow
+              ),
+            ]);
+
+            return {
+              ...IncomeMapper.toDto(income),
+              transactions,
+              totalEarned,
+            };
+          })
+        );
+
+        return {
+          data: incomesWithTransactions,
+          meta: response.meta,
+        };
+      },
+      {
+        contextName: "IncomeRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          params: params,
+        },
+      },
+      "Failed to get paginated incomes with transactions"
+    );
+  }
+
+  // #########################################################
+  // # 📃 Update One
+  // #########################################################
+
+  private async buildUpdateData(
+    currentIncome: IncomeDto,
+    input: UpdateIncomeDto
+  ): Promise<UpdateIncomeModel> {
+    const updateData: UpdateIncomeModel = {
+      updatedAt: this.firestoreService.getCurrentTimestamp(),
+    };
+
+    if (input.name !== undefined && input.name !== currentIncome.name) {
+      updateData.name = input.name;
+    }
+
+    if (
+      input.colorTag !== undefined &&
+      input.colorTag !== currentIncome.colorTag
+    ) {
+      updateData.colorTag = input.colorTag;
+    }
+
+    return updateData;
+  }
+
+  async updateOne(
     userId: string,
     incomeId: string,
     input: UpdateIncomeDto
   ): Promise<IncomeDto> {
-    const validatedInput = this.validationService.validateInput(
-      updateIncomeSchema,
-      input,
-      { contextName: this.contextName, operationType: "update" }
-    );
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const currentIncome = await this.getAndMapIncome(userId, incomeId);
+        const updateData = await this.buildUpdateData(currentIncome, input);
 
-    const doc = await this.firestoreService.update(
-      userId,
-      incomeId,
-      validatedInput,
-      this.getConfig()
-    );
+        // Update data
+        await this.incomeDatasource.updateOne(userId, incomeId, updateData);
 
-    const validatedData = this.validationService.validateDocumentData(
-      incomeModelSchema,
-      doc.data(),
+        // Return data
+        return await this.getAndMapIncome(userId, incomeId);
+      },
       {
-        contextName: this.contextName,
-        operationType: "read",
-        documentId: incomeId,
-      }
-    );
-
-    return IncomeMapper.toDto(validatedData);
-  }
-
-  async incomeExists(userId: string, incomeName: string): Promise<boolean> {
-    return this.firestoreService.existsByName(
-      userId,
-      incomeName,
-      this.getConfig()
+        contextName: "IncomeRepository",
+        operationType: "update",
+        userId: userId,
+        additionalInfo: {
+          incomeId: incomeId,
+          input: input,
+        },
+      },
+      "Failed to update income"
     );
   }
 
-  async deleteIncome(userId: string, incomeId: string): Promise<void> {
-    return this.firestoreService.delete(userId, incomeId, this.getConfig());
+  // #########################################################
+  // # 📄 Delete One
+  // #########################################################
+
+  async deleteOne(userId: string, incomeId: string): Promise<void> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const currentIncome = await this.getAndMapIncome(userId, incomeId);
+
+        // Delete data
+        await this.incomeDatasource.deleteOne(userId, incomeId);
+      },
+      {
+        contextName: "IncomeRepository",
+        operationType: "delete",
+        userId: userId,
+        additionalInfo: {
+          incomeId: incomeId,
+        },
+      },
+      "Failed to delete income"
+    );
   }
 
-  async getPaginatedIncomesWithTransactions(
+  // #########################################################
+  // # 📈 Get Summary
+  // #########################################################
+
+  private async getIncomesToShowInSummary(
     userId: string,
-    params: PaginationParams,
-    transactionCount: number = 3
-  ): Promise<PaginatedIncomesWithTransactionsResponse> {
-    const collection = this.firestoreService.getCollection(
-      userId,
-      this.collectionName
-    );
-    const response = await this.firestoreService.getPaginatedData(
-      collection,
-      params,
-      incomeModelSchema
-    );
+    maxIncomesToShow: number
+  ) {
+    const response = await this.incomeDatasource.getPaginated(userId, {
+      sort: {
+        field: "totalEarned",
+        order: "desc",
+      },
+      pagination: {
+        page: 1,
+        limitPerPage: maxIncomesToShow,
+      },
+      filters: [],
+    });
 
-    const incomesWithTransactions = await Promise.all(
-      response.data.map(async (income) => {
-        const transactions = await this.firestoreService.getPaginatedData(
-          this.firestoreService.getCollection(userId, "transactions"),
-          {
-            pagination: {
-              page: 1,
-              limitPerPage: transactionCount,
-            },
-            sort: {
-              field: "transactionDate",
-              order: "desc",
-            },
-            filters: [
-              { field: "category.id", operator: "==", value: income.id },
-            ],
-            search: "",
-          },
-          transactionModelSchema
-        );
+    return response.data.map(IncomeMapper.toDtoWithTotalEarned);
+  }
+
+  async getSummary(
+    userId: string,
+    maxIncomesToShow: number
+  ): Promise<IncomesSummaryDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        const [incomes, totalEarned, count] = await Promise.all([
+          this.getIncomesToShowInSummary(userId, maxIncomesToShow),
+          this.transactionDatasource.calculateTotalByType(userId, "expense"),
+          this.incomeDatasource.getCount(userId),
+        ]);
+
         return {
-          ...IncomeMapper.toDto(income),
-          transactions: transactions.data.map((transaction) =>
-            TransactionMapper.toDto(transaction)
-          ),
+          incomes,
+          totalEarned,
+          count,
         };
-      })
+      },
+      {
+        contextName: "IncomeRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          maxIncomesToShow: maxIncomesToShow,
+        },
+      },
+      "Failed to get summary"
     );
-
-    return {
-      data: incomesWithTransactions,
-      meta: response.meta,
-    };
   }
 }

@@ -8,6 +8,6 @@ export class GetIncomeUseCase {
     if (!userId) throw new Error("User ID is required");
     if (!incomeId) throw new Error("Income ID is required");
 
-    return this.incomeRepository.getIncome(userId, incomeId);
+    return this.incomeRepository.getOneById(userId, incomeId);
   }
 }

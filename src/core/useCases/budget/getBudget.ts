@@ -8,6 +8,6 @@ export class GetBudgetUseCase {
     if (!userId) throw new Error("User ID is required");
     if (!budgetId) throw new Error("Budget ID is required");
 
-    return this.budgetRepository.getBudget(userId, budgetId);
+    return this.budgetRepository.getOneById(userId, budgetId);
   }
 }

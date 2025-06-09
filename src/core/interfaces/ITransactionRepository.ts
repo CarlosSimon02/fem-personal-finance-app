@@ -1,34 +1,33 @@
 import {
   CreateTransactionDto,
-  PaginatedCategoriesResponse,
-  PaginatedTransactionsResponse,
+  PaginatedTransactionsResponseDto,
   TransactionDto,
   UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
+import { PaginatedCategoriesResponseDto } from "../schemas/categorySchema";
 import { PaginationParams } from "../schemas/paginationSchema";
 
 export interface ITransactionRepository {
-  createTransaction(
+  createOne(
     userId: string,
     input: CreateTransactionDto
   ): Promise<TransactionDto>;
-  getTransaction(
+  getOneById(
     userId: string,
     transactionId: string
   ): Promise<TransactionDto | null>;
-  getPaginatedTransactions(
+  getPaginated(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedTransactionsResponse>;
-  updateTransaction(
+  ): Promise<PaginatedTransactionsResponseDto>;
+  updateOne(
     userId: string,
     transactionId: string,
     input: UpdateTransactionDto
   ): Promise<TransactionDto>;
-  deleteTransaction(userId: string, transactionId: string): Promise<void>;
+  deleteOne(userId: string, transactionId: string): Promise<void>;
   getPaginatedCategories(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedCategoriesResponse>;
-  migrateTransactionCategoriesToCollection(): Promise<void>;
+  ): Promise<PaginatedCategoriesResponseDto>;
 }

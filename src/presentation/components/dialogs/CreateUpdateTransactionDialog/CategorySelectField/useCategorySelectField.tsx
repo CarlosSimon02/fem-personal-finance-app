@@ -3,7 +3,7 @@
 import { BudgetDto } from "@/core/schemas/budgetSchema";
 import { IncomeDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { TransactionType } from "@/core/schemas/transactionSchema";
+import { TransactionTypeDto } from "@/core/schemas/transactionSchema";
 import { getPaginatedBudgetsAction } from "@/presentation/actions/budgetActions";
 import { getPaginatedIncomesAction } from "@/presentation/actions/incomeActions";
 import { useCallback, useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import {
 } from "react-select";
 import { CategoryOptionType } from "./types";
 
-export const useCategoryOptions = (transactionType: TransactionType) => {
+export const useCategoryOptions = (transactionType: TransactionTypeDto) => {
   const loadOptions = useCallback(
     async (
       search: string,
@@ -96,7 +96,7 @@ export const useCategorySelection = (
   };
 };
 
-export const useCategoryDialogs = (transactionType: TransactionType) => {
+export const useCategoryDialogs = (transactionType: TransactionTypeDto) => {
   const [isAddingInProgress, setIsAddingInProgress] = useState(false);
   const [cacheUniq, setCacheUniq] = useState(0);
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);

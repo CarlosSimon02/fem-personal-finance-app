@@ -4,42 +4,44 @@ import {
   UpdateUserDto,
   UserDto,
 } from "@/core/schemas/userSchema";
+import { UserDatasource } from "../datasource/UserDatasource";
 import { UserMapper } from "../mappers/UserMapper";
-import {
-  CreateUserModel,
-  createUserModelSchema,
-  UpdateUserModel,
-  updateUserModelSchema,
-  userModelSchema,
-} from "../models/userModel";
-import { CollectionService } from "../services/CollectionService";
+import { CreateUserModel, UpdateUserModel } from "../models/userModel";
+import { ErrorHandlingService } from "../services/ErrorHandlingService";
 import { FirestoreService } from "../services/FirestoreService";
-import { UtilityService } from "../services/UtilityService";
 import { ValidationService } from "../services/ValidationService";
 
 export class UserRepository implements IUserRepository {
-  private readonly collectionService: CollectionService;
-  private readonly utilityService: UtilityService;
+  private readonly userDatasource: UserDatasource;
   private readonly firestoreService: FirestoreService;
   private readonly validationService: ValidationService;
-  private readonly contextName = "UserRepository";
-  private readonly collectionName = "users";
+  private readonly errorHandlingService: ErrorHandlingService;
 
   constructor() {
-    this.collectionService = new CollectionService();
-    this.utilityService = new UtilityService();
+    this.userDatasource = new UserDatasource();
     this.firestoreService = new FirestoreService();
     this.validationService = new ValidationService();
+    this.errorHandlingService = new ErrorHandlingService();
   }
 
-  private getConfig() {
-    return {
-      contextName: this.contextName,
-      collectionName: this.collectionName,
-    };
+  // #########################################################
+  // # 🛠️ Helper Methods
+  // #########################################################
+
+  private async getAndMapUser(userId: string): Promise<UserDto> {
+    const user = await this.userDatasource.getById(userId);
+    if (!user) {
+      throw new Error(`User ${userId} not found`);
+    }
+    return UserMapper.toDto(user);
   }
-  async createUser(user: CreateUserDto): Promise<UserDto> {
-    return this.utilityService.executeOperation(
+
+  // #########################################################
+  // # 📝 Create One
+  // #########################################################
+
+  async createOne(user: CreateUserDto): Promise<UserDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const userData: CreateUserModel = {
           id: user.id,
@@ -52,62 +54,41 @@ export class UserRepository implements IUserRepository {
           customClaims: user.customClaims ?? null,
         };
 
-        const validatedInput = this.validationService.validateInput(
-          createUserModelSchema,
-          userData,
-          {
-            contextName: this.contextName,
-            operationType: "create",
-          }
-        );
+        await this.userDatasource.createOne(userData);
 
-        const createdUser = await this.firestoreService.create(
-          user.id,
-          validatedInput,
-          this.getConfig()
-        );
-
-        const validatedData = this.validationService.validateDocumentData(
-          userModelSchema,
-          createdUser,
-          {
-            contextName: this.contextName,
-            operationType: "create",
-          }
-        );
-
-        return UserMapper.toDto(validatedData);
+        return this.getAndMapUser(user.id);
       },
-      this.contextName,
+      {
+        contextName: "UserRepository",
+        operationType: "create",
+      },
       "Failed to create user"
     );
   }
 
-  async getUserById(id: string): Promise<UserDto | null> {
-    return this.utilityService.executeOperation(
+  // #########################################################
+  // # 📝 Read One
+  // #########################################################
+
+  async getOneById(id: string): Promise<UserDto | null> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const userDoc = await this.collectionService
-          .getUserCollection()
-          .doc(id)
-          .get();
-        const userdata = userDoc.data();
-        if (!userdata) return null;
+        const user = await this.userDatasource.getById(id);
+        if (!user) return null;
 
-        const validatedData = this.validationService.validateDocumentData(
-          userModelSchema,
-          userdata,
-          {
-            contextName: this.contextName,
-            operationType: "read",
-          }
-        );
-
-        return UserMapper.toDto(validatedData);
+        return this.getAndMapUser(id);
       },
-      this.contextName,
+      {
+        contextName: "UserRepository",
+        operationType: "read",
+      },
       "Failed to get user"
     );
   }
+
+  // #########################################################
+  // # 🔄 Update One
+  // #########################################################
 
   private async buildUpdateData(
     currentUser: UserDto,
@@ -148,51 +129,40 @@ export class UserRepository implements IUserRepository {
     return updateData;
   }
 
-  async updateUser(id: string, input: UpdateUserDto): Promise<UserDto> {
-    return this.utilityService.executeOperation(
+  async updateOne(id: string, input: UpdateUserDto): Promise<UserDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const currentUser = await this.getUserById(id);
+        const currentUser = await this.getOneById(id);
 
         if (!currentUser) throw new Error("User not found");
 
         const updateData = await this.buildUpdateData(currentUser, input);
 
-        const validatedInput = this.validationService.validateInput(
-          updateUserModelSchema,
-          updateData,
-          {
-            contextName: this.contextName,
-            operationType: "update",
-          }
-        );
+        await this.userDatasource.updateOne(id, updateData);
 
-        const updatedUser = await this.collectionService
-          .getUserCollection()
-          .doc(id)
-          .update(validatedInput);
-
-        const validatedData = this.validationService.validateDocumentData(
-          userModelSchema,
-          updatedUser,
-          {
-            contextName: this.contextName,
-            operationType: "update",
-          }
-        );
-
-        return UserMapper.toDto(validatedData);
+        return this.getAndMapUser(id);
       },
-      this.contextName,
+      {
+        contextName: "UserRepository",
+        operationType: "update",
+      },
       "Failed to update user"
     );
   }
 
-  async deleteUser(id: string): Promise<void> {
-    return this.utilityService.executeOperation(
+  // #########################################################
+  // # 🗑️ Delete One
+  // #########################################################
+
+  async deleteOne(id: string): Promise<void> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        await this.collectionService.getUserCollection().doc(id).delete();
+        await this.userDatasource.deleteOne(id);
       },
-      this.contextName,
+      {
+        contextName: "UserRepository",
+        operationType: "delete",
+      },
       "Failed to delete user"
     );
   }

@@ -1,9 +1,9 @@
-import { budgetSchema } from "@/core/schemas/budgetSchema";
+import { budgetSchemaWithTotalSpending } from "@/core/schemas/budgetSchema";
 import { createPaginationResponseSchema } from "@/core/schemas/paginationSchema";
 import { z } from "zod";
 import { zFieldValue, zTimestamp } from "./helpers";
 
-export const budgetModelSchema = budgetSchema
+export const budgetModelSchema = budgetSchemaWithTotalSpending
   .omit({
     createdAt: true,
     updatedAt: true,
@@ -25,6 +25,7 @@ export const createBudgetModelSchema = budgetModelSchema
 
 export const updateBudgetModelSchema = budgetModelSchema
   .omit({
+    totalSpending: true,
     createdAt: true,
     updatedAt: true,
   })
@@ -44,5 +45,4 @@ export type BudgetModelPaginationResponse = z.infer<
 >;
 
 export type CreateBudgetModel = z.infer<typeof createBudgetModelSchema>;
-
 export type UpdateBudgetModel = z.infer<typeof updateBudgetModelSchema>;

@@ -6,8 +6,8 @@ export class GetBudgetsSummaryUseCase {
 
   async execute(
     userId: string,
-    budgetCount?: number
+    maxBudgetsToShow?: number
   ): Promise<BudgetsSummaryDto> {
-    return this.budgetRepository.getBudgetsSummary(userId, budgetCount);
+    return this.budgetRepository.getSummary(userId, maxBudgetsToShow);
   }
 }

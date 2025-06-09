@@ -1,6 +1,6 @@
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { PaginatedTransactionsResponse } from "@/core/schemas/transactionSchema";
+import { PaginatedTransactionsResponseDto } from "@/core/schemas/transactionSchema";
 import { AuthError } from "@/utils/authError";
 
 export class GetPaginatedTransactionsUseCase {
@@ -9,11 +9,11 @@ export class GetPaginatedTransactionsUseCase {
   async execute(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedTransactionsResponse> {
+  ): Promise<PaginatedTransactionsResponseDto> {
     if (!userId) {
       throw new AuthError();
     }
 
-    return this.transactionRepository.getPaginatedTransactions(userId, params);
+    return this.transactionRepository.getPaginated(userId, params);
   }
 }

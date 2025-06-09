@@ -13,6 +13,6 @@ export class DeleteTransactionUseCase {
       throw new Error("Transaction ID is required");
     }
 
-    await this.transactionRepository.deleteTransaction(userId, transactionId);
+    await this.transactionRepository.deleteOne(userId, transactionId);
   }
 }

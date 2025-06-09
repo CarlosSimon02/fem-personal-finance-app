@@ -24,7 +24,7 @@ export class UpdateTransactionUseCase {
 
     const validatedTransaction = transactionEntity.validateUpdateTransaction();
 
-    return this.transactionRepository.updateTransaction(
+    return this.transactionRepository.updateOne(
       userId,
       transactionId,
       validatedTransaction

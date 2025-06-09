@@ -11,6 +11,6 @@ export class GetPaginatedBudgetsUseCase {
   ): Promise<PaginatedBudgetsResponseDto> {
     if (!userId) throw new Error("User ID is required");
 
-    return this.budgetRepository.getPaginatedBudgets(userId, params);
+    return this.budgetRepository.getPaginated(userId, params);
   }
 }

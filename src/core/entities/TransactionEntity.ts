@@ -3,19 +3,19 @@ import { ValidationError } from "../../utils/validationError";
 import {
   CreateTransactionDto,
   createTransactionSchema,
-  TransactionCategory,
-  TransactionType,
+  TransactionCategoryDto,
+  TransactionTypeDto,
   UpdateTransactionDto,
   updateTransactionSchema,
 } from "../schemas/transactionSchema";
 
 export class TransactionEntity {
   private id?: string;
-  private type?: TransactionType;
+  private type?: TransactionTypeDto;
   private amount?: number;
   private name?: string;
   private recipientOrPayer?: string | null;
-  private category?: TransactionCategory;
+  private category?: TransactionCategoryDto;
   private categoryId?: string;
   private transactionDate?: Date;
   private description?: string | null;
@@ -40,11 +40,11 @@ export class TransactionEntity {
     userId,
   }: {
     id?: string;
-    type?: TransactionType;
+    type?: TransactionTypeDto;
     amount?: number;
     name?: string;
     recipientOrPayer?: string | null;
-    category?: TransactionCategory;
+    category?: TransactionCategoryDto;
     categoryId?: string;
     transactionDate?: Date;
     description?: string | null;
@@ -124,7 +124,7 @@ export class TransactionEntity {
     this.id = id;
   }
 
-  setType(type: TransactionType) {
+  setType(type: TransactionTypeDto) {
     this.type = type;
   }
 
@@ -140,7 +140,7 @@ export class TransactionEntity {
     this.recipientOrPayer = recipientOrPayer;
   }
 
-  setCategory(category: TransactionCategory) {
+  setCategory(category: TransactionCategoryDto) {
     this.category = category;
   }
 

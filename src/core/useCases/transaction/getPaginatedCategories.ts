@@ -1,6 +1,6 @@
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
+import { PaginatedCategoriesResponseDto } from "@/core/schemas/categorySchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { PaginatedCategoriesResponse } from "@/core/schemas/transactionSchema";
 import { AuthError } from "@/utils/authError";
 
 export class GetPaginatedCategoriesUseCase {
@@ -9,7 +9,7 @@ export class GetPaginatedCategoriesUseCase {
   async execute(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedCategoriesResponse> {
+  ): Promise<PaginatedCategoriesResponseDto> {
     if (!userId) {
       throw new AuthError();
     }

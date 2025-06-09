@@ -1,10 +1,10 @@
 "use server";
 
+import { PaginatedCategoriesResponseDto } from "@/core/schemas/categorySchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
-  PaginatedCategoriesResponse,
-  PaginatedTransactionsResponse,
+  PaginatedTransactionsResponseDto,
   TransactionDto,
   UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
@@ -21,7 +21,7 @@ import { unstable_cacheTag as cacheTag, revalidateTag } from "next/cache";
 
 export const getPaginatedTransactionsAction = actionWithAuth<
   PaginationParams,
-  PaginatedTransactionsResponse
+  PaginatedTransactionsResponseDto
 >(async ({ user, data }) => {
   "use cache";
   cacheTag(cacheTags.PAGINATED_TRANSACTIONS);
@@ -44,7 +44,7 @@ export const createTransactionAction = actionWithAuth<
 
 export const getPaginatedCategoriesAction = actionWithAuth<
   PaginationParams,
-  PaginatedCategoriesResponse
+  PaginatedCategoriesResponseDto
 >(async ({ user, data }) => {
   "use cache";
   cacheTag(cacheTags.PAGINATED_CATEGORIES);

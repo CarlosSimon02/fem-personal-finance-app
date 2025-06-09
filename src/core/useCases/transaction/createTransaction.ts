@@ -23,9 +23,6 @@ export class CreateTransactionUseCase {
 
     const validatedTransaction = transactionEntity.validateCreateTransaction();
 
-    return this.transactionRepository.createTransaction(
-      userId,
-      validatedTransaction
-    );
+    return this.transactionRepository.createOne(userId, validatedTransaction);
   }
 }

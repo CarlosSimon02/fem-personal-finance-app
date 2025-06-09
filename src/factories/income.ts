@@ -1,6 +1,7 @@
 import { CreateIncomeUseCase } from "@/core/useCases/income/createIncome";
 import { DeleteIncomeUseCase } from "@/core/useCases/income/deleteIncome";
 import { GetIncomeUseCase } from "@/core/useCases/income/getIncome";
+import { GetIncomesSummaryUseCase } from "@/core/useCases/income/getIncomesSummary";
 import { GetPaginatedIncomesUseCase } from "@/core/useCases/income/getPaginatedIncomes";
 import { GetPaginatedIncomesWithTransactionsUseCase } from "@/core/useCases/income/getPaginatedIncomesWithTransactions";
 import { UpdateIncomeUseCase } from "@/core/useCases/income/updateIncome";
@@ -17,5 +18,8 @@ export const getPaginatedIncomesUseCase = new GetPaginatedIncomesUseCase(
 );
 export const getPaginatedIncomesWithTransactionsUseCase =
   new GetPaginatedIncomesWithTransactionsUseCase(incomeRepository);
+export const getIncomesSummaryUseCase = new GetIncomesSummaryUseCase(
+  incomeRepository
+);
 
 export { incomeRepository };

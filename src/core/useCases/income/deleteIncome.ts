@@ -7,6 +7,6 @@ export class DeleteIncomeUseCase {
     if (!userId) throw new Error("User ID is required");
     if (!incomeId) throw new Error("Income ID is required");
 
-    await this.incomeRepository.deleteIncome(userId, incomeId);
+    await this.incomeRepository.deleteOne(userId, incomeId);
   }
 }

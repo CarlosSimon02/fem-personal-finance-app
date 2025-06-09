@@ -1,4 +1,4 @@
-import { nanoid } from "nanoid";
+import { generateId } from "@/utils/generateId";
 import { create } from "zustand";
 
 type FilterByCategoryStore = {
@@ -9,7 +9,7 @@ type FilterByCategoryStore = {
 export const useFilterByCategory = create<FilterByCategoryStore>((set) => ({
   cacheUniq: "",
   setCacheUniq: () => {
-    const uniqid = nanoid(10);
+    const uniqid = generateId(10);
     set({ cacheUniq: uniqid });
   },
 }));

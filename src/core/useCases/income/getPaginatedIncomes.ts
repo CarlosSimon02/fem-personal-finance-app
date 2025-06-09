@@ -1,5 +1,5 @@
 import { IIncomeRepository } from "@/core/interfaces/IIncomeRepository";
-import { PaginatedIncomesResponse } from "@/core/schemas/incomeSchema";
+import { PaginatedIncomesResponseDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 
 export class GetPaginatedIncomesUseCase {
@@ -8,9 +8,9 @@ export class GetPaginatedIncomesUseCase {
   async execute(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedIncomesResponse> {
+  ): Promise<PaginatedIncomesResponseDto> {
     if (!userId) throw new Error("User ID is required");
 
-    return this.incomeRepository.getPaginatedIncomes(userId, params);
+    return this.incomeRepository.getPaginated(userId, params);
   }
 }

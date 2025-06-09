@@ -1,9 +1,9 @@
-import { incomeSchema } from "@/core/schemas/incomeSchema";
+import { incomeSchemaWithTotalEarned } from "@/core/schemas/incomeSchema";
 import { createPaginationResponseSchema } from "@/core/schemas/paginationSchema";
 import { z } from "zod";
-import { zTimestamp } from "./helpers";
+import { zFieldValue, zTimestamp } from "./helpers";
 
-export const incomeModelSchema = incomeSchema
+export const incomeModelSchema = incomeSchemaWithTotalEarned
   .omit({
     createdAt: true,
     updatedAt: true,
@@ -12,6 +12,28 @@ export const incomeModelSchema = incomeSchema
     createdAt: zTimestamp,
     updatedAt: zTimestamp,
   });
+
+export const createIncomeModelSchema = incomeModelSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zFieldValue,
+    updatedAt: zFieldValue,
+  });
+
+export const updateIncomeModelSchema = incomeModelSchema
+  .omit({
+    totalEarned: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    updatedAt: zFieldValue,
+    createdAt: zFieldValue,
+  })
+  .partial();
 
 export const incomeModelPaginationResponseSchema =
   createPaginationResponseSchema(incomeModelSchema);
@@ -22,10 +44,5 @@ export type IncomeModelPaginationResponse = z.infer<
   typeof incomeModelPaginationResponseSchema
 >;
 
-export type CreateIncomeModel = Omit<
-  IncomeModel,
-  "id" | "createdAt" | "updatedAt"
->;
-export type UpdateIncomeModel = Partial<
-  Omit<IncomeModel, "id" | "createdAt" | "updatedAt" | "userId">
->;
+export type CreateIncomeModel = z.infer<typeof createIncomeModelSchema>;
+export type UpdateIncomeModel = z.infer<typeof updateIncomeModelSchema>;

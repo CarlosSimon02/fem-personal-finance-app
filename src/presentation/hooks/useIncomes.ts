@@ -1,13 +1,14 @@
 import { CreateIncomeDto, IncomeDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { subscribeToIncomesUseCase } from "@/factories/realtime";
+import { subscribeToBudgetsUseCase } from "@/factories/realtime";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import {
-  createIncomeAction,
-  getPaginatedIncomesAction,
-} from "../actions/incomeActions";
+  getPaginatedBudgetsWithTransactionsAction,
+  revalidateBudgetTags,
+} from "../actions/budgetActions";
+import { createIncomeAction } from "../actions/incomeActions";
 import { useAuth } from "../contexts/AuthContext";
 import { StatusCallbacksType } from "./types";
 
@@ -53,18 +54,17 @@ interface UseIncomesParams {
   pageSize?: number;
 }
 
-export const useIncomesRealtime = ({
-  search = "",
-  sortBy = "name",
-  order = "asc",
+export const useIncomesWithTransactionsRealtime = ({
+  sortBy = "createdAt",
+  order = "desc",
   page = 1,
-  pageSize = 10,
+  pageSize = 4,
 }: UseIncomesParams) => {
-  const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const params: PaginationParams = {
-    search,
+    search: "",
     filters: [],
     sort: {
       field: sortBy,
@@ -76,64 +76,40 @@ export const useIncomesRealtime = ({
     },
   };
 
-  const queryKey = ["incomes", params, user];
+  const queryKey = ["incomes", params];
 
-  // Initialize React Query with initial fetch
   const query = useQuery({
     queryKey,
     queryFn: async () => {
-      if (!user) throw new Error("User not authenticated");
-
-      const result = await getPaginatedIncomesAction(params);
+      const result = await getPaginatedBudgetsWithTransactionsAction(params);
       if (result.error) {
         throw new Error(result.error);
       }
       return result.data;
     },
-    enabled: !!user,
     refetchOnWindowFocus: false,
-    staleTime: Infinity, // Data is always fresh from onSnapshot
+    staleTime: Infinity,
   });
 
   // Set up real-time listener
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = subscribeToIncomesUseCase.execute(
+    const unsubscribe = subscribeToBudgetsUseCase.execute(
       user.id,
-      params,
-      (incomes) => {
-        // Create pagination metadata manually since onSnapshot doesn't provide it
-        const totalItems = incomes.length;
-        const totalPages = Math.ceil(
-          totalItems / params.pagination.limitPerPage
-        );
+      async (_) => {
+        await revalidateBudgetTags();
+        const response =
+          await getPaginatedBudgetsWithTransactionsAction(params);
 
-        const paginatedData = {
-          data: incomes,
-          meta: {
-            pagination: {
-              totalItems,
-              page: params.pagination.page,
-              limitPerPage: params.pagination.limitPerPage,
-              nextPage:
-                params.pagination.page < totalPages
-                  ? params.pagination.page + 1
-                  : null,
-              previousPage:
-                params.pagination.page > 1 ? params.pagination.page - 1 : null,
-            },
-            sort: params.sort,
-            filters: params.filters,
-            search: params.search,
-          },
-        };
+        if (response.error) {
+          throw new Error(response.error);
+        }
 
-        // Update React Query cache with real-time data
-        queryClient.setQueryData(queryKey, paginatedData);
+        queryClient.setQueryData(queryKey, response.data);
       },
       (error) => {
-        console.error("Real-time incomes error:", error);
+        console.error("Real-time budgets error:", error);
         // Set error state in React Query
         queryClient.setQueryData(queryKey, () => {
           throw error;
@@ -142,7 +118,7 @@ export const useIncomesRealtime = ({
     );
 
     return unsubscribe;
-  }, [user, JSON.stringify(params), queryClient, queryKey]);
+  }, []);
 
   return query;
 };

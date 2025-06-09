@@ -19,6 +19,6 @@ export class UpdateBudgetUseCase {
     // Validate input
     const validatedData = updateBudgetSchema.parse(input);
 
-    return this.budgetRepository.updateBudget(userId, budgetId, validatedData);
+    return this.budgetRepository.updateOne(userId, budgetId, validatedData);
   }
 }

@@ -19,6 +19,6 @@ export class UpdateIncomeUseCase {
     // Validate input
     const validatedData = updateIncomeSchema.parse(input);
 
-    return this.incomeRepository.updateIncome(userId, incomeId, validatedData);
+    return this.incomeRepository.updateOne(userId, incomeId, validatedData);
   }
 }

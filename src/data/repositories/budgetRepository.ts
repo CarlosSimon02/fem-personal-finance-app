@@ -6,223 +6,228 @@ import {
   PaginatedBudgetsResponseDto,
   PaginatedBudgetsWithTransactionsResponseDto,
   UpdateBudgetDto,
-  updateBudgetSchema,
 } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { AggregateField } from "firebase-admin/firestore";
+import { generateId } from "@/utils/generateId";
+import { BudgetDatasource } from "../datasource/BudgetDatasource";
+import { TransactionDatasource } from "../datasource/TransactionDatasource";
 import { BudgetMapper } from "../mappers/BudgetMapper";
 import { TransactionMapper } from "../mappers/TransactionMapper";
-import {
-  budgetModelSchema,
-  CreateBudgetModel,
-  createBudgetModelSchema,
-} from "../models/budgetModel";
-import { transactionModelSchema } from "../models/transactionModel";
+import { CreateBudgetModel, UpdateBudgetModel } from "../models/budgetModel";
+import { ErrorHandlingService } from "../services/ErrorHandlingService";
 import { FirestoreService } from "../services/FirestoreService";
-import { UtilityService } from "../services/UtilityService";
-import { ValidationService } from "../services/ValidationService";
 
 export class BudgetRepository implements IBudgetRepository {
+  private readonly budgetDatasource: BudgetDatasource;
+  private readonly transactionDatasource: TransactionDatasource;
+  private readonly errorHandlingService: ErrorHandlingService;
   private readonly firestoreService: FirestoreService;
-  private readonly validationService: ValidationService;
-  private readonly utilityService: UtilityService;
-  private readonly contextName = "BudgetRepository";
-  private readonly collectionName = "budgets";
 
   constructor() {
+    this.budgetDatasource = new BudgetDatasource();
+    this.transactionDatasource = new TransactionDatasource();
+    this.errorHandlingService = new ErrorHandlingService();
     this.firestoreService = new FirestoreService();
-    this.validationService = new ValidationService();
-    this.utilityService = new UtilityService();
   }
 
-  private getConfig() {
-    return {
-      contextName: this.contextName,
-      collectionName: this.collectionName,
-    };
-  }
+  // #########################################################
+  // # 🛠️ Helper Methods
+  // #########################################################
 
-  async createBudget(
+  private async getAndMapBudget(
     userId: string,
-    input: CreateBudgetDto
+    budgetId: string
   ): Promise<BudgetDto> {
-    const timestamp = this.firestoreService.getCurrentTimestamp();
-    const budgetData: CreateBudgetModel = {
-      id: "",
-      createdAt: timestamp,
-      updatedAt: timestamp,
+    const budget = await this.budgetDatasource.getById(userId, budgetId);
+    if (!budget)
+      throw new Error(`Budget ${budgetId} not found for user ${userId}`);
+    return BudgetMapper.toDto(budget);
+  }
+
+  // #########################################################
+  // # 📝 Create One
+  // #########################################################
+
+  private async buildBudgetData(
+    input: CreateBudgetDto
+  ): Promise<CreateBudgetModel> {
+    return {
+      id: generateId(),
+      createdAt: this.firestoreService.getCurrentTimestamp(),
+      updatedAt: this.firestoreService.getCurrentTimestamp(),
       name: input.name,
       maximumSpending: input.maximumSpending,
       colorTag: input.colorTag,
+      totalSpending: 0,
     };
-
-    const validatedInput = this.validationService.validateInput(
-      createBudgetModelSchema,
-      budgetData,
-      { contextName: this.contextName, operationType: "create" }
-    );
-
-    const doc = await this.firestoreService.create(
-      userId,
-      validatedInput,
-      this.getConfig()
-    );
-
-    // ✅ Validate output and map to DTO
-    const validatedData = this.validationService.validateDocumentData(
-      budgetModelSchema,
-      doc.data(),
-      {
-        contextName: this.contextName,
-        operationType: "read",
-        documentId: doc.id,
-      }
-    );
-
-    return BudgetMapper.toDto(validatedData);
   }
 
-  async getBudget(userId: string, budgetId: string): Promise<BudgetDto | null> {
-    const doc = await this.firestoreService.getById(
-      userId,
-      budgetId,
-      this.getConfig()
-    );
+  async createOne(userId: string, input: CreateBudgetDto): Promise<BudgetDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const budgetData = await this.buildBudgetData(input);
 
-    if (!doc) {
-      return null;
-    }
+        // Save data
+        await this.budgetDatasource.createOne(userId, budgetData);
 
-    const validatedData = this.validationService.validateDocumentData(
-      budgetModelSchema,
-      doc.data(),
+        // Return data
+        return await this.getAndMapBudget(userId, budgetData.id);
+      },
       {
-        contextName: this.contextName,
-        operationType: "read",
-        documentId: budgetId,
-      }
+        contextName: "BudgetRepository",
+        operationType: "create",
+        userId: userId,
+        additionalInfo: {
+          input: input,
+        },
+      },
+      "Failed to create budget"
     );
-
-    return BudgetMapper.toDto(validatedData);
   }
 
-  async getPaginatedBudgets(
+  // #########################################################
+  // # 📃 Get One By Id
+  // #########################################################
+
+  async getOneById(
+    userId: string,
+    budgetId: string
+  ): Promise<BudgetDto | null> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const budget = await this.budgetDatasource.getById(userId, budgetId);
+
+        // Return data
+        return budget ? BudgetMapper.toDto(budget) : null;
+      },
+      {
+        contextName: "BudgetRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          budgetId: budgetId,
+        },
+      },
+      "Failed to get budget"
+    );
+  }
+
+  async getOneByName(userId: string, name: string): Promise<BudgetDto | null> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        const budget = await this.budgetDatasource.getByName(userId, name);
+        return budget ? BudgetMapper.toDto(budget) : null;
+      },
+      {
+        contextName: "BudgetRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          name: name,
+        },
+      },
+      "Failed to get budget by name"
+    );
+  }
+
+  // #########################################################
+  // # 📗 Get Paginated
+  // #########################################################
+
+  async getPaginated(
     userId: string,
     params: PaginationParams
   ): Promise<PaginatedBudgetsResponseDto> {
-    const response = await this.firestoreService.getPaginated(
-      userId,
-      params,
-      budgetModelSchema,
-      this.getConfig()
-    );
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const response = await this.budgetDatasource.getPaginated(
+          userId,
+          params
+        );
 
-    return {
-      data: response.data.map((budget) => BudgetMapper.toDto(budget)),
-      meta: response.meta,
-    };
+        // Return data
+        return {
+          data: response.data.map(BudgetMapper.toDto),
+          meta: response.meta,
+        };
+      },
+      {
+        contextName: "BudgetRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          params: params,
+        },
+      },
+      "Failed to get paginated budgets"
+    );
   }
 
-  async updateBudget(
+  // #########################################################
+  // # 📗 Get Paginated With Transactions
+  // #########################################################
+
+  async getLatestTransactionsForBudget(
     userId: string,
     budgetId: string,
-    input: UpdateBudgetDto
-  ): Promise<BudgetDto> {
-    const validatedInput = this.validationService.validateInput(
-      updateBudgetSchema,
-      input,
-      { contextName: this.contextName, operationType: "update" }
-    );
+    maxTransactionsToShow: number = 12
+  ) {
+    const response = await this.transactionDatasource.getPaginated(userId, {
+      sort: {
+        field: "transactionDate",
+        order: "desc",
+      },
+      pagination: {
+        page: 1,
+        limitPerPage: maxTransactionsToShow,
+      },
+      filters: [
+        {
+          field: "category.id",
+          operator: "==",
+          value: budgetId,
+        },
+      ],
+    });
 
-    const doc = await this.firestoreService.update(
-      userId,
-      budgetId,
-      validatedInput,
-      this.getConfig()
-    );
-
-    const validatedData = this.validationService.validateDocumentData(
-      budgetModelSchema,
-      doc.data(),
-      {
-        contextName: this.contextName,
-        operationType: "read",
-        documentId: budgetId,
-      }
-    );
-
-    return BudgetMapper.toDto(validatedData);
-  }
-
-  async budgetExists(userId: string, budgetName: string): Promise<boolean> {
-    return this.firestoreService.existsByName(
-      userId,
-      budgetName,
-      this.getConfig()
+    return response.data.map((transaction) =>
+      TransactionMapper.toDto(transaction)
     );
   }
 
-  async deleteBudget(userId: string, budgetId: string): Promise<void> {
-    return this.firestoreService.delete(userId, budgetId, this.getConfig());
-  }
-
-  async getPaginatedBudgetsWithTransactions(
+  async getPaginatedWithTransactions(
     userId: string,
     params: PaginationParams,
-    transactionCount: number = 3
+    maxTransactionsToShow: number = 3
   ): Promise<PaginatedBudgetsWithTransactionsResponseDto> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const collection = this.firestoreService.getCollection(
+        const response = await this.budgetDatasource.getPaginated(
           userId,
-          this.collectionName
-        );
-        const response = await this.firestoreService.getPaginatedData(
-          collection,
-          params,
-          budgetModelSchema
+          params
         );
 
         const budgetsWithTransactions = await Promise.all(
           response.data.map(async (budget) => {
-            const transactionCollection = this.firestoreService.getCollection(
-              userId,
-              "transactions"
-            );
-            const transactions = await this.firestoreService.getPaginatedData(
-              transactionCollection,
-              {
-                pagination: {
-                  page: 1,
-                  limitPerPage: transactionCount,
-                },
-                sort: {
-                  field: "transactionDate",
-                  order: "desc",
-                },
-                filters: [
-                  { field: "category.id", operator: "==", value: budget.id },
-                ],
-                search: "",
-              },
-              transactionModelSchema
-            );
-
-            const query = transactionCollection
-              .where("category.id", "==", budget.id)
-              .aggregate({
-                totalSpent: AggregateField.sum("amount"),
-              });
-
-            const snapshot = await query.get();
-            const totalSpent = snapshot.data().totalSpent;
+            const [totalSpending, transactions] = await Promise.all([
+              this.transactionDatasource.calculateTotalByCategory(
+                userId,
+                budget.id
+              ),
+              this.getLatestTransactionsForBudget(
+                userId,
+                budget.id,
+                maxTransactionsToShow
+              ),
+            ]);
 
             return {
               ...BudgetMapper.toDto(budget),
-              spent: totalSpent,
-              transactions: transactions.data.map((transaction) =>
-                TransactionMapper.toDto(transaction)
-              ),
+              transactions,
+              totalSpending,
             };
           })
         );
@@ -232,61 +237,159 @@ export class BudgetRepository implements IBudgetRepository {
           meta: response.meta,
         };
       },
-      this.contextName,
+      {
+        contextName: "BudgetRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          params: params,
+        },
+      },
       "Failed to get paginated budgets with transactions"
     );
   }
 
-  async getBudgetsSummary(
-    userId: string,
-    budgetCount: number = 10
-  ): Promise<BudgetsSummaryDto> {
-    return this.utilityService.executeOperation(
-      async () => {
-        const budgetsCollection = this.firestoreService.getCollection(
-          userId,
-          this.collectionName
-        );
-        const transactionCollection = this.firestoreService.getCollection(
-          userId,
-          "transactions"
-        );
+  // #########################################################
+  // # 📃 Update One
+  // #########################################################
 
-        const budgets = await this.getPaginatedBudgets(userId, {
-          pagination: {
-            page: 1,
-            limitPerPage: budgetCount,
-          },
-          sort: {
-            field: "createdAt",
-            order: "desc",
-          },
-          filters: [],
-          search: "",
-        });
-        const totalAmountOfBudgetsSnapshot = await budgetsCollection
-          .aggregate({
-            totalAmountOfBudgets: AggregateField.sum("maximumSpending"),
-          })
-          .get();
-        const totalAmountOfBudgets =
-          totalAmountOfBudgetsSnapshot.data().totalAmountOfBudgets;
-        const totalAmountSpentSnapshot = await transactionCollection
-          .aggregate({
-            totalSpent: AggregateField.sum("amount"),
-          })
-          .get();
-        const totalAmountSpent = totalAmountSpentSnapshot.data().totalSpent;
+  private async buildUpdateData(
+    currentBudget: BudgetDto,
+    input: UpdateBudgetDto
+  ): Promise<UpdateBudgetModel> {
+    const updateData: UpdateBudgetModel = {
+      updatedAt: this.firestoreService.getCurrentTimestamp(),
+    };
+
+    if (input.name !== undefined && input.name !== currentBudget.name) {
+      updateData.name = input.name;
+    }
+
+    if (
+      input.maximumSpending !== undefined &&
+      input.maximumSpending !== currentBudget.maximumSpending
+    ) {
+      updateData.maximumSpending = input.maximumSpending;
+    }
+
+    if (
+      input.colorTag !== undefined &&
+      input.colorTag !== currentBudget.colorTag
+    ) {
+      updateData.colorTag = input.colorTag;
+    }
+
+    return updateData;
+  }
+
+  async updateOne(
+    userId: string,
+    budgetId: string,
+    input: UpdateBudgetDto
+  ): Promise<BudgetDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const currentBudget = await this.getAndMapBudget(userId, budgetId);
+        const updateData = await this.buildUpdateData(currentBudget, input);
+
+        // Update data
+        await this.budgetDatasource.updateOne(userId, budgetId, updateData);
+
+        // Return data
+        return await this.getAndMapBudget(userId, budgetId);
+      },
+      {
+        contextName: "BudgetRepository",
+        operationType: "update",
+        userId: userId,
+        additionalInfo: {
+          budgetId: budgetId,
+          input: input,
+        },
+      },
+      "Failed to update budget"
+    );
+  }
+
+  // #########################################################
+  // # 📄 Delete One
+  // #########################################################
+
+  async deleteOne(userId: string, budgetId: string): Promise<void> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        // Prepare data
+        const currentBudget = await this.getAndMapBudget(userId, budgetId);
+
+        // Delete data
+        await this.budgetDatasource.deleteOne(userId, budgetId);
+      },
+      {
+        contextName: "BudgetRepository",
+        operationType: "delete",
+        userId: userId,
+        additionalInfo: {
+          budgetId: budgetId,
+        },
+      },
+      "Failed to delete budget"
+    );
+  }
+
+  // #########################################################
+  // # 📈 Get Summary
+  // #########################################################
+
+  private async getBudgetsToShowInSummary(
+    userId: string,
+    maxBudgetsToShow: number
+  ) {
+    const response = await this.budgetDatasource.getPaginated(userId, {
+      sort: {
+        field: "totalSpending",
+        order: "asc",
+      },
+      pagination: {
+        page: 1,
+        limitPerPage: maxBudgetsToShow,
+      },
+      filters: [],
+    });
+
+    return response.data.map(BudgetMapper.toDtoWithTotalSpending);
+  }
+
+  async getSummary(
+    userId: string,
+    maxBudgetsToShow: number
+  ): Promise<BudgetsSummaryDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
+      async () => {
+        const [budgets, totalSpending, totalMaxSpending, count] =
+          await Promise.all([
+            this.getBudgetsToShowInSummary(userId, maxBudgetsToShow),
+            this.transactionDatasource.calculateTotalByType(userId, "expense"),
+            this.budgetDatasource.getTotalMaxSpending(userId),
+            this.budgetDatasource.getCount(userId),
+          ]);
 
         return {
-          budgets: budgets.data,
-          totalAmountOfBudgets: totalAmountOfBudgets,
-          totalAmountSpent: totalAmountSpent,
-          totalCountOfBudgets: budgets.meta.pagination.totalItems,
+          totalSpending,
+          totalMaxSpending,
+          budgets,
+          count,
         };
       },
-      this.contextName,
-      "Failed to get budgets summary"
+      {
+        contextName: "BudgetRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          maxBudgetsToShow: maxBudgetsToShow,
+        },
+      },
+      "Failed to get summary"
     );
   }
 }

@@ -1,189 +1,287 @@
 import { ITransactionRepository } from "@/core/interfaces/ITransactionRepository";
+import { PaginatedCategoriesResponseDto } from "@/core/schemas/categorySchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
-  PaginatedCategoriesResponse,
-  PaginatedTransactionsResponse,
+  PaginatedTransactionsResponseDto,
+  TransactionCategoryDto,
   TransactionDto,
+  TransactionTypeDto,
   UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
-import {
-  categoryModelSchema,
-  CreateTransactionModel,
-  createTransactionModelSchema,
-  transactionModelSchema,
-  UpdateTransactionModel,
-  updateTransactionModelSchema,
-} from "@/data/models/transactionModel";
-import { adminFirestore } from "@/services/firebase/firebaseAdmin";
-import { debugLog } from "@/utils/debugLog";
+import { generateId } from "@/utils/generateId";
 import { Timestamp } from "firebase-admin/firestore";
+import { BudgetDatasource } from "../datasource/BudgetDatasource";
+import { CategoryDatasource } from "../datasource/CategoryDatasource";
+import { IncomeDatasource } from "../datasource/IncomeDatasource";
+import { TransactionDatasource } from "../datasource/TransactionDatasource";
+import { CategoryMapper } from "../mappers/CategoryMapper";
 import { TransactionMapper } from "../mappers/TransactionMapper";
-import { CategoryService } from "../services/CategoryService";
-import { CollectionService } from "../services/CollectionService";
+import {
+  CreateTransactionModel,
+  UpdateTransactionModel,
+} from "../models/transactionModel";
+import { ErrorHandlingService } from "../services/ErrorHandlingService";
 import { FirestoreService } from "../services/FirestoreService";
-import { TransactionMigrationService } from "../services/TransactionMigrationService";
-import { UtilityService } from "../services/UtilityService";
-import { ValidationService } from "../services/ValidationService";
 
 export class TransactionRepository implements ITransactionRepository {
+  private readonly categoryDatasource: CategoryDatasource;
+  private readonly budgetDatasource: BudgetDatasource;
+  private readonly incomeDatasource: IncomeDatasource;
+  private readonly transactionDatasource: TransactionDatasource;
+  private readonly errorHandlingService: ErrorHandlingService;
   private readonly firestoreService: FirestoreService;
-  private readonly validationService: ValidationService;
-  private readonly collectionService: CollectionService;
-  private readonly utilityService: UtilityService;
-  private readonly migrationService: TransactionMigrationService;
-  private readonly contextName = "TransactionRepository";
-
-  private categoryService: CategoryService;
 
   constructor() {
+    this.errorHandlingService = new ErrorHandlingService();
+    this.categoryDatasource = new CategoryDatasource();
+    this.budgetDatasource = new BudgetDatasource();
+    this.incomeDatasource = new IncomeDatasource();
     this.firestoreService = new FirestoreService();
-    this.validationService = new ValidationService();
-    this.collectionService = new CollectionService();
-    this.utilityService = new UtilityService();
-    this.migrationService = new TransactionMigrationService();
-
-    this.categoryService = new CategoryService();
+    this.transactionDatasource = new TransactionDatasource();
   }
 
-  private calculateSignedAmount(amount: number, type: string): number {
+  // #########################################################
+  // # 🛠️ Helper Methods
+  // #########################################################
+
+  private calculateSignedAmount(amount: number, type: TransactionTypeDto) {
     return type === "income" ? amount : -amount;
   }
 
-  async createTransaction(
+  private async createCategoryIfNotExists(
+    userId: string,
+    category: TransactionCategoryDto
+  ) {
+    const categoryExists = await this.categoryDatasource.getById(
+      userId,
+      category.id
+    );
+    if (categoryExists) {
+      return;
+    } else {
+      await this.categoryDatasource.createOne(userId, {
+        id: category.id,
+        name: category.name,
+        colorTag: category.colorTag,
+        createdAt: this.firestoreService.getCurrentTimestamp(),
+        updatedAt: this.firestoreService.getCurrentTimestamp(),
+      });
+    }
+  }
+
+  private async deleteCategoryIfNoTransactions(
+    userId: string,
+    categoryId: string
+  ) {
+    const hasTransactions = await this.transactionDatasource.hasTransactions(
+      userId,
+      categoryId
+    );
+    if (!hasTransactions) {
+      await this.categoryDatasource.deleteOne(userId, categoryId);
+    }
+  }
+
+  private async getAndMapTransaction(
+    userId: string,
+    transactionId: string
+  ): Promise<TransactionDto> {
+    const transaction = await this.transactionDatasource.getById(
+      userId,
+      transactionId
+    );
+    if (!transaction) {
+      throw new Error(
+        `Transaction ${transactionId} not found for user ${userId}`
+      );
+    }
+    return TransactionMapper.toDto(transaction);
+  }
+
+  private async updateCategoryTotal(
+    userId: string,
+    categoryId: string,
+    type: TransactionTypeDto
+  ) {
+    const total = await this.transactionDatasource.calculateTotalByCategory(
+      userId,
+      categoryId
+    );
+
+    if (type === "income") {
+      this.incomeDatasource.setTotalEarned(userId, categoryId, total);
+    } else {
+      this.budgetDatasource.setTotalSpending(userId, categoryId, total);
+    }
+  }
+
+  // #########################################################
+  // # 📝 Create One
+  // #########################################################
+
+  private async getTransactionCategory(
+    userId: string,
+    categoryId: string,
+    type: TransactionTypeDto
+  ): Promise<TransactionCategoryDto> {
+    if (type === "income") {
+      const income = await this.incomeDatasource.getById(userId, categoryId);
+      if (!income) {
+        throw new Error("Category ID not found for income");
+      }
+      return {
+        colorTag: income.colorTag,
+        id: income.id,
+        name: income.name,
+      };
+    } else {
+      const budget = await this.budgetDatasource.getById(userId, categoryId);
+      if (!budget) {
+        throw new Error("Category ID not found for budget");
+      }
+
+      return {
+        colorTag: budget.colorTag,
+        id: budget.id,
+        name: budget.name,
+      };
+    }
+  }
+
+  private async buildTransactionData(
+    userId: string,
+    input: CreateTransactionDto
+  ): Promise<CreateTransactionModel> {
+    const category = await this.getTransactionCategory(
+      userId,
+      input.categoryId,
+      input.type
+    );
+
+    return {
+      id: generateId(),
+      createdAt: this.firestoreService.getCurrentTimestamp(),
+      updatedAt: this.firestoreService.getCurrentTimestamp(),
+      type: input.type,
+      amount: input.amount,
+      signedAmount: this.calculateSignedAmount(input.amount, input.type),
+      recipientOrPayer: input.recipientOrPayer,
+      category,
+      transactionDate: Timestamp.fromDate(input.transactionDate),
+      description: input.description,
+      emoji: input.emoji,
+      name: input.name,
+    };
+  }
+
+  async createOne(
     userId: string,
     input: CreateTransactionDto
   ): Promise<TransactionDto> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const batch = adminFirestore.batch();
-        const transactionDate = Timestamp.fromDate(input.transactionDate);
-        const id = this.utilityService.generateId();
-        const timestamp = this.firestoreService.getCurrentTimestamp();
-        const category = await this.categoryService.getCategory(
+        // Prepare data
+        const transactionData = await this.buildTransactionData(userId, input);
+
+        // Save data
+        await this.transactionDatasource.createOne(userId, transactionData);
+
+        // Side effects
+        this.createCategoryIfNotExists(userId, transactionData.category);
+        this.updateCategoryTotal(
           userId,
-          input.categoryId,
-          input.type
+          transactionData.category.id,
+          transactionData.type
         );
 
-        const transactionRef = this.collectionService
-          .getTransactionCollection(userId)
-          .doc(id);
-
-        const transactionData: CreateTransactionModel = {
-          id,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-          type: input.type,
-          amount: input.amount,
-          signedAmount: this.calculateSignedAmount(input.amount, input.type),
-          recipientOrPayer: input.recipientOrPayer,
-          category: category,
-          transactionDate: transactionDate,
-          description: input.description,
-          emoji: input.emoji,
-          name: input.name,
-        };
-
-        const validatedInput = this.validationService.validateInput(
-          createTransactionModelSchema,
-          transactionData,
-          { contextName: this.contextName, operationType: "create" }
-        );
-
-        batch.set(transactionRef, validatedInput);
-
-        await this.categoryService.createCategoryIfNotExists(
-          userId,
-          category,
-          batch
-        );
-
-        await batch.commit();
-
-        const transactionDoc = await transactionRef.get();
-        const docData = transactionDoc.data();
-
-        if (!docData) {
-          throw new Error("Transaction not found after creation");
-        }
-
-        const validatedData = this.validationService.validateDocumentData(
-          transactionModelSchema,
-          docData,
-          {
-            contextName: this.contextName,
-            operationType: "read",
-            documentId: id,
-          }
-        );
-
-        return TransactionMapper.toDto(validatedData);
+        // Return data
+        return await this.getAndMapTransaction(userId, transactionData.id);
       },
-      this.contextName,
+      {
+        contextName: "TransactionRepository",
+        operationType: "create",
+        userId: userId,
+        additionalInfo: {
+          input: input,
+        },
+      },
       "Failed to create transaction"
     );
   }
 
-  async getTransaction(
+  // #########################################################
+  // # 📃 Get One By Id
+  // #########################################################
+
+  async getOneById(
     userId: string,
     transactionId: string
   ): Promise<TransactionDto | null> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const transactionDoc = await this.collectionService
-          .getTransactionCollection(userId)
-          .doc(transactionId)
-          .get();
-
-        if (!transactionDoc.exists) {
-          return null;
-        }
-
-        const docData = transactionDoc.data();
-        const validatedData = this.validationService.validateDocumentData(
-          transactionModelSchema,
-          docData,
-          {
-            contextName: this.contextName,
-            operationType: "read",
-            documentId: transactionId,
-          }
+        // Prepare data
+        const transaction = await this.transactionDatasource.getById(
+          userId,
+          transactionId
         );
 
-        return TransactionMapper.toDto(validatedData);
+        // Return data
+        return transaction ? TransactionMapper.toDto(transaction) : null;
       },
-      this.contextName,
+      {
+        contextName: "TransactionRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          transactionId: transactionId,
+        },
+      },
       "Failed to get transaction"
     );
   }
 
-  async getPaginatedTransactions(
+  // #########################################################
+  // # 📗 Get Paginated
+  // #########################################################
+
+  async getPaginated(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedTransactionsResponse> {
-    return this.utilityService.executeOperation(
+  ): Promise<PaginatedTransactionsResponseDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const response = await this.firestoreService.getPaginatedData(
-          this.collectionService.getTransactionCollection(userId),
-          params,
-          transactionModelSchema
+        // Prepare data
+        const response = await this.transactionDatasource.getPaginated(
+          userId,
+          params
         );
 
+        // Return data
         return {
-          data: response.data.map((transaction) =>
-            TransactionMapper.toDto(transaction)
-          ),
+          data: response.data.map(TransactionMapper.toDto),
           meta: response.meta,
         };
       },
-      this.contextName,
+      {
+        contextName: "TransactionRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          params: params,
+        },
+      },
       "Failed to get paginated transactions"
     );
   }
 
+  // #########################################################
+  // # 🔄 Update One
+  // #########################################################
+
   private async buildUpdateData(
     currentTransaction: TransactionDto,
+    userId: string,
     input: UpdateTransactionDto
   ): Promise<UpdateTransactionModel> {
     const updateData: UpdateTransactionModel = {
@@ -201,6 +299,17 @@ export class TransactionRepository implements ITransactionRepository {
         );
       }
       updateData.type = input.type;
+    }
+
+    if (
+      input.categoryId !== undefined &&
+      input.categoryId !== currentTransaction.category.id
+    ) {
+      updateData.category = await this.getTransactionCategory(
+        userId,
+        input.categoryId,
+        input.type ?? currentTransaction.type
+      );
     }
 
     if (
@@ -242,188 +351,140 @@ export class TransactionRepository implements ITransactionRepository {
     return updateData;
   }
 
-  private async handleCategoryUpdate(
-    userId: string,
-    currentTransaction: TransactionDto,
-    input: UpdateTransactionDto,
-    batch: FirebaseFirestore.WriteBatch,
-    updateData: UpdateTransactionModel
-  ): Promise<void> {
-    if (
-      input.categoryId !== undefined &&
-      input.categoryId !== currentTransaction.category.id
-    ) {
-      const newCategory = await this.categoryService.getCategory(
-        userId,
-        input.categoryId,
-        input.type ?? currentTransaction.type
-      );
-
-      await this.categoryService.createCategoryIfNotExists(
-        userId,
-        newCategory,
-        batch
-      );
-
-      await this.categoryService.deleteCategoryIfEmpty(
-        userId,
-        currentTransaction.category.id,
-        batch
-      );
-
-      updateData.category = { ...newCategory };
-    }
-  }
-
-  async updateTransaction(
+  async updateOne(
     userId: string,
     transactionId: string,
     input: UpdateTransactionDto
   ): Promise<TransactionDto> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const batch = adminFirestore.batch();
-        const transactionRef = this.collectionService
-          .getTransactionCollection(userId)
-          .doc(transactionId);
-
-        const currentTransaction = await this.getTransaction(
+        // Prepare data
+        const currentTransactionDto = await this.getAndMapTransaction(
           userId,
           transactionId
         );
 
-        if (!currentTransaction) {
-          throw new Error("Transaction not found");
-        }
-
         const updateData = await this.buildUpdateData(
-          currentTransaction,
+          currentTransactionDto,
+          userId,
           input
         );
 
-        await this.handleCategoryUpdate(
+        // Save data
+        await this.transactionDatasource.updateOne(
           userId,
-          currentTransaction,
-          input,
-          batch,
+          transactionId,
           updateData
         );
 
-        debugLog(
-          this.contextName,
-          "Updated category for transaction",
-          updateData
-        );
+        // Side effects
+        if (updateData.category) {
+          this.deleteCategoryIfNoTransactions(
+            userId,
+            currentTransactionDto.category.id
+          );
+          this.createCategoryIfNotExists(userId, updateData.category);
 
-        if (Object.keys(updateData).length > 0) {
-          const validatedInput = this.validationService.validateInput(
-            updateTransactionModelSchema,
-            updateData,
-            { contextName: this.contextName, operationType: "update" }
+          this.updateCategoryTotal(
+            userId,
+            updateData.category.id,
+            updateData.type ?? currentTransactionDto.type
           );
 
-          batch.update(transactionRef, validatedInput);
-          await batch.commit();
-
-          const updatedTransaction = await transactionRef.get();
-
-          if (!updatedTransaction.exists) {
-            throw new Error("Transaction not found after update");
-          }
-
-          const updatedData = updatedTransaction.data();
-          const validatedData = this.validationService.validateDocumentData(
-            transactionModelSchema,
-            updatedData,
-            {
-              contextName: this.contextName,
-              operationType: "read",
-              documentId: transactionId,
-            }
+          this.updateCategoryTotal(
+            userId,
+            currentTransactionDto.category.id,
+            currentTransactionDto.type
           );
-
-          return TransactionMapper.toDto(validatedData);
         }
 
-        return currentTransaction;
+        // Return data
+        return await this.getAndMapTransaction(userId, transactionId);
       },
-      this.contextName,
+      {
+        contextName: "TransactionRepository",
+        operationType: "update",
+        userId: userId,
+        additionalInfo: {
+          transactionId: transactionId,
+          input: input,
+        },
+      },
       "Failed to update transaction"
     );
   }
 
-  async deleteTransaction(
-    userId: string,
-    transactionId: string
-  ): Promise<void> {
-    return this.utilityService.executeOperation(
+  // #########################################################
+  // # 🗑️ Delete One
+  // #########################################################
+
+  async deleteOne(userId: string, transactionId: string): Promise<void> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const batch = adminFirestore.batch();
-        const transactionRef = this.collectionService
-          .getTransactionCollection(userId)
-          .doc(transactionId);
-        const transactionDoc = await transactionRef.get();
-
-        if (!transactionDoc.exists) {
-          throw new Error("Transaction not found");
-        }
-
-        const transactionData = transactionDoc.data();
-        const validatedData = this.validationService.validateDocumentData(
-          transactionModelSchema,
-          transactionData,
-          {
-            contextName: this.contextName,
-            operationType: "read",
-            documentId: transactionId,
-          }
-        );
-
-        await this.categoryService.deleteCategoryIfEmpty(
+        // Prepare data
+        const currentTransactionDto = await this.getAndMapTransaction(
           userId,
-          validatedData.category.id,
-          batch
+          transactionId
         );
 
-        batch.delete(transactionRef);
-        await batch.commit();
+        // Save data
+        await this.transactionDatasource.deleteOne(userId, transactionId);
 
+        // Side effects
+        this.deleteCategoryIfNoTransactions(
+          userId,
+          currentTransactionDto.category.id
+        );
+
+        this.updateCategoryTotal(
+          userId,
+          currentTransactionDto.category.id,
+          currentTransactionDto.type
+        );
+
+        // Return data
         return;
       },
-      this.contextName,
+      {
+        contextName: "TransactionRepository",
+        operationType: "delete",
+        userId: userId,
+        additionalInfo: {
+          transactionId: transactionId,
+        },
+      },
       "Failed to delete transaction"
     );
   }
 
+  // #########################################################
+  // # 📊 Get Paginated Categories
+  // #########################################################
+
   async getPaginatedCategories(
     userId: string,
     params: PaginationParams
-  ): Promise<PaginatedCategoriesResponse> {
-    return this.utilityService.executeOperation(
+  ): Promise<PaginatedCategoriesResponseDto> {
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        const response = await this.firestoreService.getPaginatedData(
-          this.collectionService.getCategoryCollection(userId),
-          params,
-          categoryModelSchema
+        const response = await this.categoryDatasource.getPaginated(
+          userId,
+          params
         );
-
         return {
-          data: response.data.map((category) =>
-            TransactionMapper.categoryToDto(category)
-          ),
+          data: response.data.map(CategoryMapper.toDto),
           meta: response.meta,
         };
       },
-      this.contextName,
+      {
+        contextName: "TransactionRepository",
+        operationType: "read",
+        userId: userId,
+        additionalInfo: {
+          params: params,
+        },
+      },
       "Failed to get paginated categories"
     );
-  }
-
-  async migrateTransactionCategoriesToCollection(): Promise<void> {
-    return this.migrationService.migrateTransactionCategoriesToCollection();
-  }
-
-  async migrateTransactionAmountsToSignedAmounts(): Promise<void> {
-    return this.migrationService.migrateTransactionAmountsToSignedAmounts();
   }
 }

@@ -10,12 +10,12 @@ export class OnboardUser {
   ) {}
 
   async execute(user: CreateUserDto) {
-    const existingUser = await this.userRepository.getUserById(user.id);
+    const existingUser = await this.userRepository.getOneById(user.id);
     if (!!existingUser) return existingUser;
 
     const validatedUser = new UserEntity(user).validateCreateUser();
 
-    const createdUser = await this.userRepository.createUser(validatedUser);
+    const createdUser = await this.userRepository.createOne(validatedUser);
     await this.authRepository.updateUserDisplayName(
       user.id,
       validatedUser.displayName ?? ""

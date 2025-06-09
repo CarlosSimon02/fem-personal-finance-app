@@ -12,20 +12,19 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-import { UtilityService } from "../services/UtilityService";
+import { ErrorHandlingService } from "../services/ErrorHandlingService";
 
 export class AuthClientRepository implements IAuthClientRepository {
-  private readonly utilityService: UtilityService;
-  private readonly contextName = "AuthClientRepository";
+  private readonly errorHandlingService: ErrorHandlingService;
 
   constructor() {
-    this.utilityService = new UtilityService();
+    this.errorHandlingService = new ErrorHandlingService();
   }
 
   async signUpWithEmail(
     credentials: SignUpCredentialsDto
   ): Promise<AuthResponseDto> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const userCredential = await createUserWithEmailAndPassword(
           clientAuth,
@@ -40,7 +39,10 @@ export class AuthClientRepository implements IAuthClientRepository {
           refreshToken: userCredential.user.refreshToken,
         };
       },
-      this.contextName,
+      {
+        contextName: "AuthClientRepository",
+        operationType: "create",
+      },
       "Failed to sign up with email"
     );
   }
@@ -48,7 +50,7 @@ export class AuthClientRepository implements IAuthClientRepository {
   async logInWithEmail(
     credentials: LoginWithEmailCredentialsDto
   ): Promise<AuthResponseDto> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const userCredential = await createUserWithEmailAndPassword(
           clientAuth,
@@ -63,13 +65,16 @@ export class AuthClientRepository implements IAuthClientRepository {
           refreshToken: userCredential.user.refreshToken,
         };
       },
-      this.contextName,
+      {
+        contextName: "AuthClientRepository",
+        operationType: "read",
+      },
       "Failed to log in with email"
     );
   }
 
   async signInWithGoogle(): Promise<AuthResponseDto> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const provider = new GoogleAuthProvider();
         const userCredential = await signInWithPopup(clientAuth, provider);
@@ -81,39 +86,51 @@ export class AuthClientRepository implements IAuthClientRepository {
           refreshToken: userCredential.user.refreshToken,
         };
       },
-      this.contextName,
+      {
+        contextName: "AuthClientRepository",
+        operationType: "read",
+      },
       "Failed to sign in with Google"
     );
   }
 
   async resetPassword(email: string): Promise<void> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         await sendPasswordResetEmail(clientAuth, email);
       },
-      this.contextName,
+      {
+        contextName: "AuthClientRepository",
+        operationType: "update",
+      },
       "Failed to reset password"
     );
   }
 
   async signOut(): Promise<void> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         await signOut(clientAuth);
       },
-      this.contextName,
+      {
+        contextName: "AuthClientRepository",
+        operationType: "delete",
+      },
       "Failed to sign out"
     );
   }
 
   async getIdToken(): Promise<string> {
-    return this.utilityService.executeOperation(
+    return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const user = clientAuth.currentUser;
         if (!user) throw new Error("No user is signed in.");
         return await user.getIdToken();
       },
-      this.contextName,
+      {
+        contextName: "AuthClientRepository",
+        operationType: "read",
+      },
       "Failed to get ID token"
     );
   }

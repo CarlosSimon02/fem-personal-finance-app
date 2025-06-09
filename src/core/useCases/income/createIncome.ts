@@ -18,7 +18,7 @@ export class CreateIncomeUseCase {
 
     const validatedData = incomeEntity.validateCreateIncome();
 
-    const incomeExists = await this.incomeRepository.incomeExists(
+    const incomeExists = await this.incomeRepository.getOneByName(
       userId,
       validatedData.name
     );
@@ -27,6 +27,6 @@ export class CreateIncomeUseCase {
       throw new Error("Income already exists");
     }
 
-    return this.incomeRepository.createIncome(userId, validatedData);
+    return this.incomeRepository.createOne(userId, validatedData);
   }
 }

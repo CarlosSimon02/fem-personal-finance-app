@@ -25,10 +25,14 @@ export const budgetSchema = createBudgetSchema.extend({
   updatedAt: z.date(),
 });
 
-export const budgetWithTransactionsSchema = budgetSchema.extend({
-  transactions: z.array(transactionSchema),
-  spent: z.number().min(0, "Spent cannot be negative"),
+export const budgetSchemaWithTotalSpending = budgetSchema.extend({
+  totalSpending: z.number().min(0, "Spent cannot be negative"),
 });
+
+export const budgetWithTransactionsSchema =
+  budgetSchemaWithTotalSpending.extend({
+    transactions: z.array(transactionSchema),
+  });
 
 export const paginatedBudgetsResponseSchema =
   createPaginationResponseSchema(budgetSchema);
@@ -37,15 +41,18 @@ export const paginatedBudgetsWithTransactionsResponseSchema =
   createPaginationResponseSchema(budgetWithTransactionsSchema);
 
 export const budgetsSummarySchema = z.object({
-  totalAmountOfBudgets: z.number().int().positive(),
-  totalAmountSpent: z.number().int().positive(),
-  totalCountOfBudgets: z.number().int().positive(),
-  budgets: z.array(budgetSchema),
+  totalMaxSpending: z.number().int().positive(),
+  totalSpending: z.number().int().positive(),
+  count: z.number().int().positive(),
+  budgets: z.array(budgetSchemaWithTotalSpending),
 });
 
 export type CreateBudgetDto = z.infer<typeof createBudgetSchema>;
 export type UpdateBudgetDto = z.infer<typeof updateBudgetSchema>;
 export type BudgetDto = z.infer<typeof budgetSchema>;
+export type BudgetWithTotalSpendingDto = z.infer<
+  typeof budgetSchemaWithTotalSpending
+>;
 export type BudgetWithTransactionsDto = z.infer<
   typeof budgetWithTransactionsSchema
 >;
