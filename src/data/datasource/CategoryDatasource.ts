@@ -4,6 +4,7 @@ import {
   CategoryModelPaginationResponse,
   categoryModelSchema,
   CreateCategoryModel,
+  createCategoryModelSchema,
 } from "../models/categoryModel";
 import { CollectionService } from "../services/CollectionService";
 import { FirestoreService } from "../services/FirestoreService";
@@ -48,7 +49,7 @@ export class CategoryDatasource {
   async createOne(userId: string, category: CreateCategoryModel) {
     const categoryCollection = this.getCategoryCollection(userId);
     const validatedCategory = this.validationService.validateDocumentData(
-      categoryModelSchema,
+      createCategoryModelSchema,
       category,
       {
         contextName: "CategoryDatasource",
