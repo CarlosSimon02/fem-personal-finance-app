@@ -2,6 +2,7 @@ import { BudgetEntity } from "@/core/entities/BudgetEntity";
 import { IBudgetRepository } from "@/core/interfaces/IBudgetRepository";
 import { BudgetDto, CreateBudgetDto } from "@/core/schemas/budgetSchema";
 import { AuthError } from "@/utils/authError";
+import { debugLog } from "@/utils/debugLog";
 
 export class CreateBudgetUseCase {
   constructor(private budgetRepository: IBudgetRepository) {}
@@ -18,12 +19,16 @@ export class CreateBudgetUseCase {
 
     const validatedData = budgetEntity.validateCreateBudget();
 
-    const budgetExists = await this.budgetRepository.getOneByName(
+    debugLog("CreateBudgetUseCase", "validatedData", validatedData);
+
+    const budget = await this.budgetRepository.getOneByName(
       userId,
       validatedData.name
     );
 
-    if (budgetExists) {
+    debugLog("CreateBudgetUseCase", "budget", budget);
+
+    if (budget) {
       throw new Error("Budget already exists");
     }
 

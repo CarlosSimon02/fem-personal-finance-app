@@ -57,7 +57,7 @@ export class IncomeDatasource {
         operationType: "create",
       }
     );
-    const incomeDoc = incomeCollection.doc();
+    const incomeDoc = incomeCollection.doc(validatedData.id);
     await incomeDoc.set(validatedData);
   }
 

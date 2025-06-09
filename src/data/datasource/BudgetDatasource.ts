@@ -58,7 +58,7 @@ export class BudgetDatasource {
         operationType: "create",
       }
     );
-    const budgetDoc = budgetCollection.doc();
+    const budgetDoc = budgetCollection.doc(validatedData.id);
     await budgetDoc.set(validatedData);
   }
 

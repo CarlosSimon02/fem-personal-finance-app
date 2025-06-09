@@ -362,7 +362,7 @@ export class BudgetRepository implements IBudgetRepository {
 
   async getSummary(
     userId: string,
-    maxBudgetsToShow: number
+    maxBudgetsToShow: number = 12
   ): Promise<BudgetsSummaryDto> {
     return this.errorHandlingService.executeWithErrorHandling(
       async () => {
