@@ -7,18 +7,14 @@ import {
   userModelSchema,
 } from "../models/userModel";
 import { CollectionService } from "../services/CollectionService";
-import { FirestoreService } from "../services/FirestoreService";
 import { ValidationService } from "../services/ValidationService";
 
 export class UserDatasource {
   private readonly collectionService: CollectionService;
   private readonly validationService: ValidationService;
-  private readonly firestoreService: FirestoreService;
-
   constructor() {
     this.collectionService = new CollectionService();
     this.validationService = new ValidationService();
-    this.firestoreService = new FirestoreService();
   }
 
   getUserCollection() {
