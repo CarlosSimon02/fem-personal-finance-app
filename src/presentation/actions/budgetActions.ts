@@ -6,26 +6,42 @@ import {
   CreateBudgetDto,
   PaginatedBudgetsResponseDto,
   PaginatedBudgetsWithTransactionsResponseDto,
+  UpdateBudgetDto,
 } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   createBudgetUseCase,
+  deleteBudgetUseCase,
   getBudgetsSummaryUseCase,
   getPaginatedBudgetsUseCase,
   getPaginatedBudgetsWithTransactionsUseCase,
+  updateBudgetUseCase,
 } from "@/factories/budget";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
-import { unstable_cacheTag as cacheTag, revalidateTag } from "next/cache";
+import { unstable_cacheTag as cacheTag } from "next/cache";
 
 export const createBudgetAction = actionWithAuth<CreateBudgetDto, BudgetDto>(
   async ({ user, data }) => {
     const budget = await createBudgetUseCase.execute(user.id, data);
-    revalidateTag(cacheTags.PAGINATED_BUDGETS);
-    revalidateTag(cacheTags.PAGINATED_BUDGETS_WITH_TRANSACTIONS);
     return { data: budget, error: null };
   }
 );
+
+export const deleteBudgetAction = actionWithAuth<string, void>(
+  async ({ user, data }) => {
+    await deleteBudgetUseCase.execute(user.id, data);
+    return { data: undefined, error: null };
+  }
+);
+
+export const updateBudgetAction = actionWithAuth<
+  { id: string; data: UpdateBudgetDto },
+  BudgetDto
+>(async ({ user, data }) => {
+  const budget = await updateBudgetUseCase.execute(user.id, data.id, data.data);
+  return { data: budget, error: null };
+});
 
 export const getPaginatedBudgetsAction = actionWithAuth<
   PaginationParams,
@@ -62,10 +78,3 @@ export const getBudgetsSummaryAction = actionWithAuth<
   const response = await getBudgetsSummaryUseCase.execute(user.id, data);
   return { data: response, error: null };
 });
-
-export const revalidateBudgetTags = async () => {
-  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
-  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
-  revalidateTag(cacheTags.PAGINATED_BUDGETS);
-  revalidateTag(cacheTags.PAGINATED_BUDGETS_WITH_TRANSACTIONS);
-};

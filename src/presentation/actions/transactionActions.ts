@@ -17,7 +17,7 @@ import {
 } from "@/factories/transaction";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
-import { unstable_cacheTag as cacheTag, revalidateTag } from "next/cache";
+import { unstable_cacheTag as cacheTag } from "next/cache";
 
 export const getPaginatedTransactionsAction = actionWithAuth<
   PaginationParams,
@@ -35,10 +35,6 @@ export const createTransactionAction = actionWithAuth<
   TransactionDto
 >(async ({ user, data }) => {
   const transaction = await createTransactionUseCase.execute(user.id, data);
-
-  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
-  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
-
   return { data: transaction, error: null };
 });
 
@@ -62,10 +58,6 @@ export const updateTransactionAction = actionWithAuth<
     data.transactionId,
     data.data
   );
-
-  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
-  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
-
   return { data: transaction, error: null };
 });
 
@@ -74,14 +66,5 @@ export const deleteTransactionAction = actionWithAuth<
   void
 >(async ({ user, data }) => {
   await deleteTransactionUseCase.execute(user.id, data.transactionId);
-
-  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
-  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
-
   return { data: undefined, error: null };
 });
-
-export const revalidateTransactionTags = async () => {
-  revalidateTag(cacheTags.PAGINATED_TRANSACTIONS);
-  revalidateTag(cacheTags.PAGINATED_CATEGORIES);
-};
