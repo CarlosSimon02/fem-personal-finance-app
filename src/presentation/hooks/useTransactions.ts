@@ -1,18 +1,21 @@
-import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
   TransactionDto,
   UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
 import { debugLog } from "@/utils/debugLog";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   createTransactionAction,
   deleteTransactionAction,
   getPaginatedTransactionsAction,
   updateTransactionAction,
 } from "../actions/transactionActions";
+import { useMutationWithToast } from "./shared/mutations";
+import {
+  createPaginationParams,
+  createQueryKey,
+  useQueryWithDefaults,
+} from "./shared/queries";
 import { StatusCallbacksType } from "./types";
 
 interface UseTransactionsParams {
@@ -32,31 +35,18 @@ export const useTransactions = ({
   page = 1,
   pageSize = 10,
 }: UseTransactionsParams) => {
-  const params: PaginationParams = {
+  const params = createPaginationParams({
     search,
-    filters:
-      category && category !== "all"
-        ? [
-            {
-              field: "category.name",
-              operator: "==",
-              value: category,
-            },
-          ]
-        : [],
-    sort: {
-      field: sortBy,
-      order: order as "asc" | "desc",
-    },
-    pagination: {
-      page,
-      limitPerPage: pageSize,
-    },
-  };
+    category,
+    sortBy,
+    order: order as "asc" | "desc",
+    page,
+    pageSize,
+  });
 
-  const queryKey = ["transactions", params];
+  const queryKey = createQueryKey("transactions", params);
 
-  const query = useQuery({
+  return useQueryWithDefaults({
     queryKey,
     queryFn: async () => {
       const result = await getPaginatedTransactionsAction(params);
@@ -65,11 +55,7 @@ export const useTransactions = ({
       }
       return result.data;
     },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
   });
-
-  return query;
 };
 
 export const useCreateTransaction = ({
@@ -77,34 +63,20 @@ export const useCreateTransaction = ({
   onError,
   onSettled,
 }: StatusCallbacksType<TransactionDto>) => {
-  const createTransactionMutation = useMutation({
+  return useMutationWithToast({
     mutationFn: async (data: CreateTransactionDto) => {
-      try {
-        const response = await createTransactionAction(data);
-        if (response.error) throw new Error(response.error);
-        if (!response.data)
-          throw new Error("No data returned from server action");
-
-        return response.data;
-      } catch (error) {
-        console.error("Create transaction error:", error);
-        throw error;
-      }
+      const response = await createTransactionAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
     },
-    onSuccess: (data) => {
-      toast.success("Transaction created successfully!");
-      onSuccess?.(data);
-    },
-    onError: (error: Error) => {
-      toast.error(`Create transaction failed: ${error.message}`);
-      onError?.(error);
-    },
-    onSettled: () => {
-      onSettled?.();
-    },
+    successMessage: "Transaction created successfully!",
+    errorMessage: "Create transaction failed",
+    onSuccess,
+    onError,
+    onSettled,
   });
-
-  return createTransactionMutation;
 };
 
 export const useUpdateTransaction = ({
@@ -112,7 +84,7 @@ export const useUpdateTransaction = ({
   onError,
   onSettled,
 }: StatusCallbacksType<TransactionDto>) => {
-  const updateTransactionMutation = useMutation({
+  return useMutationWithToast({
     mutationFn: async ({
       transactionId,
       data,
@@ -120,35 +92,18 @@ export const useUpdateTransaction = ({
       transactionId: string;
       data: UpdateTransactionDto;
     }) => {
-      try {
-        const response = await updateTransactionAction({
-          transactionId,
-          data,
-        });
-        if (response.error) throw new Error(response.error);
-        if (!response.data)
-          throw new Error("No data returned from server action");
-
-        return response.data;
-      } catch (error) {
-        console.error("Update transaction error:", error);
-        throw error;
-      }
+      const response = await updateTransactionAction({ transactionId, data });
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
     },
-    onSuccess: (data) => {
-      toast.success("Transaction updated successfully!");
-      onSuccess?.(data);
-    },
-    onError: (error: Error) => {
-      toast.error(`Update transaction failed: ${error.message}`);
-      onError?.(error);
-    },
-    onSettled: () => {
-      onSettled?.();
-    },
+    successMessage: "Transaction updated successfully!",
+    errorMessage: "Update transaction failed",
+    onSuccess,
+    onError,
+    onSettled,
   });
-
-  return updateTransactionMutation;
 };
 
 export const useDeleteTransaction = ({
@@ -156,30 +111,16 @@ export const useDeleteTransaction = ({
   onError,
   onSettled,
 }: StatusCallbacksType<void>) => {
-  const deleteTransactionMutation = useMutation({
-    mutationFn: async (transactionId: string) => {
-      try {
-        const response = await deleteTransactionAction({ transactionId });
-        if (response.error) throw new Error(response.error);
-        debugLog("useDeleteTransaction", "Transaction deleted");
-        return;
-      } catch (error) {
-        console.error("Delete transaction error:", error);
-        throw error;
-      }
+  return useMutationWithToast({
+    mutationFn: async (transactionId: string): Promise<void> => {
+      const response = await deleteTransactionAction({ transactionId });
+      if (response.error) throw new Error(response.error);
+      debugLog("useDeleteTransaction", "Transaction deleted");
     },
-    onSuccess: () => {
-      toast.success("Transaction deleted successfully!");
-      onSuccess?.();
-    },
-    onError: (error: Error) => {
-      toast.error(`Delete transaction failed: ${error.message}`);
-      onError?.(error);
-    },
-    onSettled: () => {
-      onSettled?.();
-    },
+    successMessage: "Transaction deleted successfully!",
+    errorMessage: "Delete transaction failed",
+    onSuccess,
+    onError,
+    onSettled,
   });
-
-  return deleteTransactionMutation;
 };

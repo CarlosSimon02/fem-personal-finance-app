@@ -1,13 +1,16 @@
 import { BudgetDto, CreateBudgetDto } from "@/core/schemas/budgetSchema";
-import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   createBudgetAction,
   getBudgetsSummaryAction,
   getPaginatedBudgetsWithTransactionsAction,
 } from "../actions/budgetActions";
 import { useAuth } from "../contexts/AuthContext";
+import { useMutationWithToast } from "./shared/mutations";
+import {
+  createPaginationParams,
+  createQueryKey,
+  useQueryWithDefaults,
+} from "./shared/queries";
 import { StatusCallbacksType } from "./types";
 
 export const useCreateBudget = ({
@@ -15,33 +18,20 @@ export const useCreateBudget = ({
   onError,
   onSettled,
 }: StatusCallbacksType<BudgetDto>) => {
-  const createBudgetMutation = useMutation({
+  return useMutationWithToast({
     mutationFn: async (data: CreateBudgetDto) => {
-      try {
-        const response = await createBudgetAction(data);
-        if (response.error) throw new Error(response.error);
-        if (!response.data)
-          throw new Error("No data returned from server action");
-        return response.data;
-      } catch (error) {
-        console.error("Create budget error:", error);
-        throw error;
-      }
+      const response = await createBudgetAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
     },
-    onSuccess: (data) => {
-      toast.success("Budget created successfully!");
-      onSuccess?.(data);
-    },
-    onError: (error: Error) => {
-      toast.error(`Create budget failed: ${error.message}`);
-      onError?.(error);
-    },
-    onSettled: () => {
-      onSettled?.();
-    },
+    successMessage: "Budget created successfully!",
+    errorMessage: "Create budget failed",
+    onSuccess,
+    onError,
+    onSettled,
   });
-
-  return createBudgetMutation;
 };
 
 interface UseBudgetsParams {
@@ -58,25 +48,19 @@ export const useBudgetsWithTransactions = ({
   page = 1,
   pageSize = 4,
 }: UseBudgetsParams) => {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const params: PaginationParams = {
+  const params = createPaginationParams({
     search: "",
-    filters: [],
-    sort: {
-      field: sortBy,
-      order: order as "asc" | "desc",
-    },
-    pagination: {
-      page,
-      limitPerPage: pageSize,
-    },
-  };
+    sortBy,
+    order: order as "asc" | "desc",
+    page,
+    pageSize,
+  });
 
-  const queryKey = ["budgets", params];
+  const queryKey = createQueryKey("budgets", params);
 
-  const query = useQuery({
+  return useQueryWithDefaults({
     queryKey,
     queryFn: async () => {
       const result = await getPaginatedBudgetsWithTransactionsAction(params);
@@ -85,16 +69,14 @@ export const useBudgetsWithTransactions = ({
       }
       return result.data;
     },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
   });
-
-  return query;
 };
 
 export const useBudgetsSummary = () => {
-  const query = useQuery({
-    queryKey: ["budget-summary"],
+  const queryKey = createQueryKey("budget-summary");
+
+  return useQueryWithDefaults({
+    queryKey,
     queryFn: async () => {
       const result = await getBudgetsSummaryAction(undefined);
       if (result.error) {
@@ -102,9 +84,5 @@ export const useBudgetsSummary = () => {
       }
       return result.data;
     },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
   });
-
-  return query;
 };

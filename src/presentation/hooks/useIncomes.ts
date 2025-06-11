@@ -1,12 +1,15 @@
 import { CreateIncomeDto, IncomeDto } from "@/core/schemas/incomeSchema";
-import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { getPaginatedBudgetsWithTransactionsAction } from "../actions/budgetActions";
 import {
   createIncomeAction,
   getIncomesSummaryAction,
+  getPaginatedIncomesWithTransactionsAction,
 } from "../actions/incomeActions";
+import { useMutationWithToast } from "./shared/mutations";
+import {
+  createPaginationParams,
+  createQueryKey,
+  useQueryWithDefaults,
+} from "./shared/queries";
 import { StatusCallbacksType } from "./types";
 
 export const useCreateIncome = ({
@@ -14,33 +17,20 @@ export const useCreateIncome = ({
   onError,
   onSettled,
 }: StatusCallbacksType<IncomeDto>) => {
-  const createIncomeMutation = useMutation({
+  return useMutationWithToast({
     mutationFn: async (data: CreateIncomeDto) => {
-      try {
-        const response = await createIncomeAction(data);
-        if (response.error) throw new Error(response.error);
-        if (!response.data)
-          throw new Error("No data returned from server action");
-        return response.data;
-      } catch (error) {
-        console.error("Create income error:", error);
-        throw error;
-      }
+      const response = await createIncomeAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
     },
-    onSuccess: (data) => {
-      toast.success("Income created successfully!");
-      onSuccess?.(data);
-    },
-    onError: (error: Error) => {
-      toast.error(`Create income failed: ${error.message}`);
-      onError?.(error);
-    },
-    onSettled: () => {
-      onSettled?.();
-    },
+    successMessage: "Income created successfully!",
+    errorMessage: "Create income failed",
+    onSuccess,
+    onError,
+    onSettled,
   });
-
-  return createIncomeMutation;
 };
 
 interface UseIncomesParams {
@@ -57,40 +47,32 @@ export const useIncomesWithTransactions = ({
   page = 1,
   pageSize = 4,
 }: UseIncomesParams) => {
-  const params: PaginationParams = {
+  const params = createPaginationParams({
     search: "",
-    filters: [],
-    sort: {
-      field: sortBy,
-      order: order as "asc" | "desc",
-    },
-    pagination: {
-      page,
-      limitPerPage: pageSize,
-    },
-  };
+    sortBy,
+    order: order as "asc" | "desc",
+    page,
+    pageSize,
+  });
 
-  const queryKey = ["incomes", params];
+  const queryKey = createQueryKey("incomes", params);
 
-  const query = useQuery({
+  return useQueryWithDefaults({
     queryKey,
     queryFn: async () => {
-      const result = await getPaginatedBudgetsWithTransactionsAction(params);
+      const result = await getPaginatedIncomesWithTransactionsAction(params);
       if (result.error) {
         throw new Error(result.error);
       }
       return result.data;
     },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
   });
-
-  return query;
 };
 
 export const useIncomesSummary = () => {
-  const queryKey = ["income-summary"];
-  const query = useQuery({
+  const queryKey = createQueryKey("income-summary");
+
+  return useQueryWithDefaults({
     queryKey,
     queryFn: async () => {
       const result = await getIncomesSummaryAction(undefined);
@@ -99,9 +81,5 @@ export const useIncomesSummary = () => {
       }
       return result.data;
     },
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
   });
-
-  return query;
 };
