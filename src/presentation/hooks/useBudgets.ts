@@ -1,10 +1,15 @@
-import { BudgetDto, CreateBudgetDto } from "@/core/schemas/budgetSchema";
+import {
+  BudgetDto,
+  CreateBudgetDto,
+  UpdateBudgetDto,
+} from "@/core/schemas/budgetSchema";
 import {
   createBudgetAction,
+  deleteBudgetAction,
   getBudgetsSummaryAction,
   getPaginatedBudgetsWithTransactionsAction,
+  updateBudgetAction,
 } from "../actions/budgetActions";
-import { useAuth } from "../contexts/AuthContext";
 import { useMutationWithToast } from "./shared/mutations";
 import {
   createPaginationParams,
@@ -34,6 +39,48 @@ export const useCreateBudget = ({
   });
 };
 
+export const useDeleteBudget = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<void>) => {
+  return useMutationWithToast({
+    mutationFn: async (data: string) => {
+      const response = await deleteBudgetAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
+    },
+    successMessage: "Budget deleted successfully!",
+    errorMessage: "Delete budget failed",
+    onSuccess,
+    onError,
+    onSettled,
+  });
+};
+
+export const useUpdateBudget = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<BudgetDto>) => {
+  return useMutationWithToast({
+    mutationFn: async (data: { id: string; data: UpdateBudgetDto }) => {
+      const response = await updateBudgetAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
+    },
+    successMessage: "Budget updated successfully!",
+    errorMessage: "Update budget failed",
+    onSuccess,
+    onError,
+    onSettled,
+  });
+};
+
 interface UseBudgetsParams {
   search?: string;
   sortBy?: string;
@@ -48,8 +95,6 @@ export const useBudgetsWithTransactions = ({
   page = 1,
   pageSize = 4,
 }: UseBudgetsParams) => {
-  const { user } = useAuth();
-
   const params = createPaginationParams({
     search: "",
     sortBy,

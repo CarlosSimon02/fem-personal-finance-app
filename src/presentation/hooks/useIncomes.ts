@@ -1,8 +1,14 @@
-import { CreateIncomeDto, IncomeDto } from "@/core/schemas/incomeSchema";
+import {
+  CreateIncomeDto,
+  IncomeDto,
+  UpdateIncomeDto,
+} from "@/core/schemas/incomeSchema";
 import {
   createIncomeAction,
+  deleteIncomeAction,
   getIncomesSummaryAction,
   getPaginatedIncomesWithTransactionsAction,
+  updateIncomeAction,
 } from "../actions/incomeActions";
 import { useMutationWithToast } from "./shared/mutations";
 import {
@@ -27,6 +33,48 @@ export const useCreateIncome = ({
     },
     successMessage: "Income created successfully!",
     errorMessage: "Create income failed",
+    onSuccess,
+    onError,
+    onSettled,
+  });
+};
+
+export const useDeleteIncome = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<void>) => {
+  return useMutationWithToast({
+    mutationFn: async (data: string) => {
+      const response = await deleteIncomeAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
+    },
+    successMessage: "Income deleted successfully!",
+    errorMessage: "Delete income failed",
+    onSuccess,
+    onError,
+    onSettled,
+  });
+};
+
+export const useUpdateIncome = ({
+  onSuccess,
+  onError,
+  onSettled,
+}: StatusCallbacksType<IncomeDto>) => {
+  return useMutationWithToast({
+    mutationFn: async (data: { id: string; data: UpdateIncomeDto }) => {
+      const response = await updateIncomeAction(data);
+      if (response.error) throw new Error(response.error);
+      if (!response.data)
+        throw new Error("No data returned from server action");
+      return response.data;
+    },
+    successMessage: "Income updated successfully!",
+    errorMessage: "Update income failed",
     onSuccess,
     onError,
     onSettled,
