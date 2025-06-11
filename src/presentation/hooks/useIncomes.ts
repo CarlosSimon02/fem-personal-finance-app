@@ -1,15 +1,12 @@
 import { CreateIncomeDto, IncomeDto } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { subscribeToBudgetsUseCase } from "@/factories/realtime";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { getPaginatedBudgetsWithTransactionsAction } from "../actions/budgetActions";
 import {
-  getPaginatedBudgetsWithTransactionsAction,
-  revalidateBudgetTags,
-} from "../actions/budgetActions";
-import { createIncomeAction } from "../actions/incomeActions";
-import { useAuth } from "../contexts/AuthContext";
+  createIncomeAction,
+  getIncomesSummaryAction,
+} from "../actions/incomeActions";
 import { StatusCallbacksType } from "./types";
 
 export const useCreateIncome = ({
@@ -54,15 +51,12 @@ interface UseIncomesParams {
   pageSize?: number;
 }
 
-export const useIncomesWithTransactionsRealtime = ({
+export const useIncomesWithTransactions = ({
   sortBy = "createdAt",
   order = "desc",
   page = 1,
   pageSize = 4,
 }: UseIncomesParams) => {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
   const params: PaginationParams = {
     search: "",
     filters: [],
@@ -91,34 +85,23 @@ export const useIncomesWithTransactionsRealtime = ({
     staleTime: Infinity,
   });
 
-  // Set up real-time listener
-  useEffect(() => {
-    if (!user) return;
+  return query;
+};
 
-    const unsubscribe = subscribeToBudgetsUseCase.execute(
-      user.id,
-      async (_) => {
-        await revalidateBudgetTags();
-        const response =
-          await getPaginatedBudgetsWithTransactionsAction(params);
-
-        if (response.error) {
-          throw new Error(response.error);
-        }
-
-        queryClient.setQueryData(queryKey, response.data);
-      },
-      (error) => {
-        console.error("Real-time budgets error:", error);
-        // Set error state in React Query
-        queryClient.setQueryData(queryKey, () => {
-          throw error;
-        });
+export const useIncomesSummary = () => {
+  const queryKey = ["income-summary"];
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const result = await getIncomesSummaryAction(undefined);
+      if (result.error) {
+        throw new Error(result.error);
       }
-    );
-
-    return unsubscribe;
-  }, []);
+      return result.data;
+    },
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
+  });
 
   return query;
 };

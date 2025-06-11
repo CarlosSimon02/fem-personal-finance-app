@@ -1,19 +1,16 @@
 import { BudgetDto, CreateBudgetDto } from "@/core/schemas/budgetSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { subscribeToBudgetsUseCase } from "@/factories/realtime";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { toast } from "sonner";
 import {
   createBudgetAction,
   getBudgetsSummaryAction,
   getPaginatedBudgetsWithTransactionsAction,
-  revalidateBudgetTags,
 } from "../actions/budgetActions";
 import { useAuth } from "../contexts/AuthContext";
 import { StatusCallbacksType } from "./types";
 
-export const useCreateIncome = ({
+export const useCreateBudget = ({
   onSuccess,
   onError,
   onSettled,
@@ -55,7 +52,7 @@ interface UseBudgetsParams {
   pageSize?: number;
 }
 
-export const useBudgetsWithTransactionsRealtime = ({
+export const useBudgetsWithTransactions = ({
   sortBy = "createdAt",
   order = "desc",
   page = 1,
@@ -92,44 +89,12 @@ export const useBudgetsWithTransactionsRealtime = ({
     staleTime: Infinity,
   });
 
-  // Set up real-time listener
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeToBudgetsUseCase.execute(
-      user.id,
-      async (_) => {
-        await revalidateBudgetTags();
-        const response =
-          await getPaginatedBudgetsWithTransactionsAction(params);
-
-        if (response.error) {
-          throw new Error(response.error);
-        }
-
-        queryClient.setQueryData(queryKey, response.data);
-      },
-      (error) => {
-        console.error("Real-time budgets error:", error);
-        // Set error state in React Query
-        queryClient.setQueryData(queryKey, () => {
-          throw error;
-        });
-      }
-    );
-
-    return unsubscribe;
-  }, []);
-
   return query;
 };
 
 export const useBudgetsSummary = () => {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-
   const query = useQuery({
-    queryKey: ["summary"],
+    queryKey: ["budget-summary"],
     queryFn: async () => {
       const result = await getBudgetsSummaryAction(undefined);
       if (result.error) {
@@ -140,24 +105,6 @@ export const useBudgetsSummary = () => {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   });
-
-  useEffect(() => {
-    if (!user) return;
-    const unsubscribe = subscribeToBudgetsUseCase.execute(
-      user.id,
-      async (data) => {
-        queryClient.setQueryData(["summary"], data);
-      },
-      (error) => {
-        console.error("Real-time budgets summary error:", error);
-        queryClient.setQueryData(["summary"], () => {
-          throw error;
-        });
-      }
-    );
-
-    return unsubscribe;
-  }, []);
 
   return query;
 };

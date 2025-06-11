@@ -1,23 +1,18 @@
-import { useFilterByCategory } from "@/app/(front)/transactions/_stores/useFilterByCategory";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreateTransactionDto,
   TransactionDto,
   UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
-import { subscribeToTransactionsUseCase } from "@/factories/realtime";
 import { debugLog } from "@/utils/debugLog";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   createTransactionAction,
   deleteTransactionAction,
   getPaginatedTransactionsAction,
-  revalidateTransactionTags,
   updateTransactionAction,
 } from "../actions/transactionActions";
-import { useAuth } from "../contexts/AuthContext";
 import { StatusCallbacksType } from "./types";
 
 interface UseTransactionsParams {
@@ -29,7 +24,7 @@ interface UseTransactionsParams {
   pageSize?: number;
 }
 
-export const useTransactionsRealtime = ({
+export const useTransactions = ({
   search = "",
   category = "",
   sortBy = "transactionDate",
@@ -37,10 +32,6 @@ export const useTransactionsRealtime = ({
   page = 1,
   pageSize = 10,
 }: UseTransactionsParams) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const { setCacheUniq } = useFilterByCategory();
-
   const params: PaginationParams = {
     search,
     filters:
@@ -65,7 +56,6 @@ export const useTransactionsRealtime = ({
 
   const queryKey = ["transactions", params];
 
-  // Initialize React Query with initial fetch
   const query = useQuery({
     queryKey,
     queryFn: async () => {
@@ -75,40 +65,9 @@ export const useTransactionsRealtime = ({
       }
       return result.data;
     },
-    enabled: !!user,
     refetchOnWindowFocus: false,
-    staleTime: Infinity, // Data is always fresh from onSnapshot
+    staleTime: Infinity,
   });
-
-  // Set up real-time listener
-  useEffect(() => {
-    if (!user) return;
-
-    const unsubscribe = subscribeToTransactionsUseCase.execute(
-      user.id,
-      async (_) => {
-        await revalidateTransactionTags();
-        const response = await getPaginatedTransactionsAction(params);
-
-        if (response.error) {
-          throw new Error(response.error);
-        }
-
-        debugLog("useTransactionsRealtime", "Transaction updated");
-        queryClient.setQueryData(queryKey, response.data);
-        setCacheUniq();
-      },
-      (error) => {
-        console.error("Real-time transactions error:", error);
-        // Set error state in React Query
-        queryClient.setQueryData(queryKey, () => {
-          throw error;
-        });
-      }
-    );
-
-    return unsubscribe;
-  }, []);
 
   return query;
 };
@@ -118,8 +77,6 @@ export const useCreateTransaction = ({
   onError,
   onSettled,
 }: StatusCallbacksType<TransactionDto>) => {
-  const queryClient = useQueryClient();
-
   const createTransactionMutation = useMutation({
     mutationFn: async (data: CreateTransactionDto) => {
       try {
@@ -135,8 +92,6 @@ export const useCreateTransaction = ({
       }
     },
     onSuccess: (data) => {
-      // Invalidate all transaction queries to trigger refetch/realtime update
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Transaction created successfully!");
       onSuccess?.(data);
     },
@@ -157,8 +112,6 @@ export const useUpdateTransaction = ({
   onError,
   onSettled,
 }: StatusCallbacksType<TransactionDto>) => {
-  const queryClient = useQueryClient();
-
   const updateTransactionMutation = useMutation({
     mutationFn: async ({
       transactionId,
@@ -183,8 +136,6 @@ export const useUpdateTransaction = ({
       }
     },
     onSuccess: (data) => {
-      // Invalidate all transaction queries to trigger refetch/realtime update
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Transaction updated successfully!");
       onSuccess?.(data);
     },
@@ -205,8 +156,6 @@ export const useDeleteTransaction = ({
   onError,
   onSettled,
 }: StatusCallbacksType<void>) => {
-  const queryClient = useQueryClient();
-
   const deleteTransactionMutation = useMutation({
     mutationFn: async (transactionId: string) => {
       try {
@@ -220,8 +169,6 @@ export const useDeleteTransaction = ({
       }
     },
     onSuccess: () => {
-      // Invalidate all transaction queries to trigger refetch/realtime update
-      queryClient.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Transaction deleted successfully!");
       onSuccess?.();
     },
