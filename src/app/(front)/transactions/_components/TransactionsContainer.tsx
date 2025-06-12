@@ -1,17 +1,20 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useTransactionPageRealtime } from "@/app/(front)/transactions/_hooks/useTransactionPageRealtime";
+import { useTransactionPageParams } from "../_hooks/useTransactionParams";
 import { SearchFilterBar } from "./SearchFilterBar";
 import TransactionsTable from "./TransactionsTable";
 
 export function TransactionsContainer() {
-  const searchParams = useSearchParams();
+  const { search, category, sortBy, order, page } = useTransactionPageParams();
 
-  const search = searchParams.get("search") || "";
-  const category = searchParams.get("category") || "";
-  const sortBy = searchParams.get("sortBy") || "transactionDate";
-  const order = searchParams.get("order") || "desc";
-  const page = Number.parseInt(searchParams.get("page") || "1", 10);
+  useTransactionPageRealtime({
+    search,
+    category,
+    sortBy,
+    order,
+    page,
+  });
 
   return (
     <>
