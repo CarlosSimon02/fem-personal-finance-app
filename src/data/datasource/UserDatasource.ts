@@ -1,3 +1,4 @@
+import hasKeys from "@/utils/hasKeys";
 import {
   CreateUserModel,
   createUserModelSchema,
@@ -67,8 +68,10 @@ export class UserDatasource {
         operationType: "update",
       }
     );
-    const userDoc = userCollection.doc(id);
-    await userDoc.update(validatedData);
+    if (hasKeys(validatedData)) {
+      const userDoc = userCollection.doc(id);
+      await userDoc.update(validatedData);
+    }
   }
 
   async deleteOne(id: string) {

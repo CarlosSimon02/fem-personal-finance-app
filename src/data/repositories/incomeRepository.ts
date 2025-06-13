@@ -9,6 +9,7 @@ import {
 } from "@/core/schemas/incomeSchema";
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { generateId } from "@/utils/generateId";
+import { CategoryDatasource } from "../datasource/CategoryDatasource";
 import { IncomeDatasource } from "../datasource/IncomeDatasource";
 import { TransactionDatasource } from "../datasource/TransactionDatasource";
 import { IncomeMapper } from "../mappers/IncomeMapper";
@@ -20,12 +21,14 @@ import { FirestoreService } from "../services/FirestoreService";
 export class IncomeRepository implements IIncomeRepository {
   private readonly incomeDatasource: IncomeDatasource;
   private readonly transactionDatasource: TransactionDatasource;
+  private readonly categoryDatasource: CategoryDatasource;
   private readonly errorHandlingService: ErrorHandlingService;
   private readonly firestoreService: FirestoreService;
 
   constructor() {
     this.incomeDatasource = new IncomeDatasource();
     this.transactionDatasource = new TransactionDatasource();
+    this.categoryDatasource = new CategoryDatasource();
     this.errorHandlingService = new ErrorHandlingService();
     this.firestoreService = new FirestoreService();
   }
@@ -288,6 +291,25 @@ export class IncomeRepository implements IIncomeRepository {
         // Update data
         await this.incomeDatasource.updateOne(userId, incomeId, updateData);
 
+        // Side effects
+        const category = await this.categoryDatasource.getById(
+          userId,
+          incomeId
+        );
+        if (category) {
+          this.transactionDatasource.updateMultipleByCategory(
+            userId,
+            incomeId,
+            {
+              name: updateData.name,
+              colorTag: updateData.colorTag,
+            }
+          );
+          this.categoryDatasource.updateOne(userId, incomeId, {
+            name: updateData.name,
+            colorTag: updateData.colorTag,
+          });
+        }
         // Return data
         return await this.getAndMapIncome(userId, incomeId);
       },
@@ -311,8 +333,15 @@ export class IncomeRepository implements IIncomeRepository {
   async deleteOne(userId: string, incomeId: string): Promise<void> {
     return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        // Prepare data
-        const currentIncome = await this.getAndMapIncome(userId, incomeId);
+        // Side effects
+        const category = await this.categoryDatasource.getById(
+          userId,
+          incomeId
+        );
+        if (category) {
+          this.transactionDatasource.deleteMultipleByCategory(userId, incomeId);
+          this.categoryDatasource.deleteOne(userId, incomeId);
+        }
 
         // Delete data
         await this.incomeDatasource.deleteOne(userId, incomeId);

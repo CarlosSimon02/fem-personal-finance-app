@@ -1,5 +1,7 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { TransactionTypeDto } from "@/core/schemas/transactionSchema";
+import { adminFirestore } from "@/services/firebase/firebaseAdmin";
+import hasKeys from "@/utils/hasKeys";
 import { AggregateField } from "firebase-admin/firestore";
 import {
   CreateTransactionModel,
@@ -7,6 +9,7 @@ import {
   TransactionModel,
   TransactionModelPaginationResponse,
   transactionModelSchema,
+  UpdateTransactionCategoryModel,
   UpdateTransactionModel,
   updateTransactionModelSchema,
 } from "../models/transactionModel";
@@ -88,8 +91,10 @@ export class TransactionDatasource {
         operationType: "update",
       }
     );
-    const transactionDoc = transactionCollection.doc(id);
-    await transactionDoc.update(validatedData);
+    if (hasKeys(validatedData)) {
+      const transactionDoc = transactionCollection.doc(id);
+      await transactionDoc.update(validatedData);
+    }
   }
 
   async hasTransactions(userId: string, categoryId: string) {
@@ -135,5 +140,67 @@ export class TransactionDatasource {
       });
     const aggregationResult = await spendingAggregation.get();
     return aggregationResult.data().totalSpending ?? 0;
+  }
+
+  async updateMultipleByCategory(
+    userId: string,
+    categoryId: string,
+    data: UpdateTransactionCategoryModel
+  ) {
+    const transactionCollection = this.getTransactionCollection(userId);
+
+    // Validate the input data
+    const validatedData = this.validationService.validateDocumentData(
+      updateTransactionModelSchema.shape.category,
+      data,
+      {
+        contextName: "TransactionDatasource",
+        operationType: "update",
+      }
+    );
+
+    // Return early if no valid data to update
+    if (!validatedData || !hasKeys(validatedData)) {
+      return;
+    }
+
+    // Create bulk writer instance
+    const bulkWriter = adminFirestore.bulkWriter();
+
+    // Get all transactions matching the category
+    const transactions = await transactionCollection
+      .where("category.id", "==", categoryId)
+      .get();
+
+    // Queue all updates
+    transactions.docs.forEach((transaction) => {
+      bulkWriter.update(transaction.ref, {
+        "category.name": validatedData.name,
+        "category.colorTag": validatedData.colorTag,
+      });
+    });
+
+    // Execute all operations
+    await bulkWriter.close();
+  }
+
+  async deleteMultipleByCategory(userId: string, categoryId: string) {
+    const transactionCollection = this.getTransactionCollection(userId);
+
+    // Create bulk writer instance
+    const bulkWriter = adminFirestore.bulkWriter();
+
+    // Get all transactions matching the category
+    const transactions = await transactionCollection
+      .where("category.id", "==", categoryId)
+      .get();
+
+    // Queue all deletes
+    transactions.docs.forEach((transaction) => {
+      bulkWriter.delete(transaction.ref);
+    });
+
+    // Execute all operations
+    await bulkWriter.close();
   }
 }

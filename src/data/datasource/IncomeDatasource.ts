@@ -1,4 +1,5 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
+import hasKeys from "@/utils/hasKeys";
 import {
   CreateIncomeModel,
   createIncomeModelSchema,
@@ -102,8 +103,9 @@ export class IncomeDatasource {
         operationType: "update",
       }
     );
-    await incomeCollection.doc(id).update(validatedData);
-    return validatedData;
+    if (hasKeys(validatedData)) {
+      await incomeCollection.doc(id).update(validatedData);
+    }
   }
 
   async deleteOne(userId: string, id: string) {

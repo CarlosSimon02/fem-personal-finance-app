@@ -1,5 +1,8 @@
 import { createPaginationResponseSchema } from "@/core/schemas/paginationSchema";
-import { transactionSchema } from "@/core/schemas/transactionSchema";
+import {
+  transactionCategorySchema,
+  transactionSchema,
+} from "@/core/schemas/transactionSchema";
 import { z } from "zod";
 import { zFieldValue, zTimestamp } from "./helpers";
 
@@ -39,6 +42,10 @@ export const updateTransactionModelSchema = transactionModelSchema
   })
   .partial();
 
+export const updateTransactionCategoryModelSchema = transactionCategorySchema
+  .omit({ id: true })
+  .partial();
+
 export const transactionModelPaginationResponseSchema =
   createPaginationResponseSchema(transactionModelSchema);
 
@@ -54,4 +61,8 @@ export type CreateTransactionModel = z.infer<
 
 export type UpdateTransactionModel = z.infer<
   typeof updateTransactionModelSchema
+>;
+
+export type UpdateTransactionCategoryModel = z.infer<
+  typeof updateTransactionCategoryModelSchema
 >;

@@ -1,10 +1,13 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
+import hasKeys from "@/utils/hasKeys";
 import {
   CategoryModel,
   CategoryModelPaginationResponse,
   categoryModelSchema,
   CreateCategoryModel,
   createCategoryModelSchema,
+  UpdateCategoryModel,
+  updateCategoryModelSchema,
 } from "../models/categoryModel";
 import { CollectionService } from "../services/CollectionService";
 import { FirestoreService } from "../services/FirestoreService";
@@ -77,5 +80,21 @@ export class CategoryDatasource {
       categoryModelSchema
     );
     return response;
+  }
+
+  async updateOne(userId: string, id: string, data: UpdateCategoryModel) {
+    const categoryCollection = this.getCategoryCollection(userId);
+    const categoryDoc = categoryCollection.doc(id);
+    const validatedData = this.validationService.validateDocumentData(
+      updateCategoryModelSchema,
+      data,
+      {
+        contextName: "CategoryDatasource",
+        operationType: "update",
+      }
+    );
+    if (validatedData && hasKeys(validatedData)) {
+      await categoryDoc.update(validatedData);
+    }
   }
 }

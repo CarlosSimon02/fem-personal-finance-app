@@ -10,6 +10,7 @@ import {
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import { generateId } from "@/utils/generateId";
 import { BudgetDatasource } from "../datasource/BudgetDatasource";
+import { CategoryDatasource } from "../datasource/CategoryDatasource";
 import { TransactionDatasource } from "../datasource/TransactionDatasource";
 import { BudgetMapper } from "../mappers/BudgetMapper";
 import { TransactionMapper } from "../mappers/TransactionMapper";
@@ -20,12 +21,14 @@ import { FirestoreService } from "../services/FirestoreService";
 export class BudgetRepository implements IBudgetRepository {
   private readonly budgetDatasource: BudgetDatasource;
   private readonly transactionDatasource: TransactionDatasource;
+  private readonly categoryDatasource: CategoryDatasource;
   private readonly errorHandlingService: ErrorHandlingService;
   private readonly firestoreService: FirestoreService;
 
   constructor() {
     this.budgetDatasource = new BudgetDatasource();
     this.transactionDatasource = new TransactionDatasource();
+    this.categoryDatasource = new CategoryDatasource();
     this.errorHandlingService = new ErrorHandlingService();
     this.firestoreService = new FirestoreService();
   }
@@ -296,6 +299,30 @@ export class BudgetRepository implements IBudgetRepository {
         // Update data
         await this.budgetDatasource.updateOne(userId, budgetId, updateData);
 
+        // Side effects
+        if (updateData.name || updateData.colorTag) {
+          // update all transactions with the new category name or color tag
+          const category = await this.categoryDatasource.getById(
+            userId,
+            budgetId
+          );
+          if (category) {
+            this.transactionDatasource.updateMultipleByCategory(
+              userId,
+              budgetId,
+              {
+                name: updateData.name,
+                colorTag: updateData.colorTag,
+              }
+            );
+          }
+          // update the category name and color tag
+          this.categoryDatasource.updateOne(userId, budgetId, {
+            name: updateData.name,
+            colorTag: updateData.colorTag,
+          });
+        }
+
         // Return data
         return await this.getAndMapBudget(userId, budgetId);
       },
@@ -319,8 +346,15 @@ export class BudgetRepository implements IBudgetRepository {
   async deleteOne(userId: string, budgetId: string): Promise<void> {
     return this.errorHandlingService.executeWithErrorHandling(
       async () => {
-        // Prepare data
-        const currentBudget = await this.getAndMapBudget(userId, budgetId);
+        // Side effects
+        const category = await this.categoryDatasource.getById(
+          userId,
+          budgetId
+        );
+        if (category) {
+          this.transactionDatasource.deleteMultipleByCategory(userId, budgetId);
+          this.categoryDatasource.deleteOne(userId, budgetId);
+        }
 
         // Delete data
         await this.budgetDatasource.deleteOne(userId, budgetId);
