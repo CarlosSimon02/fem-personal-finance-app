@@ -19,7 +19,7 @@ import {
 } from "@/factories/budget";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
-import { unstable_cacheTag as cacheTag } from "next/cache";
+import { unstable_cacheTag as cacheTag, revalidateTag } from "next/cache";
 
 export const createBudgetAction = actionWithAuth<CreateBudgetDto, BudgetDto>(
   async ({ user, data }) => {
@@ -78,3 +78,8 @@ export const getBudgetsSummaryAction = actionWithAuth<
   const response = await getBudgetsSummaryUseCase.execute(user.id, data);
   return { data: response, error: null };
 });
+
+export const revalidateBudgetTags = async () => {
+  revalidateTag(cacheTags.BUDGETS_SUMMARY);
+  revalidateTag(cacheTags.PAGINATED_BUDGETS_WITH_TRANSACTIONS);
+};

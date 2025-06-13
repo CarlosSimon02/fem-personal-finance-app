@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransactionsRealtime } from "@/presentation/hooks/useTransactions";
+import { useTransactions } from "@/presentation/hooks/useTransactions";
 import { AlertCircle } from "lucide-react";
 import { TransactionsSkeleton } from "../TransactionsSkeleton";
 import MobileTransactionCard from "./MobileTransactionCard";
@@ -23,7 +23,7 @@ const TransactionsTable = ({
   order,
   page,
 }: TransactionsTableProps) => {
-  const { data, isPending, error, isError } = useTransactionsRealtime({
+  const { data, isPending, error, isError } = useTransactions({
     search,
     category,
     sortBy,

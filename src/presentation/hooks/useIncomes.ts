@@ -11,11 +11,7 @@ import {
   updateIncomeAction,
 } from "../actions/incomeActions";
 import { useMutationWithToast } from "./shared/mutations";
-import {
-  createPaginationParams,
-  createQueryKey,
-  useQueryWithDefaults,
-} from "./shared/queries";
+import { createPaginationParams, useQueryWithDefaults } from "./shared/queries";
 import { StatusCallbacksType } from "./types";
 
 export const useCreateIncome = ({
@@ -103,7 +99,7 @@ export const useIncomesWithTransactions = ({
     pageSize,
   });
 
-  const queryKey = createQueryKey("incomes", params);
+  const queryKey = ["incomes", params];
 
   return useQueryWithDefaults({
     queryKey,
@@ -118,7 +114,7 @@ export const useIncomesWithTransactions = ({
 };
 
 export const useIncomesSummary = () => {
-  const queryKey = createQueryKey("income-summary");
+  const queryKey = ["income-summary"];
 
   return useQueryWithDefaults({
     queryKey,

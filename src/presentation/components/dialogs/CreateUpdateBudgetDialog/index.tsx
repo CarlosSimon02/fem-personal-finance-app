@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/presentation/components/ui/dialog";
-import { useCreateIncome } from "@/presentation/hooks/useBudgets";
+import { useCreateBudget } from "@/presentation/hooks/useBudgets";
 import { useState } from "react";
 import { BudgetForm } from "./BudgetForm";
 
@@ -54,7 +54,7 @@ const CreateUpdateBudgetDialog = ({
   };
 
   const { mutateAsync: createBudget, isPending: isSubmitting } =
-    useCreateIncome({
+    useCreateBudget({
       onSuccess: (data: BudgetDto) => {
         handleOpenChange(false);
         onSuccess?.(data);

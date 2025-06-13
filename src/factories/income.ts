@@ -5,7 +5,7 @@ import { GetIncomesSummaryUseCase } from "@/core/useCases/income/getIncomesSumma
 import { GetPaginatedIncomesUseCase } from "@/core/useCases/income/getPaginatedIncomes";
 import { GetPaginatedIncomesWithTransactionsUseCase } from "@/core/useCases/income/getPaginatedIncomesWithTransactions";
 import { UpdateIncomeUseCase } from "@/core/useCases/income/updateIncome";
-import { IncomeRepository } from "@/data/repositories/IncomeRepository";
+import { IncomeRepository } from "@/data/repositories/incomeRepository";
 
 const incomeRepository = new IncomeRepository();
 

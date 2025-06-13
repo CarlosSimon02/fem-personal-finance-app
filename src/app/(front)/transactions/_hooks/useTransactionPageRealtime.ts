@@ -1,22 +1,18 @@
-import { TransactionDto } from "@/core/schemas/transactionSchema";
+import {
+  subscribeToCategoriesUseCase,
+  subscribeToTransactionsUseCase,
+} from "@/factories/realtime";
+import {
+  revalidateCategoryTag,
+  revalidateTransactionTag,
+} from "@/presentation/actions/transactionActions";
 import { useAuth } from "@/presentation/contexts/AuthContext";
 import {
-  createPaginationParams,
-  createQueryKey,
-} from "@/presentation/hooks/shared/queries";
-import { useTransactions } from "@/presentation/hooks/useTransactions";
-import { RealtimeListenerService } from "@/presentation/services/realtimeListenerService";
-import { useQueryClient } from "@tanstack/react-query";
+  useTransactions,
+  UseTransactionsParams,
+} from "@/presentation/hooks/useTransactions";
 import { useEffect } from "react";
-
-interface UseTransactionPageRealtimeParams {
-  search?: string;
-  category?: string;
-  sortBy?: string;
-  order?: string;
-  page?: number;
-  pageSize?: number;
-}
+import { useFilterByCategory } from "../_stores/useFilterByCategory";
 
 export const useTransactionPageRealtime = ({
   search = "",
@@ -25,9 +21,9 @@ export const useTransactionPageRealtime = ({
   order = "desc",
   page = 1,
   pageSize = 10,
-}: UseTransactionPageRealtimeParams) => {
+}: UseTransactionsParams) => {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
+  const { setCacheUniq } = useFilterByCategory();
 
   // Get the standard query result
   const transactionsQuery = useTransactions({
@@ -39,49 +35,41 @@ export const useTransactionPageRealtime = ({
     pageSize,
   });
 
-  const params = createPaginationParams({
-    search,
-    category,
-    sortBy,
-    order: order as "asc" | "desc",
-    page,
-    pageSize,
-  });
-
-  const queryKey = createQueryKey("transactions", params);
-
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user) return;
 
-    const realtimeService = RealtimeListenerService.getInstance();
+    const unsubscribers: (() => void)[] = [];
 
-    const cleanup = realtimeService.subscribe<TransactionDto>({
-      userId: user.id,
-      entityType: "transactions",
-      onData: (realtimeData) => {
-        // Update React Query cache with real-time data
-        queryClient.setQueryData(queryKey, (oldData: any) => {
-          if (!oldData) return oldData;
+    unsubscribers.push(
+      subscribeToTransactionsUseCase.execute(
+        user.id,
+        async (_) => {
+          await revalidateTransactionTag();
+          transactionsQuery.refetch();
+        },
+        (error) => {
+          console.error("Real-time transactions error:", error);
+        }
+      )
+    );
 
-          // Replace the items array with real-time data
-          // Keep pagination metadata intact
-          return {
-            ...oldData,
-            items: realtimeData,
-            // Update timestamp to indicate fresh data
-            lastUpdated: new Date().toISOString(),
-          };
-        });
-      },
-      onError: (error) => {
-        console.error("Real-time transactions error:", error);
-        // Optionally invalidate query to trigger refetch
-        queryClient.invalidateQueries({ queryKey });
-      },
-    });
+    unsubscribers.push(
+      subscribeToCategoriesUseCase.execute(
+        user.id,
+        async (_) => {
+          await revalidateCategoryTag();
+          setCacheUniq();
+        },
+        (error) => {
+          console.error("Real-time categories error:", error);
+        }
+      )
+    );
 
-    return cleanup;
-  }, [user?.id, queryClient, queryKey]);
+    return () => {
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, []);
 
   return transactionsQuery;
 };

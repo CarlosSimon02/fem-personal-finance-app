@@ -11,14 +11,10 @@ import {
   updateTransactionAction,
 } from "../actions/transactionActions";
 import { useMutationWithToast } from "./shared/mutations";
-import {
-  createPaginationParams,
-  createQueryKey,
-  useQueryWithDefaults,
-} from "./shared/queries";
+import { createPaginationParams, useQueryWithDefaults } from "./shared/queries";
 import { StatusCallbacksType } from "./types";
 
-interface UseTransactionsParams {
+export interface UseTransactionsParams {
   search?: string;
   category?: string;
   sortBy?: string;
@@ -44,7 +40,7 @@ export const useTransactions = ({
     pageSize,
   });
 
-  const queryKey = createQueryKey("transactions", params);
+  const queryKey = ["transactions", params];
 
   return useQueryWithDefaults({
     queryKey,

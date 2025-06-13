@@ -10,8 +10,7 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { PlusCircle } from "lucide-react";
-import { BudgetCardsGrid } from "./_components/BudgetCardsGrid";
-import { SpendingSummaryCard } from "./_components/SpendingSummaryCard";
+import BudgetContainer from "./_components/BudgetContainer";
 
 type BudgetsPageProps = {
   searchParams: Promise<{
@@ -72,14 +71,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:sticky lg:col-span-1">
-            <SpendingSummaryCard />
-          </div>
-          <div className="lg:col-span-2">
-            <BudgetCardsGrid />
-          </div>
-        </div>
+        <BudgetContainer />
       </div>
     </HydrationBoundary>
   );

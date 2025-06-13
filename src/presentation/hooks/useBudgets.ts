@@ -11,11 +11,7 @@ import {
   updateBudgetAction,
 } from "../actions/budgetActions";
 import { useMutationWithToast } from "./shared/mutations";
-import {
-  createPaginationParams,
-  createQueryKey,
-  useQueryWithDefaults,
-} from "./shared/queries";
+import { createPaginationParams, useQueryWithDefaults } from "./shared/queries";
 import { StatusCallbacksType } from "./types";
 
 export const useCreateBudget = ({
@@ -81,7 +77,7 @@ export const useUpdateBudget = ({
   });
 };
 
-interface UseBudgetsParams {
+export interface UseBudgetsWithTransactionsParams {
   search?: string;
   sortBy?: string;
   order?: string;
@@ -94,7 +90,7 @@ export const useBudgetsWithTransactions = ({
   order = "desc",
   page = 1,
   pageSize = 4,
-}: UseBudgetsParams) => {
+}: UseBudgetsWithTransactionsParams) => {
   const params = createPaginationParams({
     search: "",
     sortBy,
@@ -103,7 +99,7 @@ export const useBudgetsWithTransactions = ({
     pageSize,
   });
 
-  const queryKey = createQueryKey("budgets", params);
+  const queryKey = ["budgets", params];
 
   return useQueryWithDefaults({
     queryKey,
@@ -118,7 +114,7 @@ export const useBudgetsWithTransactions = ({
 };
 
 export const useBudgetsSummary = () => {
-  const queryKey = createQueryKey("budget-summary");
+  const queryKey = ["budget-summary"];
 
   return useQueryWithDefaults({
     queryKey,

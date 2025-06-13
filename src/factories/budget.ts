@@ -5,7 +5,7 @@ import { GetBudgetsSummaryUseCase } from "@/core/useCases/budget/getBudgetsSumma
 import { GetPaginatedBudgetsUseCase } from "@/core/useCases/budget/getPaginatedBudgets";
 import { GetPaginatedBudgetsWithTransactionsUseCase } from "@/core/useCases/budget/getPaginatedBudgetsWithTransactions";
 import { UpdateBudgetUseCase } from "@/core/useCases/budget/updateBudget";
-import { BudgetRepository } from "@/data/repositories/BudgetRepository";
+import { BudgetRepository } from "@/data/repositories/budgetRepository";
 
 const budgetRepository = new BudgetRepository();
 

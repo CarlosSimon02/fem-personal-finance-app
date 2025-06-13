@@ -81,10 +81,3 @@ export const createPaginationParams = ({
     },
   };
 };
-
-export const createQueryKey = (
-  resource: string,
-  params?: unknown
-): unknown[] => {
-  return params ? [resource, params] : [resource];
-};

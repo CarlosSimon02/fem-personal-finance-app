@@ -1,7 +1,7 @@
 import { OnboardUser } from "@/core/useCases/auth/onboardUser";
 import { VerifyIdToken } from "@/core/useCases/auth/verifyIdToken";
-import { AuthAdminRepository } from "@/data/repositories/AuthAdminRepository";
-import { UserRepository } from "@/data/repositories/UserRespository";
+import { AuthAdminRepository } from "@/data/repositories/authAdminRepository";
+import { UserRepository } from "@/data/repositories/userRespository";
 
 const userRepository = new UserRepository();
 const authAdminRepository = new AuthAdminRepository();

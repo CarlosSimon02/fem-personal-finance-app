@@ -1,23 +1,23 @@
 "use client";
 
-import { useBudgetsWithTransactionsRealtime } from "@/presentation/hooks/useBudgets";
+import { useBudgetsWithTransactions } from "@/presentation/hooks/useBudgets";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { Pagination } from "../../transactions/_components/TransactionsTable/Pagination";
 import { BudgetCard } from "./BudgetCard";
 import { BudgetCardsGridSkeleton } from "./BudgetsSkeleton";
 
-export function BudgetCardsGrid() {
-  const searchParams = useSearchParams();
-  const page = Number.parseInt(searchParams.get("page") || "1", 10);
-  const pageSize = 4;
+interface BudgetCardsGridProps {
+  page: number;
+  pageSize: number;
+}
 
+export function BudgetCardsGrid({ page, pageSize }: BudgetCardsGridProps) {
   const {
     data: budgets,
     isPending,
     error,
     isError,
-  } = useBudgetsWithTransactionsRealtime({
+  } = useBudgetsWithTransactions({
     page,
     pageSize,
   });

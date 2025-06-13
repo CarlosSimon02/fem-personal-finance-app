@@ -3,7 +3,7 @@ import { ResetPassword } from "@/core/useCases/auth/resetPassword";
 import { SignInWithGoogle } from "@/core/useCases/auth/signInWithGoogle";
 import { SignOut } from "@/core/useCases/auth/signOut";
 import { SignUpWithEmail } from "@/core/useCases/auth/signUpWithEmail";
-import { AuthClientRepository } from "@/data/repositories/AuthClientRepository";
+import { AuthClientRepository } from "@/data/repositories/authClientRepository";
 
 const authClientRepository = new AuthClientRepository();
 
