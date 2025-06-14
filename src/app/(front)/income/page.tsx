@@ -1,40 +1,74 @@
-import { Button } from "@/presentation/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import { Suspense } from "react";
-import { EarningsSummaryCard } from "./_components/EarningsSummaryCard";
-import { IncomeCardsGrid } from "./_components/IncomeCardsGrid";
-import { IncomesSkeleton } from "./_components/IncomesSkeleton";
+import { PaginationParams } from "@/core/schemas/paginationSchema";
+import {
+  getIncomesSummaryAction,
+  getPaginatedIncomesWithTransactionsAction,
+} from "@/presentation/actions/incomeActions";
+import {
+  dehydrate,
+  HydrationBoundary,
+  QueryClient,
+} from "@tanstack/react-query";
+import CreateIncomeDialog from "./_components/CreateIncomeDialog";
+import IncomeContainer from "./_components/IncomeContainer";
 
-export default async function BudgetsPage({
-  searchParams,
-}: {
+type IncomesPageProps = {
   searchParams: Promise<{
     page?: string;
   }>;
-}) {
+};
+
+export default async function IncomesPage({ searchParams }: IncomesPageProps) {
+  const queryClient = new QueryClient();
+
   const paramsResult = await searchParams;
   const page = Number.parseInt(paramsResult.page || "1", 10);
 
-  return (
-    <div className="container space-y-6 py-6">
-      <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <h1 className="text-3xl font-bold">Income</h1>
-        <Button className="flex items-center gap-2">
-          <PlusCircle className="h-4 w-4" />
-          Add New Income
-        </Button>
-      </div>
+  const params: PaginationParams = {
+    sort: {
+      field: "createdAt",
+      order: "desc",
+    },
+    filters: [],
+    search: "",
+    pagination: {
+      page,
+      limitPerPage: 4,
+    },
+  };
 
-      <Suspense fallback={<IncomesSkeleton />}>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="lg:sticky lg:col-span-1">
-            <EarningsSummaryCard />
-          </div>
-          <div className="lg:col-span-2">
-            <IncomeCardsGrid page={page} />
-          </div>
+  Promise.all([
+    await queryClient.prefetchQuery({
+      queryKey: ["incomes", params],
+      queryFn: async () => {
+        const result = await getPaginatedIncomesWithTransactionsAction(params);
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        return result.data;
+      },
+    }),
+    await queryClient.prefetchQuery({
+      queryKey: ["summary"],
+      queryFn: async () => {
+        const result = await getIncomesSummaryAction(undefined);
+        if (result.error) {
+          throw new Error(result.error);
+        }
+        return result.data;
+      },
+    }),
+  ]);
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <div className="container space-y-6 py-6">
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <h1 className="text-3xl font-bold">Incomes</h1>
+          <CreateIncomeDialog />
         </div>
-      </Suspense>
-    </div>
+
+        <IncomeContainer />
+      </div>
+    </HydrationBoundary>
   );
 }

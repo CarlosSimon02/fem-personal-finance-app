@@ -17,7 +17,7 @@ export class IncomeMapper {
 
   static toDtoWithTotalEarned(model: IncomeModel): IncomeDtoWithTotalEarned {
     return {
-      ...this.toDto(model),
+      ...IncomeMapper.toDto(model),
       totalEarned: model.totalEarned,
     };
   }

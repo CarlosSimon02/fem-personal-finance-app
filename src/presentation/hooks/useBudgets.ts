@@ -44,9 +44,7 @@ export const useDeleteBudget = ({
     mutationFn: async (data: string) => {
       const response = await deleteBudgetAction(data);
       if (response.error) throw new Error(response.error);
-      if (!response.data)
-        throw new Error("No data returned from server action");
-      return response.data;
+      return;
     },
     successMessage: "Budget deleted successfully!",
     errorMessage: "Delete budget failed",

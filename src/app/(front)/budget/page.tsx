@@ -3,14 +3,13 @@ import {
   getBudgetsSummaryAction,
   getPaginatedBudgetsWithTransactionsAction,
 } from "@/presentation/actions/budgetActions";
-import { Button } from "@/presentation/components/ui/button";
 import {
   dehydrate,
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import { PlusCircle } from "lucide-react";
 import BudgetContainer from "./_components/BudgetContainer";
+import CreateBudgetDialog from "./_components/CreateBudgetDialog";
 
 type BudgetsPageProps = {
   searchParams: Promise<{
@@ -65,10 +64,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
       <div className="container space-y-6 py-6">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <h1 className="text-3xl font-bold">Budgets</h1>
-          <Button className="flex items-center gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Add New Budget
-          </Button>
+          <CreateBudgetDialog />
         </div>
 
         <BudgetContainer />

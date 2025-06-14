@@ -127,7 +127,13 @@ export const BudgetForm = ({
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Income"}
+            {isSubmitting
+              ? operation === "create"
+                ? "Creating..."
+                : "Updating..."
+              : operation === "create"
+                ? "Create Budget"
+                : "Update Budget"}
           </Button>
         </DialogFooter>
       </form>

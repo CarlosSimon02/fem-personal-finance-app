@@ -1,20 +1,13 @@
 import { BudgetWithTransactionsDto } from "@/core/schemas/budgetSchema";
 import TransactionEmoji from "@/presentation/components/TransactionEmoji";
-import { Button } from "@/presentation/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
 } from "@/presentation/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/presentation/components/ui/dropdown-menu";
 import { Separator } from "@/presentation/components/ui/separator";
-import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
+import BudgetCardActions from "./BudgetCardActions";
 
 interface BudgetCardProps {
   budget: BudgetWithTransactionsDto;
@@ -37,18 +30,7 @@ export function BudgetCard({ budget }: BudgetCardProps) {
           />
           <h3 className="font-medium">{budget.name}</h3>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit budget</DropdownMenuItem>
-            <DropdownMenuItem>Delete budget</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <BudgetCardActions budget={budget} />
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-2">

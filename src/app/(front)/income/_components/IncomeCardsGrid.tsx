@@ -1,16 +1,36 @@
+"use client";
+
+import { useIncomesWithTransactions } from "@/presentation/hooks/useIncomes";
 import Link from "next/link";
-import { getPaginatedBudgets } from "../../overview/_data";
 import { Pagination } from "../../transactions/_components/TransactionsTable/Pagination";
 import { IncomeCard } from "./IncomeCard";
+import { IncomeCardsGridSkeleton } from "./IncomesSkeleton";
 
 interface IncomeCardsGridProps {
   page: number;
+  pageSize: number;
 }
 
-export async function IncomeCardsGrid({ page }: IncomeCardsGridProps) {
-  const { budgets, totalPages } = await getPaginatedBudgets(page, 4);
+export function IncomeCardsGrid({ page, pageSize }: IncomeCardsGridProps) {
+  const {
+    data: incomes,
+    isPending,
+    error,
+    isError,
+  } = useIncomesWithTransactions({
+    page,
+    pageSize,
+  });
 
-  if (budgets.length === 0) {
+  if (isPending) {
+    return <IncomeCardsGridSkeleton />;
+  }
+
+  if (isError) {
+    return <div>Error: {error?.message}</div>;
+  }
+
+  if (!incomes || incomes.data.length === 0) {
     return (
       <div className="bg-muted/10 flex flex-col items-center justify-center rounded-lg border p-8">
         <h3 className="mb-2 text-xl font-medium">No incomes found</h3>
@@ -24,11 +44,13 @@ export async function IncomeCardsGrid({ page }: IncomeCardsGridProps) {
     );
   }
 
+  const totalPages = Math.ceil(incomes.meta.pagination.totalItems / pageSize);
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6">
-        {budgets.map((budget) => (
-          <IncomeCard key={budget.id} budget={budget} />
+        {incomes.data.map((income) => (
+          <IncomeCard key={income.id} income={income} />
         ))}
       </div>
 

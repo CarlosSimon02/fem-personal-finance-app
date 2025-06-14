@@ -1,14 +1,24 @@
 "use client";
 
-import { IncomeDto, type CreateIncomeDto } from "@/core/schemas/incomeSchema";
+import {
+  IncomeDto,
+  UpdateIncomeDto,
+  type CreateIncomeDto,
+} from "@/core/schemas/incomeSchema";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/presentation/components/ui/dialog";
-import { useCreateIncome } from "@/presentation/hooks/useIncomes";
+import {
+  useCreateIncome,
+  useUpdateIncome,
+} from "@/presentation/hooks/useIncomes";
+import { debugLog } from "@/utils/debugLog";
+import { getChangedFields, hasChanges } from "@/utils/formUtils";
 import { useState } from "react";
 import { IncomeForm } from "./IncomeForm";
 
@@ -16,13 +26,14 @@ type CreateUpdateIncomeDialogProps = {
   title: string;
   description?: string;
   operation: "create" | "update";
-  initialData?: Partial<CreateIncomeDto>;
+  initialData?: IncomeDto;
   onSuccess?: (data: IncomeDto) => void;
   onError?: (error: Error) => void;
   onSettled?: () => void;
   onClose?: () => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  children: React.ReactNode;
 };
 
 const CreateUpdateIncomeDialog = ({
@@ -36,6 +47,7 @@ const CreateUpdateIncomeDialog = ({
   onClose,
   open: propsOpen,
   onOpenChange: propsOnOpenChange,
+  children,
 }: CreateUpdateIncomeDialogProps) => {
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -53,7 +65,7 @@ const CreateUpdateIncomeDialog = ({
     }
   };
 
-  const { mutateAsync: createIncome, isPending: isSubmitting } =
+  const { mutateAsync: createIncome, isPending: isCreatingIncome } =
     useCreateIncome({
       onSuccess: (data) => {
         handleOpenChange(false);
@@ -67,12 +79,60 @@ const CreateUpdateIncomeDialog = ({
       },
     });
 
+  const { mutateAsync: updateIncome, isPending: isUpdatingIncome } =
+    useUpdateIncome({
+      onSuccess: (data: IncomeDto) => {
+        handleOpenChange(false);
+        onSuccess?.(data);
+      },
+      onError: (error: Error) => {
+        onError?.(error);
+      },
+      onSettled: () => {
+        onSettled?.();
+      },
+    });
+
   const handleSubmit = async (data: CreateIncomeDto) => {
-    await createIncome(data);
+    if (operation === "create") {
+      await createIncome(data);
+    } else if (operation === "update" && initialData) {
+      // Get only the changed fields to optimize network payload
+      const changedFields = getChangedFields(
+        initialData,
+        data
+      ) as UpdateIncomeDto;
+
+      // Only proceed with update if there are actually changes
+      if (!hasChanges(changedFields)) {
+        // No changes detected, just close the dialog
+        debugLog(
+          "CreateUpdateIncomeDialog",
+          "No changes detected, closing dialog"
+        );
+
+        handleOpenChange(false);
+        return;
+      }
+
+      debugLog(
+        "CreateUpdateTransactionDialog",
+        "Updating transaction with changes:",
+        changedFields
+      );
+
+      await updateIncome({
+        id: initialData.id,
+        data: changedFields,
+      });
+    }
   };
+
+  const isSubmitting = isCreatingIncome || isUpdatingIncome;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>

@@ -1,29 +1,20 @@
+import { IncomeWithTransactionsDto } from "@/core/schemas/incomeSchema";
 import TransactionEmoji from "@/presentation/components/TransactionEmoji";
-import { Button } from "@/presentation/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
 } from "@/presentation/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/presentation/components/ui/dropdown-menu";
 import { Separator } from "@/presentation/components/ui/separator";
-import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import { Budget, getBudgetTransactions } from "../../overview/_data";
+import IncomeCardActions from "./IncomeCardActions";
 
-interface BudgetCardProps {
-  budget: Budget;
+interface IncomeCardProps {
+  income: IncomeWithTransactionsDto;
 }
 
-export async function IncomeCard({ budget }: BudgetCardProps) {
-  const { transactions } = await getBudgetTransactions(budget.id);
-  const remaining = budget.limit - budget.spent;
-  const percentSpent = (budget.spent / budget.limit) * 100;
+export function IncomeCard({ income }: IncomeCardProps) {
+  const transactions = income.transactions;
 
   return (
     <Card>
@@ -31,55 +22,24 @@ export async function IncomeCard({ budget }: BudgetCardProps) {
         <div className="flex items-center gap-2">
           <div
             className="h-4 w-4 rounded-full"
-            style={{ backgroundColor: budget.color }}
+            style={{ backgroundColor: income.colorTag }}
           />
-          <h3 className="font-medium">{budget.name}</h3>
+          <h3 className="font-medium">{income.name}</h3>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit budget</DropdownMenuItem>
-            <DropdownMenuItem>Delete budget</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <IncomeCardActions income={income} />
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <p className="text-muted-foreground text-sm">
-            Maximum of ₱{budget.limit.toLocaleString()}
-          </p>
-          <div className="bg-muted h-2 w-full rounded-full">
-            <div
-              className="h-2 rounded-full"
-              style={{
-                width: `${Math.min(100, percentSpent)}%`,
-                backgroundColor: budget.color,
-              }}
-            />
-          </div>
-        </div>
-
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">Spent</p>
+            <p className="text-muted-foreground text-xs">Earned</p>
             <div className="flex items-center gap-2">
               <div
                 className="h-8 w-1 rounded-full"
-                style={{ backgroundColor: budget.color }}
+                style={{ backgroundColor: income.colorTag }}
               />
-              <p className="font-medium">₱{budget.spent.toLocaleString()}</p>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">Remaining</p>
-            <div className="flex items-center gap-2">
-              <div className="bg-muted h-8 w-1 rounded-full" />
-              <p className="font-medium">₱{remaining.toLocaleString()}</p>
+              <p className="font-medium">
+                ₱{Math.abs(income.totalEarned).toLocaleString()}
+              </p>
             </div>
           </div>
         </div>
@@ -87,7 +47,7 @@ export async function IncomeCard({ budget }: BudgetCardProps) {
         {transactions.length > 0 && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-sm font-medium">Latest Spending</h4>
+              <h4 className="text-sm font-medium">Latest Earnings</h4>
               <Link href="#" className="text-primary text-xs hover:underline">
                 See all
               </Link>
@@ -103,11 +63,11 @@ export async function IncomeCard({ budget }: BudgetCardProps) {
                       <span className="text-sm">{transaction.name}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm font-medium text-red-600">
-                        -₱{Math.abs(transaction.amount).toLocaleString()}
+                      <p className="text-sm font-medium text-green-600">
+                        ₱{Math.abs(transaction.amount).toLocaleString()}
                       </p>
                       <p className="text-muted-foreground text-xs">
-                        {transaction.date}
+                        {transaction.transactionDate.toLocaleDateString()}
                       </p>
                     </div>
                   </div>

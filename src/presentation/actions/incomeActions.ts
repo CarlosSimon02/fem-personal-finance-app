@@ -20,7 +20,7 @@ import {
 } from "@/factories/income";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
-import { unstable_cacheTag as cacheTag } from "next/cache";
+import { unstable_cacheTag as cacheTag, revalidateTag } from "next/cache";
 
 export const createIncomeAction = actionWithAuth<CreateIncomeDto, IncomeDto>(
   async ({ user, data }) => {
@@ -79,3 +79,8 @@ export const getIncomesSummaryAction = actionWithAuth<
   const response = await getIncomesSummaryUseCase.execute(user.id, data);
   return { data: response, error: null };
 });
+
+export const revalidateIncomeTags = async () => {
+  revalidateTag(cacheTags.INCOMES_SUMMARY);
+  revalidateTag(cacheTags.PAGINATED_INCOMES_WITH_TRANSACTIONS);
+};

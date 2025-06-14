@@ -44,9 +44,7 @@ export const useDeleteIncome = ({
     mutationFn: async (data: string) => {
       const response = await deleteIncomeAction(data);
       if (response.error) throw new Error(response.error);
-      if (!response.data)
-        throw new Error("No data returned from server action");
-      return response.data;
+      return;
     },
     successMessage: "Income deleted successfully!",
     errorMessage: "Delete income failed",
@@ -77,7 +75,7 @@ export const useUpdateIncome = ({
   });
 };
 
-interface UseIncomesParams {
+export interface UseIncomesWithTransactionsParams {
   search?: string;
   sortBy?: string;
   order?: string;
@@ -90,7 +88,7 @@ export const useIncomesWithTransactions = ({
   order = "desc",
   page = 1,
   pageSize = 4,
-}: UseIncomesParams) => {
+}: UseIncomesWithTransactionsParams) => {
   const params = createPaginationParams({
     search: "",
     sortBy,

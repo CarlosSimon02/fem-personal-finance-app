@@ -3,7 +3,6 @@ import {
   TransactionDto,
   UpdateTransactionDto,
 } from "@/core/schemas/transactionSchema";
-import { debugLog } from "@/utils/debugLog";
 import {
   createTransactionAction,
   deleteTransactionAction,
@@ -111,7 +110,7 @@ export const useDeleteTransaction = ({
     mutationFn: async (transactionId: string): Promise<void> => {
       const response = await deleteTransactionAction({ transactionId });
       if (response.error) throw new Error(response.error);
-      debugLog("useDeleteTransaction", "Transaction deleted");
+      return;
     },
     successMessage: "Transaction deleted successfully!",
     errorMessage: "Delete transaction failed",

@@ -22,7 +22,7 @@ export const incomeSchema = createIncomeSchema.extend({
 });
 
 export const incomeSchemaWithTotalEarned = incomeSchema.extend({
-  totalEarned: z.number().int().positive(),
+  totalEarned: z.number().int().min(0, "Total earned must be positive"),
 });
 
 export const incomeWithTransactionsSchema = incomeSchemaWithTotalEarned.extend({

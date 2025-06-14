@@ -10,6 +10,7 @@ import {
   TransactionModelPaginationResponse,
   transactionModelSchema,
   UpdateTransactionCategoryModel,
+  updateTransactionCategoryModelSchema,
   UpdateTransactionModel,
   updateTransactionModelSchema,
 } from "../models/transactionModel";
@@ -151,7 +152,7 @@ export class TransactionDatasource {
 
     // Validate the input data
     const validatedData = this.validationService.validateDocumentData(
-      updateTransactionModelSchema.shape.category,
+      updateTransactionCategoryModelSchema,
       data,
       {
         contextName: "TransactionDatasource",

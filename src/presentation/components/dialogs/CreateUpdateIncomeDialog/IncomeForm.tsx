@@ -102,7 +102,13 @@ export const IncomeForm = ({
             Cancel
           </Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Creating..." : "Create Income"}
+            {isSubmitting
+              ? operation === "create"
+                ? "Creating..."
+                : "Updating..."
+              : operation === "create"
+                ? "Create Income"
+                : "Update Income"}
           </Button>
         </DialogFooter>
       </form>

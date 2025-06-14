@@ -1,5 +1,4 @@
 "use client";
-
 import {
   ChartContainer,
   ChartTooltip,
@@ -10,17 +9,17 @@ import { Label, Pie, PieChart } from "recharts";
 interface IncomeChartProps {
   incomeData: {
     name: string;
-    amount: number;
+    earned: number;
     color: string;
   }[];
-  totalIncome: number;
+  totalEarned: number;
 }
 
-export function IncomeChart({ incomeData, totalIncome }: IncomeChartProps) {
+export function IncomeChart({ incomeData, totalEarned }: IncomeChartProps) {
   // Format data for the chart
   const chartData = incomeData.map((income) => ({
     name: income.name,
-    value: income.amount,
+    value: income.earned,
     fill: income.color,
   }));
 
@@ -66,7 +65,7 @@ export function IncomeChart({ incomeData, totalIncome }: IncomeChartProps) {
                         y={viewBox.cy}
                         className="fill-foreground text-2xl font-bold"
                       >
-                        ₱{totalIncome.toLocaleString()}
+                        ₱{totalEarned.toLocaleString()}
                       </tspan>
                     </text>
                   );

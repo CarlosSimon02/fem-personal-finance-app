@@ -34,11 +34,19 @@ export function initializeFirebaseAdmin(params: FirebaseAdminParams) {
 
   debugLog("Firebase Admin", "initializing new admin instance");
 
-  return admin.initializeApp({
+  const app = admin.initializeApp({
     projectId: params.projectId,
     credential: credential.cert(serviceAccount),
     storageBucket: params.storageBucket,
   });
+
+  // Configure Firestore settings immediately after initialization
+  const firestore = getFirestore(app);
+  firestore.settings({
+    ignoreUndefinedProperties: true,
+  });
+
+  return app;
 }
 
 const adminApp = initializeFirebaseAdmin(firebaseAdminParams);
@@ -50,8 +58,10 @@ if (IS_USING_EMULATORS && env.NODE_ENV !== "production") {
   process.env["FIREBASE_STORAGE_EMULATOR_HOST"] = "localhost:9199";
 }
 
-export const adminFirestore = getFirestore(adminApp);
-export const adminAuth = getAuth(adminApp);
-export const adminStorageBucket = getStorage(adminApp).bucket(
+const adminFirestore = getFirestore(adminApp);
+const adminAuth = getAuth(adminApp);
+const adminStorageBucket = getStorage(adminApp).bucket(
   `gs://${adminApp.options.storageBucket}.appspot.com`
 );
+
+export { adminAuth, adminFirestore, adminStorageBucket };

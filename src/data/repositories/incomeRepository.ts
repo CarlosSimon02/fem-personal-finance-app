@@ -383,13 +383,13 @@ export class IncomeRepository implements IIncomeRepository {
 
   async getSummary(
     userId: string,
-    maxIncomesToShow: number
+    maxIncomesToShow: number = 12
   ): Promise<IncomesSummaryDto> {
     return this.errorHandlingService.executeWithErrorHandling(
       async () => {
         const [incomes, totalEarned, count] = await Promise.all([
           this.getIncomesToShowInSummary(userId, maxIncomesToShow),
-          this.transactionDatasource.calculateTotalByType(userId, "expense"),
+          this.transactionDatasource.calculateTotalByType(userId, "income"),
           this.incomeDatasource.getCount(userId),
         ]);
 
