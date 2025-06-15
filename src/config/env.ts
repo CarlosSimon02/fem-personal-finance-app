@@ -35,6 +35,7 @@ export const env = createEnv({
       .string()
       .transform((val) => Number(val)),
     NEXT_PUBLIC_AUTH_EMULATOR_HOST: z.string(),
+    NEXT_PUBLIC_SITE_URL: z.string(),
   },
   runtimeEnv: {
     FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL,
@@ -64,5 +65,6 @@ export const env = createEnv({
     NEXT_PUBLIC_AUTH_EMULATOR_HOST: process.env.NEXT_PUBLIC_AUTH_EMULATOR_HOST,
     ALGOLIA_APP_ID: process.env.ALGOLIA_APP_ID,
     ALGOLIA_API_KEY: process.env.ALGOLIA_API_KEY,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   },
 });
