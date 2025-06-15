@@ -1,8 +1,6 @@
 "use client";
 
-import { useTransactions } from "@/presentation/hooks/useTransactions";
-import { AlertCircle } from "lucide-react";
-import { TransactionsSkeleton } from "../TransactionsSkeleton";
+import { trpc } from "@/presentation/trpc/client";
 import MobileTransactionCard from "./MobileTransactionCard";
 import { Pagination } from "./Pagination";
 import TransactionRow from "./TransactionRow";
@@ -23,33 +21,22 @@ const TransactionsTable = ({
   order,
   page,
 }: TransactionsTableProps) => {
-  const { data, isPending, error, isError } = useTransactions({
+  const [data] = trpc.getPaginatedTransactions.useSuspenseQuery({
     search,
-    category,
-    sortBy,
-    order,
-    page,
-    pageSize: 10,
+    filters: category
+      ? [{ field: "category.name", operator: "==", value: category }]
+      : [],
+    sort: {
+      field: sortBy,
+      order: order as "asc" | "desc",
+    },
+    pagination: {
+      page,
+      limitPerPage: 10,
+    },
   });
 
-  if (isPending) {
-    return <TransactionsSkeleton />;
-  }
-
-  if (isError) {
-    return (
-      <div className="border-destructive bg-destructive/10 text-destructive flex items-center gap-2 rounded-md border p-4">
-        <AlertCircle className="h-4 w-4" />
-        <p>
-          {error instanceof Error
-            ? error.message
-            : "Failed to load transactions. Please try again."}
-        </p>
-      </div>
-    );
-  }
-
-  if (!data || !data.data.length) {
+  if (!data.data.length) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <p className="text-muted-foreground text-lg">No transactions found</p>

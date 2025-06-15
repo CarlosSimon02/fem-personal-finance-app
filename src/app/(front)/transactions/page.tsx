@@ -1,10 +1,5 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { getPaginatedTransactionsAction } from "@/presentation/actions/transactionActions";
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from "@tanstack/react-query";
+import { HydrateClient, trpc } from "@/presentation/trpc/server";
 import CreateTransactionDialog from "./_components/CreateTransactionDialog";
 import { TransactionsContainer } from "./_components/TransactionsContainer";
 
@@ -19,8 +14,6 @@ type TransactionsPageProps = {
 };
 
 const TransactionsPage = async ({ searchParams }: TransactionsPageProps) => {
-  const queryClient = new QueryClient();
-
   const paramsResult = await searchParams;
   const search = paramsResult.search || "";
   const category = paramsResult.category || "";
@@ -50,19 +43,10 @@ const TransactionsPage = async ({ searchParams }: TransactionsPageProps) => {
     },
   };
 
-  await queryClient.prefetchQuery({
-    queryKey: ["transactions", params],
-    queryFn: async () => {
-      const result = await getPaginatedTransactionsAction(params);
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      return result.data;
-    },
-  });
+  trpc.getPaginatedTransactions.prefetch(params);
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <HydrateClient>
       <div className="container space-y-6 py-6">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <h1 className="text-3xl font-bold">Transactions</h1>
@@ -71,7 +55,7 @@ const TransactionsPage = async ({ searchParams }: TransactionsPageProps) => {
 
         <TransactionsContainer />
       </div>
-    </HydrationBoundary>
+    </HydrateClient>
   );
 };
 

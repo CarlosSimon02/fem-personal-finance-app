@@ -1,10 +1,9 @@
 "use client";
 
-import { useBudgetsWithTransactions } from "@/presentation/hooks/useBudgets";
+import { trpc } from "@/presentation/trpc/client";
 import Link from "next/link";
 import { Pagination } from "../../transactions/_components/TransactionsTable/Pagination";
 import { BudgetCard } from "./BudgetCard";
-import { BudgetCardsGridSkeleton } from "./BudgetsSkeleton";
 
 interface BudgetCardsGridProps {
   page: number;
@@ -12,25 +11,20 @@ interface BudgetCardsGridProps {
 }
 
 export function BudgetCardsGrid({ page, pageSize }: BudgetCardsGridProps) {
-  const {
-    data: budgets,
-    isPending,
-    error,
-    isError,
-  } = useBudgetsWithTransactions({
-    page,
-    pageSize,
+  const [budgets] = trpc.getPaginatedBudgetsWithTransactions.useSuspenseQuery({
+    pagination: {
+      page,
+      limitPerPage: pageSize,
+    },
+    sort: {
+      field: "createdAt",
+      order: "desc",
+    },
+    filters: [],
+    search: "",
   });
 
-  if (isPending) {
-    return <BudgetCardsGridSkeleton />;
-  }
-
-  if (isError) {
-    return <div>Error: {error?.message}</div>;
-  }
-
-  if (!budgets || budgets.data.length === 0) {
+  if (!budgets.data.length) {
     return (
       <div className="bg-muted/10 flex flex-col items-center justify-center rounded-lg border p-8">
         <h3 className="mb-2 text-xl font-medium">No budgets found</h3>

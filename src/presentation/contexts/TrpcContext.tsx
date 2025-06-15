@@ -2,19 +2,21 @@ import { env } from "@/config/env";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { useState } from "react";
+import superjson from "superjson";
 import { trpc } from "../trpc/client";
+import { makeQueryClient } from "../trpc/queryClient";
+
+let clientQueryClientSingleton: QueryClient;
+function getQueryClient() {
+  if (typeof window === "undefined") {
+    return makeQueryClient();
+  }
+  return (clientQueryClientSingleton ??= makeQueryClient());
+}
 
 export const TrpcProvider = ({ children }: { children: React.ReactNode }) => {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          mutations: {
-            retry: false,
-          },
-        },
-      })
-  );
+  const queryClient = getQueryClient();
+
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [
@@ -26,6 +28,7 @@ export const TrpcProvider = ({ children }: { children: React.ReactNode }) => {
               credentials: "include",
             });
           },
+          transformer: superjson,
         }),
       ],
     })

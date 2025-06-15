@@ -8,17 +8,10 @@ import {
   CardTitle,
 } from "@/presentation/components/ui/card";
 import { Separator } from "@/presentation/components/ui/separator";
-import { useIncomesSummary } from "@/presentation/hooks/useIncomes";
-import { EarningsSummaryCardSkeleton } from "./IncomesSkeleton";
+import { trpc } from "@/presentation/trpc/client";
 
 export function EarningsSummaryCard() {
-  const { data: incomesSummary, isLoading, isError } = useIncomesSummary();
-
-  if (isLoading) return <EarningsSummaryCardSkeleton />;
-
-  if (isError) return <div>Error loading incomes summary</div>;
-
-  if (!incomesSummary) return <div>No incomes summary</div>;
+  const [incomesSummary] = trpc.getIncomesSummary.useSuspenseQuery();
 
   return (
     <Card>

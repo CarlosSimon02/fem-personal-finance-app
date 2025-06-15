@@ -1,10 +1,9 @@
 "use client";
 
-import { useIncomesWithTransactions } from "@/presentation/hooks/useIncomes";
+import { trpc } from "@/presentation/trpc/client";
 import Link from "next/link";
 import { Pagination } from "../../transactions/_components/TransactionsTable/Pagination";
 import { IncomeCard } from "./IncomeCard";
-import { IncomeCardsGridSkeleton } from "./IncomesSkeleton";
 
 interface IncomeCardsGridProps {
   page: number;
@@ -12,25 +11,20 @@ interface IncomeCardsGridProps {
 }
 
 export function IncomeCardsGrid({ page, pageSize }: IncomeCardsGridProps) {
-  const {
-    data: incomes,
-    isPending,
-    error,
-    isError,
-  } = useIncomesWithTransactions({
-    page,
-    pageSize,
+  const [incomes] = trpc.getPaginatedIncomesWithTransactions.useSuspenseQuery({
+    pagination: {
+      page,
+      limitPerPage: pageSize,
+    },
+    sort: {
+      field: "createdAt",
+      order: "desc",
+    },
+    filters: [],
+    search: "",
   });
 
-  if (isPending) {
-    return <IncomeCardsGridSkeleton />;
-  }
-
-  if (isError) {
-    return <div>Error: {error?.message}</div>;
-  }
-
-  if (!incomes || incomes.data.length === 0) {
+  if (!incomes.data.length) {
     return (
       <div className="bg-muted/10 flex flex-col items-center justify-center rounded-lg border p-8">
         <h3 className="mb-2 text-xl font-medium">No incomes found</h3>

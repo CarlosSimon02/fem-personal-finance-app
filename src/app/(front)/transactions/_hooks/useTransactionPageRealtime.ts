@@ -7,10 +7,8 @@ import {
   revalidateTransactionTag,
 } from "@/presentation/actions/transactionActions";
 import { useAuth } from "@/presentation/contexts/AuthContext";
-import {
-  useTransactions,
-  UseTransactionsParams,
-} from "@/presentation/hooks/useTransactions";
+import { UseTransactionsParams } from "@/presentation/hooks/useTransactions";
+import { trpc } from "@/presentation/trpc/client";
 import { useEffect } from "react";
 import { useFilterByCategory } from "../_stores/useFilterByCategory";
 
@@ -26,13 +24,19 @@ export const useTransactionPageRealtime = ({
   const { setCacheUniq } = useFilterByCategory();
 
   // Get the standard query result
-  const transactionsQuery = useTransactions({
+  const transactionsQuery = trpc.getPaginatedTransactions.useQuery({
     search,
-    category,
-    sortBy,
-    order,
-    page,
-    pageSize,
+    filters: category
+      ? [{ field: "category.name", operator: "==", value: category }]
+      : [],
+    sort: {
+      field: sortBy,
+      order: order as "asc" | "desc",
+    },
+    pagination: {
+      page,
+      limitPerPage: pageSize,
+    },
   });
 
   useEffect(() => {

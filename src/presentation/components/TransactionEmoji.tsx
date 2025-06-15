@@ -1,3 +1,5 @@
+"use client";
+
 type TransactionEmojiProps = {
   emoji: string;
 };

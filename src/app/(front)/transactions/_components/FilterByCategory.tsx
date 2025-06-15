@@ -1,6 +1,6 @@
 "use client";
 
-import { getPaginatedCategoriesAction } from "@/presentation/actions/transactionActions";
+import { trpc } from "@/presentation/trpc/client";
 import { useCallback } from "react";
 import { GroupBase, OptionsOrGroups } from "react-select";
 import { AsyncPaginate } from "react-select-async-paginate";
@@ -18,6 +18,8 @@ type FilterByCategoryProps = {
 
 const FilterByCategory = ({ value, onChange }: FilterByCategoryProps) => {
   const { cacheUniq } = useFilterByCategory();
+  const trpcUtils = trpc.useUtils();
+
   const loadOptions = useCallback(
     async (
       search: string,
@@ -25,43 +27,46 @@ const FilterByCategory = ({ value, onChange }: FilterByCategoryProps) => {
     ) => {
       const limitPerPage = 10;
       const page = Math.floor(prevOptions.length / limitPerPage) + 1;
-      const response = await getPaginatedCategoriesAction({
-        sort: {
-          field: "createdAt",
-          order: "desc",
-        },
-        pagination: {
-          page,
-          limitPerPage,
-        },
-        filters: [],
-        search,
-      });
 
-      if (response.error) {
-        throw new Error(`Error fetching categories: ${response.error}`);
-      }
-
-      const options = response.data
-        ? response.data.data.map((item) => ({
-            value: item.name,
-            label: item.name,
-          }))
-        : [];
-
-      if (page === 1) {
-        options.unshift({
-          value: "All Transactions",
-          label: "All Transactions",
+      try {
+        const response = await trpcUtils.client.getPaginatedCategories.query({
+          sort: {
+            field: "createdAt",
+            order: "desc",
+          },
+          pagination: {
+            page,
+            limitPerPage,
+          },
+          filters: [],
+          search,
         });
-      }
 
-      return {
-        options,
-        hasMore: response.data?.meta.pagination.nextPage !== null,
-      };
+        const options = response.data
+          ? response.data.map((item) => ({
+              value: item.name,
+              label: item.name,
+            }))
+          : [];
+
+        if (page === 1) {
+          options.unshift({
+            value: "All Transactions",
+            label: "All Transactions",
+          });
+        }
+
+        return {
+          options,
+          hasMore: response.meta?.pagination.nextPage !== null,
+        };
+      } catch (error) {
+        throw new Error(
+          `Error fetching categories: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
     },
-    []
+    [trpcUtils]
   );
 
   return (

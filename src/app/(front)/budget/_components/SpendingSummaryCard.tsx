@@ -8,17 +8,10 @@ import {
   CardTitle,
 } from "@/presentation/components/ui/card";
 import { Separator } from "@/presentation/components/ui/separator";
-import { useBudgetsSummary } from "@/presentation/hooks/useBudgets";
-import { SpendingSummaryCardSkeleton } from "./BudgetsSkeleton";
+import { trpc } from "@/presentation/trpc/client";
 
 export function SpendingSummaryCard() {
-  const { data: budgetsSummary, isLoading, isError } = useBudgetsSummary();
-
-  if (isLoading) return <SpendingSummaryCardSkeleton />;
-
-  if (isError) return <div>Error loading budgets summary</div>;
-
-  if (!budgetsSummary) return <div>No budgets summary</div>;
+  const [budgetsSummary] = trpc.getBudgetsSummary.useSuspenseQuery();
 
   return (
     <Card>

@@ -1,13 +1,5 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import {
-  getBudgetsSummaryAction,
-  getPaginatedBudgetsWithTransactionsAction,
-} from "@/presentation/actions/budgetActions";
-import {
-  dehydrate,
-  HydrationBoundary,
-  QueryClient,
-} from "@tanstack/react-query";
+import { HydrateClient, trpc } from "@/presentation/trpc/server";
 import BudgetContainer from "./_components/BudgetContainer";
 import CreateBudgetDialog from "./_components/CreateBudgetDialog";
 
@@ -18,8 +10,6 @@ type BudgetsPageProps = {
 };
 
 export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
-  const queryClient = new QueryClient();
-
   const paramsResult = await searchParams;
   const page = Number.parseInt(paramsResult.page || "1", 10);
 
@@ -36,31 +26,11 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
     },
   };
 
-  Promise.all([
-    await queryClient.prefetchQuery({
-      queryKey: ["budgets", params],
-      queryFn: async () => {
-        const result = await getPaginatedBudgetsWithTransactionsAction(params);
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        return result.data;
-      },
-    }),
-    await queryClient.prefetchQuery({
-      queryKey: ["summary"],
-      queryFn: async () => {
-        const result = await getBudgetsSummaryAction(undefined);
-        if (result.error) {
-          throw new Error(result.error);
-        }
-        return result.data;
-      },
-    }),
-  ]);
+  trpc.getPaginatedBudgetsWithTransactions.prefetch(params);
+  trpc.getBudgetsSummary.prefetch();
 
   return (
-    <HydrationBoundary state={dehydrate(queryClient)}>
+    <HydrateClient>
       <div className="container space-y-6 py-6">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <h1 className="text-3xl font-bold">Budgets</h1>
@@ -69,6 +39,6 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
 
         <BudgetContainer />
       </div>
-    </HydrationBoundary>
+    </HydrateClient>
   );
 }

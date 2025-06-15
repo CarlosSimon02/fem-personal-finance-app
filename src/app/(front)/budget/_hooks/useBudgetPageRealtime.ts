@@ -4,11 +4,8 @@ import {
 } from "@/factories/realtime";
 import { revalidateBudgetTags } from "@/presentation/actions/budgetActions";
 import { useAuth } from "@/presentation/contexts/AuthContext";
-import {
-  useBudgetsSummary,
-  useBudgetsWithTransactions,
-  UseBudgetsWithTransactionsParams,
-} from "@/presentation/hooks/useBudgets";
+import { UseBudgetsWithTransactionsParams } from "@/presentation/hooks/useBudgets";
+import { trpc } from "@/presentation/trpc/client";
 import { useEffect } from "react";
 
 export const useBudgetPageRealtime = ({
@@ -19,14 +16,20 @@ export const useBudgetPageRealtime = ({
 }: UseBudgetsWithTransactionsParams) => {
   const { user } = useAuth();
 
-  const budgetQuery = useBudgetsWithTransactions({
-    sortBy,
-    order,
-    page,
-    pageSize,
+  const budgetQuery = trpc.getPaginatedBudgetsWithTransactions.useQuery({
+    pagination: {
+      page,
+      limitPerPage: pageSize,
+    },
+    sort: {
+      field: sortBy,
+      order: order as "asc" | "desc",
+    },
+    filters: [],
+    search: "",
   });
 
-  const budgetSummaryQuery = useBudgetsSummary();
+  const budgetSummaryQuery = trpc.getBudgetsSummary.useQuery();
 
   useEffect(() => {
     if (!user) return;
