@@ -20,6 +20,12 @@ export const TrpcProvider = ({ children }: { children: React.ReactNode }) => {
       links: [
         httpBatchLink({
           url: `${env.NEXT_PUBLIC_SITE_URL}/api/trpc`,
+          fetch: (url, options) => {
+            return fetch(url, {
+              ...options,
+              credentials: "include",
+            });
+          },
         }),
       ],
     })
