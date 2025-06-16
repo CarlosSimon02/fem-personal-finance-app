@@ -3,15 +3,18 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
 import {
   CreatePotDto,
+  MoneyOperationInput,
   PaginatedPotsResponseDto,
   PotDto,
   UpdatePotDto,
 } from "@/core/schemas/potSchema";
 import {
+  addMoneyToPotUseCase,
   createPotUseCase,
   deletePotUseCase,
   getPaginatedPotsUseCase,
   updatePotUseCase,
+  withdrawMoneyFromPotUseCase,
 } from "@/factories/pot";
 import { actionWithAuth } from "@/utils/actionWithAuth";
 import { cacheTags } from "@/utils/cacheTags";
@@ -47,6 +50,30 @@ export const getPaginatedPotsAction = actionWithAuth<
   cacheTag(cacheTags.PAGINATED_POTS);
 
   const response = await getPaginatedPotsUseCase.execute(user.id, data);
+  return { data: response, error: null };
+});
+
+export const addMoneyToPotAction = actionWithAuth<
+  { id: string; data: MoneyOperationInput },
+  PotDto
+>(async ({ user, data }) => {
+  const response = await addMoneyToPotUseCase.execute(
+    user.id,
+    data.id,
+    data.data
+  );
+  return { data: response, error: null };
+});
+
+export const withdrawMoneyFromPotAction = actionWithAuth<
+  { id: string; data: MoneyOperationInput },
+  PotDto
+>(async ({ user, data }) => {
+  const response = await withdrawMoneyFromPotUseCase.execute(
+    user.id,
+    data.id,
+    data.data
+  );
   return { data: response, error: null };
 });
 
