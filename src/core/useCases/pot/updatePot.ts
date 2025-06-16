@@ -1,21 +1,24 @@
-import { PotEntity } from "@/core/entities/PotEntity";
 import { IPotRepository } from "@/core/interfaces/IPotRepository";
-import { UpdatePotInput, updatePotSchema } from "@/core/schemas/potSchema";
+import { PotDto, UpdatePotDto } from "@/core/schemas/potSchema";
 
 export class UpdatePotUseCase {
-  constructor(private potRepository: IPotRepository) {}
+  constructor(private readonly potRepository: IPotRepository) {}
 
   async execute(
     userId: string,
     potId: string,
-    input: UpdatePotInput
-  ): Promise<PotEntity> {
-    if (!userId) throw new Error("User ID is required");
-    if (!potId) throw new Error("Pot ID is required");
+    input: UpdatePotDto
+  ): Promise<PotDto> {
+    if (input.name) {
+      const existingPot = await this.potRepository.getOneByName(
+        userId,
+        input.name
+      );
+      if (existingPot && existingPot.id !== potId) {
+        throw new Error(`Pot with name ${input.name} already exists`);
+      }
+    }
 
-    // Validate input
-    const validatedData = updatePotSchema.parse(input);
-
-    return this.potRepository.updatePot(userId, potId, validatedData);
+    return this.potRepository.updateOne(userId, potId, input);
   }
 }

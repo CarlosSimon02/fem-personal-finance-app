@@ -1,28 +1,29 @@
-import { PotEntity } from "@/core/entities/PotEntity";
+import { PaginationParams } from "../schemas/paginationSchema";
 import {
-  CreatePotInput,
-  MoneyOperationInput,
-  UpdatePotInput,
-} from "@/core/schemas/potSchema";
+  CreatePotDto,
+  PaginatedPotsResponseDto,
+  PotDto,
+  UpdatePotDto,
+} from "../schemas/potSchema";
 
 export interface IPotRepository {
-  createPot(input: CreatePotInput): Promise<PotEntity>;
-  getPot(userId: string, potId: string): Promise<PotEntity>;
-  getAllPots(userId: string): Promise<PotEntity[]>;
-  updatePot(
+  createOne(userId: string, input: CreatePotDto): Promise<PotDto>;
+  getOneById(userId: string, potId: string): Promise<PotDto | null>;
+  getOneByName(userId: string, name: string): Promise<PotDto | null>;
+  getPaginated(
+    userId: string,
+    params: PaginationParams
+  ): Promise<PaginatedPotsResponseDto>;
+  updateOne(
     userId: string,
     potId: string,
-    input: UpdatePotInput
-  ): Promise<PotEntity>;
-  deletePot(userId: string, potId: string): Promise<void>;
-  addMoneyToPot(
+    input: UpdatePotDto
+  ): Promise<PotDto>;
+  deleteOne(userId: string, potId: string): Promise<void>;
+  addToTotalSaved(
     userId: string,
     potId: string,
-    input: MoneyOperationInput
-  ): Promise<PotEntity>;
-  withdrawMoneyFromPot(
-    userId: string,
-    potId: string,
-    input: MoneyOperationInput
-  ): Promise<PotEntity>;
+    amount: number
+  ): Promise<PotDto>;
+  withdrawMoney(userId: string, potId: string, amount: number): Promise<PotDto>;
 }

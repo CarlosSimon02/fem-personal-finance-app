@@ -1,13 +1,10 @@
-import { PotEntity } from "@/core/entities/PotEntity";
 import { IPotRepository } from "@/core/interfaces/IPotRepository";
+import { PotDto } from "@/core/schemas/potSchema";
 
 export class GetPotUseCase {
-  constructor(private potRepository: IPotRepository) {}
+  constructor(private readonly potRepository: IPotRepository) {}
 
-  async execute(userId: string, potId: string): Promise<PotEntity> {
-    if (!userId) throw new Error("User ID is required");
-    if (!potId) throw new Error("Pot ID is required");
-
-    return this.potRepository.getPot(userId, potId);
+  async execute(userId: string, potId: string): Promise<PotDto | null> {
+    return this.potRepository.getOneById(userId, potId);
   }
 }

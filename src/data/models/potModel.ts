@@ -1,27 +1,50 @@
-import { Timestamp } from "firebase-admin/firestore";
+import { createPaginationResponseSchema } from "@/core/schemas/paginationSchema";
+import { moneyOperationSchema, potSchema } from "@/core/schemas/potSchema";
+import { z } from "zod";
+import { zFieldValue, zTimestamp } from "./helpers";
 
-export type PotModel = {
-  id: string;
-  name: string;
-  target: number | null;
-  theme: string;
-  totalSaved: number;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  userId: string;
-};
+export const potModelSchema = potSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zTimestamp,
+    updatedAt: zTimestamp,
+  });
 
-export type CreatePotModel = Omit<
-  PotModel,
-  "id" | "createdAt" | "updatedAt" | "totalSaved"
-> & {
-  totalSaved?: number;
-};
+export const createPotModelSchema = potModelSchema
+  .omit({
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    createdAt: zFieldValue,
+    updatedAt: zFieldValue,
+  });
 
-export type UpdatePotModel = Partial<
-  Omit<PotModel, "id" | "createdAt" | "updatedAt" | "userId" | "totalSaved">
+export const updatePotModelSchema = potModelSchema
+  .omit({
+    totalSaved: true,
+    createdAt: true,
+    updatedAt: true,
+  })
+  .extend({
+    updatedAt: zFieldValue,
+    createdAt: zFieldValue,
+  })
+  .partial();
+
+export const potModelPaginationResponseSchema =
+  createPaginationResponseSchema(potModelSchema);
+
+export type PotModel = z.infer<typeof potModelSchema>;
+
+export type PotModelPaginationResponse = z.infer<
+  typeof potModelPaginationResponseSchema
 >;
 
-export type MoneyOperationModel = {
-  amount: number;
-};
+export type CreatePotModel = z.infer<typeof createPotModelSchema>;
+export type UpdatePotModel = z.infer<typeof updatePotModelSchema>;
+
+export type MoneyOperationModel = z.infer<typeof moneyOperationSchema>;

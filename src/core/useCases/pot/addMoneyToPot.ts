@@ -1,24 +1,32 @@
-import { PotEntity } from "@/core/entities/PotEntity";
 import { IPotRepository } from "@/core/interfaces/IPotRepository";
 import {
   MoneyOperationInput,
   moneyOperationSchema,
+  PotDto,
 } from "@/core/schemas/potSchema";
 
 export class AddMoneyToPotUseCase {
-  constructor(private potRepository: IPotRepository) {}
+  constructor(private readonly potRepository: IPotRepository) {}
 
   async execute(
     userId: string,
     potId: string,
     input: MoneyOperationInput
-  ): Promise<PotEntity> {
-    if (!userId) throw new Error("User ID is required");
-    if (!potId) throw new Error("Pot ID is required");
-
+  ): Promise<PotDto> {
     // Validate input
     const validatedData = moneyOperationSchema.parse(input);
 
-    return this.potRepository.addMoneyToPot(userId, potId, validatedData);
+    // Check if pot exists
+    const pot = await this.potRepository.getOneById(userId, potId);
+    if (!pot) {
+      throw new Error("Pot not found");
+    }
+
+    // Add to total saved
+    return this.potRepository.addToTotalSaved(
+      userId,
+      potId,
+      validatedData.amount
+    );
   }
 }

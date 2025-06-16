@@ -4,7 +4,8 @@ export type CollectionName =
   | "budgets"
   | "incomes"
   | "transactions"
-  | "categories";
+  | "categories"
+  | "pots";
 
 export class CollectionService {
   getUserCollection() {
@@ -29,5 +30,9 @@ export class CollectionService {
 
   getCategoryCollection(userId: string) {
     return this.getCollection(userId, "categories");
+  }
+
+  getPotCollection(userId: string) {
+    return this.getCollection(userId, "pots");
   }
 }

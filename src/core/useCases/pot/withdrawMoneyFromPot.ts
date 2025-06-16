@@ -1,28 +1,36 @@
-import { PotEntity } from "@/core/entities/PotEntity";
 import { IPotRepository } from "@/core/interfaces/IPotRepository";
 import {
   MoneyOperationInput,
   moneyOperationSchema,
+  PotDto,
 } from "@/core/schemas/potSchema";
 
 export class WithdrawMoneyFromPotUseCase {
-  constructor(private potRepository: IPotRepository) {}
+  constructor(private readonly potRepository: IPotRepository) {}
 
   async execute(
     userId: string,
     potId: string,
     input: MoneyOperationInput
-  ): Promise<PotEntity> {
-    if (!userId) throw new Error("User ID is required");
-    if (!potId) throw new Error("Pot ID is required");
-
+  ): Promise<PotDto> {
     // Validate input
     const validatedData = moneyOperationSchema.parse(input);
 
-    return this.potRepository.withdrawMoneyFromPot(
+    // Check if pot exists and has enough money
+    const pot = await this.potRepository.getOneById(userId, potId);
+    if (!pot) {
+      throw new Error("Pot not found");
+    }
+
+    if (pot.totalSaved < validatedData.amount) {
+      throw new Error("Insufficient funds in pot");
+    }
+
+    // Subtract from total saved
+    return this.potRepository.withdrawMoney(
       userId,
       potId,
-      validatedData
+      validatedData.amount
     );
   }
 }

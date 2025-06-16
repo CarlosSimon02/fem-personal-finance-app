@@ -1,14 +1,18 @@
-import { PotEntity } from "@/core/entities/PotEntity";
 import { IPotRepository } from "@/core/interfaces/IPotRepository";
-import { CreatePotInput, createPotSchema } from "@/core/schemas/potSchema";
+import { CreatePotDto, PotDto } from "@/core/schemas/potSchema";
 
 export class CreatePotUseCase {
-  constructor(private potRepository: IPotRepository) {}
+  constructor(private readonly potRepository: IPotRepository) {}
 
-  async execute(input: CreatePotInput): Promise<PotEntity> {
-    // Validate input
-    const validatedData = createPotSchema.parse(input);
+  async execute(userId: string, input: CreatePotDto): Promise<PotDto> {
+    const existingPot = await this.potRepository.getOneByName(
+      userId,
+      input.name
+    );
+    if (existingPot) {
+      throw new Error(`Pot with name ${input.name} already exists`);
+    }
 
-    return this.potRepository.createPot(validatedData);
+    return this.potRepository.createOne(userId, input);
   }
 }

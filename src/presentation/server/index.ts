@@ -9,6 +9,7 @@ import {
   getPaginatedIncomesUseCase,
   getPaginatedIncomesWithTransactionsUseCase,
 } from "@/factories/income";
+import { getPaginatedPotsUseCase } from "@/factories/pot";
 import {
   getPaginatedCategoriesUseCase,
   getPaginatedTransactionsUseCase,
@@ -104,6 +105,16 @@ export const appRouter = router({
         user.id,
         input
       );
+      return response;
+    }),
+  getPaginatedPots: protectedProcedure
+    .input(paginationParamsSchema)
+    .query(async ({ ctx, input }) => {
+      "use cache";
+      cacheTag(cacheTags.PAGINATED_POTS);
+
+      const { user } = ctx;
+      const response = await getPaginatedPotsUseCase.execute(user.id, input);
       return response;
     }),
 });
