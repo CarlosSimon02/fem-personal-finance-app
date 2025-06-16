@@ -1,7 +1,6 @@
 import { PaginationParams } from "@/core/schemas/paginationSchema";
-import { Button } from "@/presentation/components/ui/button";
 import { HydrateClient, trpc } from "@/presentation/trpc/server";
-import { PlusCircle } from "lucide-react";
+import CreatePotDialog from "./_components/CreatePotDialog";
 import PotContainer from "./_components/PotContainer";
 
 export default async function PotsPage({
@@ -34,10 +33,7 @@ export default async function PotsPage({
       <div className="container space-y-6 py-6">
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
           <h1 className="text-3xl font-bold">Pots</h1>
-          <Button className="flex items-center gap-2">
-            <PlusCircle className="h-4 w-4" />
-            Add New Pot
-          </Button>
+          <CreatePotDialog />
         </div>
 
         <PotContainer />

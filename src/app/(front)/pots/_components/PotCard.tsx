@@ -1,17 +1,12 @@
 import { PotDto } from "@/core/schemas/potSchema";
+import MoneyOperationDialog from "@/presentation/components/dialogs/MoneyOperationDialog";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
 } from "@/presentation/components/ui/card";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/presentation/components/ui/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import PotCardActions from "./PotCardActions";
 
 interface PotCardProps {
   pot: PotDto;
@@ -33,18 +28,7 @@ export function PotCard({ pot }: PotCardProps) {
           />
           <h3 className="font-medium">{pot.name}</h3>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <MoreHorizontal className="h-4 w-4" />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem>Edit pot</DropdownMenuItem>
-            <DropdownMenuItem>Delete pot</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <PotCardActions pot={pot} />
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
@@ -73,12 +57,16 @@ export function PotCard({ pot }: PotCardProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Button variant="outline" className="w-full">
-            Add Money
-          </Button>
-          <Button variant="outline" className="w-full">
-            Withdraw
-          </Button>
+          <MoneyOperationDialog pot={pot} operation="add">
+            <Button variant="outline" className="w-full">
+              Add Money
+            </Button>
+          </MoneyOperationDialog>
+          <MoneyOperationDialog pot={pot} operation="withdraw">
+            <Button variant="outline" className="w-full">
+              Withdraw
+            </Button>
+          </MoneyOperationDialog>
         </div>
       </CardContent>
     </Card>
