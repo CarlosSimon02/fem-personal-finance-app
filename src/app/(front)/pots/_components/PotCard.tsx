@@ -1,3 +1,4 @@
+import { PotDto } from "@/core/schemas/potSchema";
 import { Button } from "@/presentation/components/ui/button";
 import {
   Card,
@@ -11,16 +12,15 @@ import {
   DropdownMenuTrigger,
 } from "@/presentation/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
-import { Pot } from "../../overview/_data";
 
 interface PotCardProps {
-  pot: Pot;
+  pot: PotDto;
 }
 
 export function PotCard({ pot }: PotCardProps) {
   // Calculate percentage of target reached
   const targetAmount = pot.target || 100000; // Default target if not specified
-  const percentSaved = (pot.saved / targetAmount) * 100;
+  const percentSaved = (pot.totalSaved / targetAmount) * 100;
   const formattedPercentage = percentSaved.toFixed(1);
 
   return (
@@ -29,7 +29,7 @@ export function PotCard({ pot }: PotCardProps) {
         <div className="flex items-center gap-2">
           <div
             className="h-4 w-4 rounded-full"
-            style={{ backgroundColor: pot.color }}
+            style={{ backgroundColor: pot.colorTag }}
           />
           <h3 className="font-medium">{pot.name}</h3>
         </div>
@@ -49,7 +49,9 @@ export function PotCard({ pot }: PotCardProps) {
       <CardContent className="space-y-6">
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground text-sm">Total Saved</p>
-          <p className="text-2xl font-bold">₱{pot.saved.toLocaleString()}</p>
+          <p className="text-2xl font-bold">
+            ₱{pot.totalSaved.toLocaleString()}
+          </p>
         </div>
 
         <div className="space-y-2">
@@ -58,7 +60,7 @@ export function PotCard({ pot }: PotCardProps) {
               className="h-2 rounded-full"
               style={{
                 width: `${Math.min(100, percentSaved)}%`,
-                backgroundColor: pot.color,
+                backgroundColor: pot.colorTag,
               }}
             />
           </div>

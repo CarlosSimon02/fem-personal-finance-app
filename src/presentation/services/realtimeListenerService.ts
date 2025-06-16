@@ -14,7 +14,12 @@ import {
   where,
 } from "firebase/firestore";
 
-export type EntityType = "transactions" | "budgets" | "incomes" | "categories";
+export type EntityType =
+  | "transactions"
+  | "budgets"
+  | "incomes"
+  | "categories"
+  | "pots";
 
 export interface RealtimeListenerConfig<T = unknown> {
   userId: string;
