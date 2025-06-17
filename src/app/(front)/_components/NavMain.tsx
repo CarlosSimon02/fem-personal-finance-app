@@ -47,8 +47,8 @@ const navMain = [
     icon: PiggyBankIcon,
   },
   {
-    title: "Recurring Bills",
-    url: "/recurring-bills",
+    title: "Recurring Cash Flow",
+    url: "/recurring-cash-flow",
     icon: ReceiptTextIcon,
   },
 ];
