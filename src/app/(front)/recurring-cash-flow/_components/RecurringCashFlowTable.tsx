@@ -20,8 +20,6 @@ import {
   Pause,
   Play,
   Trash2,
-  TrendingDown,
-  TrendingUp,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -236,9 +234,6 @@ const RecurringCashFlowTable = ({
                   Name
                 </th>
                 <th className="text-muted-foreground h-12 px-4 text-left align-middle font-medium">
-                  Type
-                </th>
-                <th className="text-muted-foreground h-12 px-4 text-left align-middle font-medium">
                   Amount
                 </th>
                 <th className="text-muted-foreground h-12 px-4 text-left align-middle font-medium">
@@ -264,19 +259,6 @@ const RecurringCashFlowTable = ({
                       <span className="text-xl">{flow.emoji}</span>
                       <span className="font-medium">{flow.name}</span>
                     </div>
-                  </td>
-                  <td className="h-16 px-4 align-middle">
-                    <Badge
-                      variant={flow.type === "income" ? "default" : "secondary"}
-                      className="flex w-fit items-center gap-1"
-                    >
-                      {flow.type === "income" ? (
-                        <TrendingUp className="h-3 w-3" />
-                      ) : (
-                        <TrendingDown className="h-3 w-3" />
-                      )}
-                      {flow.type === "income" ? "Income" : "Expense"}
-                    </Badge>
                   </td>
                   <td className="h-16 px-4 align-middle">
                     <span
@@ -367,14 +349,6 @@ const RecurringCashFlowTable = ({
                   <div className="flex-1">
                     <h4 className="font-medium">{flow.name}</h4>
                     <div className="mt-1 flex items-center gap-2">
-                      <Badge
-                        variant={
-                          flow.type === "income" ? "default" : "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {flow.type === "income" ? "Income" : "Expense"}
-                      </Badge>
                       <Badge
                         variant={
                           flow.status === "active" ? "default" : "secondary"

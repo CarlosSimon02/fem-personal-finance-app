@@ -4,7 +4,6 @@ import { Suspense } from "react";
 import { useRecurringCashFlowPageParams } from "../_hooks/useRecurringCashFlowPageParams";
 import RecurringCashFlowSearchFilterBar from "./RecurringCashFlowSearchFilterBar";
 import RecurringCashFlowSkeleton from "./RecurringCashFlowSkeleton";
-import RecurringCashFlowSummaryCard from "./RecurringCashFlowSummaryCard";
 import RecurringCashFlowTable from "./RecurringCashFlowTable";
 
 const RecurringCashFlowContainer = () => {
@@ -12,12 +11,7 @@ const RecurringCashFlowContainer = () => {
     useRecurringCashFlowPageParams();
 
   return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      {/* Left Side - Summary */}
-      <div className="lg:sticky lg:top-6 lg:col-span-1">
-        <RecurringCashFlowSummaryCard />
-      </div>
-
+    <div>
       {/* Right Side - Search & Table */}
       <div className="space-y-6 lg:col-span-2">
         <RecurringCashFlowSearchFilterBar
